@@ -1,5 +1,5 @@
 export enum AdminSessionStorage {
-  gameCreator = "game-creator",
-  roundCreator = "round-creator",
-  questionCreator = "question-creator",
+  gameCreator = "GAME_CREATOR",
+  roundCreator = "ROUND_CREATOR",
+  questionCreator = "QUESTION_CREATOR",
 }

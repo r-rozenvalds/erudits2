@@ -1,4 +1,4 @@
-import InputMessage from "./components/ui/InputMessage";
+import { InputMessage } from "./components/ui/InputMessage";
 import InstanceCard from "./components/ui/InstanceCard";
 
 function App() {

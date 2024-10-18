@@ -28,7 +28,7 @@ const router = createBrowserRouter([
     element: <AdminGames />,
   },
   {
-    path: "admin/games/:gameId/create",
+    path: "admin/games/create",
     element: <AdminGameCreator />,
   },
   {

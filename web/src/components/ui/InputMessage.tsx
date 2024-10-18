@@ -1,12 +1,57 @@
-const InputError = ({error, message} : {error:boolean, message:string}) => {
-    return (
+import { localization } from "../../localization";
 
-        <div className='flex gap-3 place-items-center'>
-            <i className={`fa-solid ${error ? 'text-rose-500 fa-xmark' : 'text-emerald-500 fa-check'} text-2xl drop-shadow-lg`}></i>
-            <p className={`text-xl font-semibold ${error ? 'text-rose-500' : 'text-emerald-500'} drop-shadow-lg`}>{message}</p>
-        </div>
-
-    );
+interface Props {
+  error: boolean;
+  message: any;
 }
 
-export default InputError;
+export const InputMessage = (props: Props) => {
+  const localizeError = (message: any) => {
+    const enErrors = localization.en.errors;
+    const lvErrors = localization.lv.errors;
+
+    const errorKey = (Object.keys(enErrors) as (keyof typeof enErrors)[]).find(
+      (key) => enErrors[key] === message[0]
+    );
+
+    if (errorKey && lvErrors[errorKey]) {
+      return lvErrors[errorKey];
+    }
+
+    return message;
+  };
+
+  const localizeSuccess = (message: any) => {
+    const enSuccess = localization.en.success;
+    const lvSuccess = localization.lv.success;
+
+    const successKey = (
+      Object.keys(enSuccess) as (keyof typeof enSuccess)[]
+    ).find((key) => enSuccess[key] === message[0]);
+
+    if (successKey && lvSuccess[successKey]) {
+      return lvSuccess[successKey];
+    }
+
+    return message;
+  };
+
+  return (
+    <div className="flex gap-2 place-items-center">
+      <i
+        className={`fa-solid ${
+          props.error ? "text-rose-500 fa-xmark" : "text-emerald-500 fa-check"
+        } text-2xl drop-shadow-lg`}
+      ></i>
+      <p
+        className={`text-lg font-semibold ${
+          props.error ? "text-rose-500" : "text-emerald-500"
+        } drop-shadow-lg`}
+      >
+        {props.error
+          ? localizeError(props.message)
+          : localizeSuccess(props.message)}
+      </p>
+    </div>
+  );
+};

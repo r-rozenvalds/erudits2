@@ -1,4 +1,4 @@
 export interface CreateGameFormValues {
-  name: string;
+  title: string;
   description: string;
 }

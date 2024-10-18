@@ -1,4 +1,4 @@
-import { AnswerType } from "../AnswerType";
+import { AnswerType } from "../../universal/AnswerType";
 
 export interface CreateQuestionFormValues {
   question: string;

@@ -4,4 +4,5 @@ export interface CreateRoundFormValues {
   answer_time: number;
   points: number;
   is_additional: boolean;
+  game_id: number;
 }

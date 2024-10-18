@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { InputMessage } from "./components/ui/InputMessage";
 import InstanceCard from "./components/ui/InstanceCard";
 
 function App() {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-[#31587A] to-[#3C3266]">
       <form className="flex flex-col w-screen h-screen">
@@ -52,12 +54,12 @@ function App() {
       </div>
       <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-between">
         <p className="text-white font-semibold">Veidoja: Roberts R.; 2024</p>
-        <a
-          href="/admin/login"
+        <button
+          onClick={() => navigate("/admin/login")}
           className="w-24 py-1 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"
         >
           <span className="text-center h-8">Admin</span>
-        </a>
+        </button>
       </div>
     </div>
   );

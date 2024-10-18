@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../enum/AdminSessionStorage";
 import { CreateQuestionFormValues } from "../interface/CreateQuestionFormValues";
-import useDebounce from "../useDebounce";
+import useDebounce from "../../universal/useDebounce";
 import { GroupMinimap } from "../ui/minimap/GroupMinimap";
 import { QuestionMinimap } from "../ui/minimap/QuestionMinimap";
 import CreateQuestionModel from "../models/CreateQuestionModel";
 import { Answer } from "../ui/Answer";
+import { useNavigate } from "react-router-dom";
 
 export const GameCreatorQuestion = () => {
   const [question, setQuestion] = useState(CreateQuestionModel.question);
@@ -21,10 +22,12 @@ export const GameCreatorQuestion = () => {
 
   let formValues: CreateQuestionFormValues = CreateQuestionModel;
 
-  const debounceQuestion = useDebounce(question, 1000);
-  const debounceIsOpenAnswer = useDebounce(isOpenAnswer, 1000);
-  const debounceAnswers = useDebounce(answers, 1000);
-  const debounceOpenAnswers = useDebounce(openAnswers, 1000);
+  const debounceQuestion = useDebounce(question, 300);
+  const debounceIsOpenAnswer = useDebounce(isOpenAnswer, 300);
+  const debounceAnswers = useDebounce(answers, 300);
+  const debounceOpenAnswers = useDebounce(openAnswers, 300);
+
+  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     sessionStorage.setItem(
@@ -75,7 +78,6 @@ export const GameCreatorQuestion = () => {
     setIsOpenAnswer(formValues.is_open_answer);
     setAnswers(formValues.answers);
     setOpenAnswers(formValues.open_answers);
-    console.log("initial", formValues);
 
     setIsLoaded(true);
   }, []);
@@ -94,9 +96,9 @@ export const GameCreatorQuestion = () => {
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
       <div className="flex w-full p-4 rounded-md font-[Manrope] gap-4 bg-white place-items-center">
-        <a href="/admin/games" className="text-lg">
+        <button onClick={() => navigate("/admin/games")} className="text-lg">
           Spēļu saraksts
-        </a>
+        </button>
         <i className="fa-solid fa-chevron-right"></i>
         <a className="text-lg">Spēles izveide</a>
         <i className="fa-solid fa-chevron-right"></i>

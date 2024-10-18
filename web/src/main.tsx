@@ -28,15 +28,15 @@ const router = createBrowserRouter([
     element: <AdminGames />,
   },
   {
-    path: "admin/games/create",
+    path: "admin/games/creator/:gameId",
     element: <AdminGameCreator />,
   },
   {
-    path: "admin/games/:gameId/round/:roundId",
+    path: "admin/games/creator/:gameId/round/:roundId",
     element: <GameCreatorQuestionRound />,
   },
   {
-    path: "admin/games/:gameId/round/:roundId/question/:questionId",
+    path: "admin/games/creator/:gameId/round/:roundId/question/:questionId",
     element: <GameCreatorQuestion />,
   },
 ]);

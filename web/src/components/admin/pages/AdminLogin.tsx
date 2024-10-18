@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { InputMessage } from "../../ui/InputMessage";
 import { constants } from "../../../constants";
 import { getCurrentUser } from "../../universal/functions";
+import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -9,11 +10,13 @@ const AdminLogin = () => {
   const [error, setError] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const onFormSubmit = (e: { preventDefault: () => void }) => {
+  const navigate = useNavigate();
+
+  const onFormSubmit = async (e: { preventDefault: () => void }) => {
     setIsLoading(true);
     setError({});
     e.preventDefault();
-    fetch(`${constants.baseApiUrl}/auth/login`, {
+    await fetch(`${constants.baseApiUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,7 +27,7 @@ const AdminLogin = () => {
         const data = await response.json();
         if (response.ok) {
           sessionStorage.setItem(constants.sessionStorage.TOKEN, data.token);
-          window.location.assign("/admin/games");
+          navigate("/admin/games");
         } else {
           setError(data);
         }
@@ -38,7 +41,7 @@ const AdminLogin = () => {
   const redirectIfLoggedIn = async () => {
     console.log(await getCurrentUser());
     if (await getCurrentUser()) {
-      window.location.assign("/admin/games");
+      navigate("/admin/games");
     }
   };
 
@@ -89,12 +92,12 @@ const AdminLogin = () => {
           </div>
         </div>
         <hr className="border-dashed w-80" />
-        <a
-          href="/admin/register"
+        <button
+          onClick={() => navigate("/admin/register")}
           className="text-white text-lg place-self-center hover:underline"
         >
           Reģistrēt kontu
-        </a>
+        </button>
       </form>
     </div>
   );

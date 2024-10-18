@@ -6,6 +6,8 @@ interface Props {
 }
 
 export const InputMessage = (props: Props) => {
+  console.log(props.message);
+
   const localizeError = (message: any) => {
     const enErrors = localization.en.errors;
     const lvErrors = localization.lv.errors;

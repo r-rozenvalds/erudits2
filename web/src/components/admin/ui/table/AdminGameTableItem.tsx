@@ -1,18 +1,22 @@
 import { useState } from "react";
+import { Game } from "../../interface/Game";
+import { useNavigate } from "react-router-dom";
 
-export const AdminGameTableItem = () => {
+export const AdminGameTableItem = ({ game }: { game: Game }) => {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
+
   return (
-    <div className="flex flex-col font-[Manrope] bg-white rounded-md">
+    <li className="flex flex-col font-[Manrope] bg-white rounded-md">
       <div className="flex w-full ">
         <div
           onClick={() => (expanded ? setExpanded(false) : setExpanded(true))}
           className="rounded-s-md  p-2 px-8 grow hover:cursor-pointer"
         >
           <div className="flex gap-6">
-            <span className="w-80">Gudrs, vēl gudrāks</span>
+            <span className="w-80 font-semibold">{game.title}</span>
             <div className="w-[1px] bg-gray-400"></div>
-            <span>20/20/2024</span>
+            <span>{game.created_at.slice(0, 10)}</span>
           </div>
           <div></div>
         </div>
@@ -31,35 +35,35 @@ export const AdminGameTableItem = () => {
       </div>
       {expanded && (
         <div className="pb-6 px-8 pt-2 flex justify-between h-full">
-          <div className="flex flex-col gap-6">
-            <span>
-              This is a description. You may not like it but this is peak
-              description.
-            </span>
+          <div className="flex flex-col gap-4">
+            <span>{game.description}</span>
             <table className="text-center">
               <thead>
                 <tr>
-                  <th>Pēdējoreiz spēlēta</th>
-                  <th>Kārtas</th>
-                  <th>Jautājumi</th>
+                  <th className="pe-4">Pēdējoreiz spēlēta</th>
+                  <th className="pe-4">Kārtas</th>
+                  <th className="pe-4">Jautājumi</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>20/20/2024</td>
-                  <td>6</td>
-                  <td>28</td>
+                  <td className="pe-4">{game.updated_at.slice(0, 10)}</td>
+                  <td className="pe-4">6</td>
+                  <td className="pe-4">28</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div className="flex place-items-end">
-            <button className="hover:cursor-pointer group w-8 h-8">
+            <button
+              onClick={() => navigate(`creator/${game.id}`)}
+              className="hover:cursor-pointer group w-8 h-8"
+            >
               <i className="fa-solid fa-gear text-2xl text-gray-400 group-hover:text-black"></i>
             </button>
           </div>
         </div>
       )}
-    </div>
+    </li>
   );
 };

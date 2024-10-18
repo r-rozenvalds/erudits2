@@ -1,24 +1,20 @@
+import { useNavigate } from "react-router-dom";
 import { constants } from "../../../constants";
+import { AdminSessionStorage } from "../enum/AdminSessionStorage";
 import { AdminGameTable } from "../ui/table/AdminGameTable";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Game } from "../interface/Game";
 
 export const AdminGames = () => {
+  const [games, setGames] = useState<Game[]>();
+
+  const navigate = useNavigate();
   useEffect(() => {
-    fetch(`${constants.baseApiUrl}/users/me`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then(async (response) => {
-        alert("fetched");
-        console.log(await response.formData());
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    fetchGames();
   }, []);
 
-  const logOut = () => {
-    fetch(`${constants.baseApiUrl}/auth/logout`, {
+  const logout = async () => {
+    await fetch(`${constants.baseApiUrl}/auth/logout`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem(
@@ -28,7 +24,51 @@ export const AdminGames = () => {
     }).then(async (response) => {
       if (response.ok) {
         sessionStorage.removeItem(constants.sessionStorage.TOKEN);
-        window.location.assign("/");
+        navigate("/");
+      }
+    });
+  };
+
+  const createGame = async () => {
+    try {
+      const response = await fetch(`${constants.baseApiUrl}/games`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        sessionStorage.setItem(
+          AdminSessionStorage.gameCreator,
+          JSON.stringify({ title: data.title, description: data.description })
+        );
+        console.log("SessionStorage updated. Now navigating...");
+        console.log(data);
+        navigate(`creator/${data.id}`);
+      } else {
+        console.error("Failed to create game:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during game creation:", error);
+    }
+  };
+
+  const fetchGames = async () => {
+    await fetch(`${constants.baseApiUrl}/games`, {
+      method: "get",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+    }).then(async (response) => {
+      const data = await response.json();
+      if (response.ok) {
+        setGames(data);
       }
     });
   };
@@ -40,12 +80,16 @@ export const AdminGames = () => {
           <span className="font-[Manrope] font-semibold text-white text-3xl">
             Izveidotās spēles
           </span>
-          <div className="flex gap-6">
-            <button onClick={() => logOut()}>
-              <i className="fa-solid fa-right-from-bracket text-white text-3xl hover:opacity-80"></i>
+          <div className="flex gap-4">
+            <button
+              className="bg-white px-6 rounded-sm shadow-sm hover:cursor-pointer hover:bg-opacity-80 py-2"
+              onClick={() => logout()}
+            >
+              <span className="font-[Manrope] font-semibold">Beigt darbu</span>
+              <i className="fa-solid fa-right-from-bracket ms-6"></i>
             </button>
             <button
-              onClick={() => window.location.assign("games/create")}
+              onClick={createGame}
               className="bg-emerald-400 px-6 rounded-sm shadow-sm hover:cursor-pointer hover:bg-emerald-300 py-2"
             >
               <span className="font-[Manrope] font-semibold">Jauna spēle</span>
@@ -53,7 +97,7 @@ export const AdminGames = () => {
             </button>
           </div>
         </div>
-        <AdminGameTable />
+        <AdminGameTable games={games} />
       </div>
     </div>
   );

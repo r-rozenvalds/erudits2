@@ -2,9 +2,13 @@ import { FormEvent, useEffect, useState } from "react";
 import { AdminSessionStorage } from "../enum/AdminSessionStorage";
 import { CreateGameFormValues } from "../interface/CreateGameFormValues";
 import CreateGameModel from "../models/CreateGameModel";
-import useDebounce from "../useDebounce";
+import useDebounce from "../../universal/useDebounce";
 import { constants } from "../../../constants";
 import { InputMessage } from "../../ui/InputMessage";
+import { useNavigate, useParams } from "react-router-dom";
+import { SubmitSaveButton } from "../ui/SubmitSaveButton";
+import { BreadCrumbs } from "../../universal/BreadCrumbs";
+import { BreadCrumb } from "../interface/BreadCrumb";
 
 export const AdminGameCreator = () => {
   const [title, setTitle] = useState(CreateGameModel.title);
@@ -15,8 +19,12 @@ export const AdminGameCreator = () => {
 
   var formValues: CreateGameFormValues = CreateGameModel;
 
-  const debounceTitle = useDebounce(title, 1000);
-  const debounceDescription = useDebounce(description, 1000);
+  const navigate = useNavigate();
+
+  const { gameId } = useParams();
+
+  const debounceTitle = useDebounce(title, 300);
+  const debounceDescription = useDebounce(description, 300);
 
   const saveToSessionStorage = () => {
     sessionStorage.setItem(
@@ -49,15 +57,64 @@ export const AdminGameCreator = () => {
     formValues = loadFormValues();
     setTitle(formValues.title);
     setDescription(formValues.description);
+    loadValues();
     setIsLoaded(true);
   }, []);
 
-  const onFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const loadValues = async () => {
+    await fetch(`${constants.baseApiUrl}/games/${gameId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+    }).then(async (response) => {
+      const data = await response.json();
+      if (response.ok) {
+        setTitle(data.title);
+        setDescription(data.description);
+      }
+    });
+  };
+
+  const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError({});
     setSuccess({});
-    fetch(`${constants.baseApiUrl}/games`, {
-      method: "POST",
+    await fetch(`${constants.baseApiUrl}/games/${gameId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+      body: JSON.stringify(formValues),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (response.ok) {
+          if (data.existingId) {
+            navigate(`/admin/games/creator/${gameId}/round/${data.existingId}`);
+            return;
+          }
+          setSuccess(data);
+          navigate(`/admin/games/creator/${gameId}/round/${data.id}`);
+        } else {
+          setError(data);
+        }
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+
+  const onSave = async () => {
+    setError({});
+    setSuccess({});
+    await fetch(`${constants.baseApiUrl}/games/${gameId}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${sessionStorage.getItem(
@@ -79,16 +136,14 @@ export const AdminGameCreator = () => {
       });
   };
 
+  const breadCrumbs: BreadCrumb[] = [
+    { name: "Spēļu saraksts", path: "/admin/games" },
+    { name: "Spēles izveide", path: "" },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
-      <div className="flex w-full p-4 rounded-md font-[Manrope] gap-4 bg-white place-items-center">
-        <a href="/admin/games" className="text-lg">
-          Spēļu saraksts
-        </a>
-        <i className="fa-solid fa-chevron-right"></i>
-        <a className="text-lg">Spēles izveide</a>
-        <i className="fa-solid fa-chevron-right"></i>
-      </div>
+      <BreadCrumbs crumbs={breadCrumbs} />
       <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
         <form
           onSubmit={(e) => onFormSubmit(e)}
@@ -116,11 +171,7 @@ export const AdminGameCreator = () => {
             {Object.keys(success).length > 0 && (
               <InputMessage error={false} message={success.message} />
             )}
-            <input
-              className="h-12 w-60 bg-[#E63946] rounded-md shadow-lg text-white text-xl font-bold hover:bg-opacity-50 transition-all hover:cursor-pointer"
-              type="submit"
-              value="Turpināt"
-            />
+            <SubmitSaveButton onSave={onSave} />
           </div>
         </form>
       </div>

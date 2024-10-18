@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../enum/AdminSessionStorage";
 import CreateRoundModel from "../models/CreateRoundModel";
 import { CreateRoundFormValues } from "../interface/CreateRoundFormValues";
-import useDebounce from "../useDebounce";
+import useDebounce from "../../universal/useDebounce";
 import { GroupMinimap } from "../ui/minimap/GroupMinimap";
+import { constants } from "../../../constants";
+import { useNavigate, useParams } from "react-router-dom";
+import { InputMessage } from "../../ui/InputMessage";
 
 export const GameCreatorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
@@ -20,11 +23,20 @@ export const GameCreatorQuestionRound = () => {
 
   let formValues: CreateRoundFormValues = CreateRoundModel;
 
-  const debounceTitle = useDebounce(title, 1000);
-  const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 1000);
-  const debounceAnswerTime = useDebounce(answerTime, 1000);
-  const debouncePoints = useDebounce(points, 1000);
-  const debounceIsAdditional = useDebounce(isAdditional, 1000);
+  const { gameId } = useParams();
+
+  formValues.game_id = parseInt(gameId ?? "0");
+
+  const debounceTitle = useDebounce(title, 300);
+  const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 300);
+  const debounceAnswerTime = useDebounce(answerTime, 300);
+  const debouncePoints = useDebounce(points, 300);
+  const debounceIsAdditional = useDebounce(isAdditional, 300);
+
+  const [error, setError] = useState<{ [key: string]: string }>({});
+  const [success, setSuccess] = useState<{ [key: string]: string }>({});
+
+  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     sessionStorage.setItem(
@@ -85,6 +97,35 @@ export const GameCreatorQuestionRound = () => {
     setIsLoaded(true);
   }, []);
 
+  const onFormSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+
+    setError({});
+    setSuccess({});
+    await fetch(`${constants.baseApiUrl}/rounds`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+      body: JSON.stringify(formValues),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (response.ok) {
+          setSuccess(data);
+          navigate(`round/${data.id}/question`);
+        } else {
+          setError(data);
+        }
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
       <div className="flex w-full p-4 rounded-md font-[Manrope] gap-4 bg-white place-items-center">
@@ -97,7 +138,10 @@ export const GameCreatorQuestionRound = () => {
         <a className="text-lg">Pirmā kārta</a>
       </div>
       <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
-        <form className="flex flex-col gap-2 w-full justify-between">
+        <form
+          onSubmit={onFormSubmit}
+          className="flex flex-col gap-2 w-full justify-between"
+        >
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-lg font-semibold">Kārtas nosaukums</label>
@@ -160,13 +204,23 @@ export const GameCreatorQuestionRound = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-6">
-            <GroupMinimap />
-            <input
-              className="h-12 w-60 bg-[#E63946] rounded-md shadow-lg text-white text-xl font-bold hover:bg-opacity-50 transition-all hover:cursor-pointer place-self-end"
-              type="submit"
-              value="Turpināt"
-            />
+          <div className="flex flex-col gap-6">
+            <div className="place-self-end">
+              {Object.keys(error).map((key, index) => (
+                <InputMessage key={index} error={true} message={error[key]} />
+              ))}
+              {Object.keys(success).length > 0 && (
+                <InputMessage error={false} message={success.message} />
+              )}
+            </div>
+            <div className="flex gap-6">
+              <GroupMinimap />
+              <input
+                className="h-12 w-60 bg-[#E63946] rounded-md shadow-lg text-white text-xl font-bold hover:bg-opacity-50 transition-all hover:cursor-pointer place-self-end"
+                type="submit"
+                value="Turpināt"
+              />
+            </div>
           </div>
         </form>
       </div>

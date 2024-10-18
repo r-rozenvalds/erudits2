@@ -27,31 +27,26 @@ class GamesController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'title' => 'required|string',
-        'description' => 'nullable|string',
-    ]);
+    {
+        $user = User::find($request->user()->id);
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 400);
+        $gamesCount = $user->games()->count();
+
+        $game = Game::create(['title' => 'Erudīcijas spēle nr. ' . $gamesCount+1, 'description' => 'Spēles apraksts', 'user_id' => $user->id]);
+
+        return response()->json($game, 201);
     }
-
-    $validated = $validator->validated();
-
-    $validated['user_id'] = auth()->id();
-
-    $game = Game::create($validated);
-
-    return response()->json(['message' => ['Game successfully created.']], 201);
-}
 
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
-        return new Game(Game::findOrFail($id));
+        $game = Game::findOrFail($id);
+
+        if($game !== null) {
+            return response()->json($game, 200);
+        }
     }
 
     /**
@@ -59,15 +54,25 @@ class GamesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $validated = $request->validate([
+        $game = Game::findOrFail($id);
+
+        if ($game->user_id !== $request->user()->id) {
+            return response()->json(['message' => ['You are not authorized to perform this action.']], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
             'title' => 'required|string',
-            'description' => 'string',
-            'user_id' => auth()->id(),
+            'description' => 'string|nullable',
         ]);
 
-        $game = Game::findOrFail($id);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 400);
+        }
+
+        $validated = $validator->validated();
+
         $game->update($validated);
-        return new Game($game);
+        return response()->json(['message' => ["Game successfully saved."], 'id' => $game->id], 200);
     }
 
     /**

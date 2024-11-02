@@ -9,6 +9,7 @@ import { AdminGames } from "./components/admin/pages/AdminGames.tsx";
 import { AdminGameCreator } from "./components/admin/pages/AdminGameCreator.tsx";
 import { GameCreatorQuestionRound } from "./components/admin/pages/GameCreatorRound.tsx";
 import { GameCreatorQuestion } from "./components/admin/pages/GameCreatorQuestion.tsx";
+import { ToastProvider } from "./components/universal/Toast.tsx";
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
   </React.StrictMode>
 );

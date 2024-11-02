@@ -6,6 +6,8 @@ export const AdminGameTableItem = ({ game }: { game: Game }) => {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
 
+  console.log("game", game);
+
   return (
     <li className="flex flex-col font-[Manrope] bg-white rounded-md">
       <div className="flex w-full ">

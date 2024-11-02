@@ -6,7 +6,9 @@ import useDebounce from "../../universal/useDebounce";
 import { GroupMinimap } from "../ui/minimap/GroupMinimap";
 import { constants } from "../../../constants";
 import { useNavigate, useParams } from "react-router-dom";
-import { InputMessage } from "../../ui/InputMessage";
+import { localizeError, localizeSuccess } from "../../../localization";
+import { useToast } from "../../universal/Toast";
+import { SubmitSaveButton } from "../ui/SubmitSaveButton";
 
 export const GameCreatorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
@@ -23,9 +25,9 @@ export const GameCreatorQuestionRound = () => {
 
   let formValues: CreateRoundFormValues = CreateRoundModel;
 
-  const { gameId } = useParams();
+  const { gameId, roundId } = useParams();
 
-  formValues.game_id = parseInt(gameId ?? "0");
+  formValues.game_id = gameId;
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 300);
@@ -33,10 +35,9 @@ export const GameCreatorQuestionRound = () => {
   const debouncePoints = useDebounce(points, 300);
   const debounceIsAdditional = useDebounce(isAdditional, 300);
 
-  const [error, setError] = useState<{ [key: string]: string }>({});
-  const [success, setSuccess] = useState<{ [key: string]: string }>({});
-
   const navigate = useNavigate();
+
+  const showToast = useToast();
 
   const saveToSessionStorage = () => {
     sessionStorage.setItem(
@@ -99,9 +100,6 @@ export const GameCreatorQuestionRound = () => {
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
-
-    setError({});
-    setSuccess({});
     await fetch(`${constants.baseApiUrl}/rounds`, {
       method: "POST",
       headers: {
@@ -115,16 +113,73 @@ export const GameCreatorQuestionRound = () => {
       .then(async (response) => {
         const data = await response.json();
         if (response.ok) {
-          setSuccess(data);
-          navigate(`round/${data.id}/question`);
+          showToast!(true, localizeSuccess(data.message));
+
+          //navigate(`round/${data.id}/question`);
         } else {
-          setError(data);
+          Object.keys(data).map((key) =>
+            showToast!(false, localizeError(data[key]))
+          );
         }
       })
       .catch((err) => {
-        setError(err);
+        console.log(err);
       });
   };
+
+  const getRound = async () => {
+    await fetch(`${constants.baseApiUrl}/rounds/${roundId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (response.ok) {
+          setAnswerTime(data.answer_time);
+          setTitle(data.title);
+          setDisqualifyAmount(data.disqualify_amount);
+          setPoints(data.points);
+          setIsAdditional(data.is_additional);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const onSave = async () => {
+    await fetch(`${constants.baseApiUrl}/rounds/${roundId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+      body: JSON.stringify(formValues),
+    })
+      .then(async (response) => {
+        const data = await response.json();
+        if (response.ok) {
+          showToast!(true, localizeSuccess(data.message));
+        } else {
+          Object.keys(data).map((key) =>
+            showToast!(false, localizeError(data[key]))
+          );
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    getRound();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
@@ -157,39 +212,48 @@ export const GameCreatorQuestionRound = () => {
                 <label className="text-lg font-semibold">
                   Diskvalificēto skaits
                 </label>
-                <input
-                  onChange={(e) =>
-                    setDisqualifyAmount(parseInt(e.target.value))
-                  }
-                  min={0}
-                  type="number"
-                  className="w-24 p-2 bg-slate-100 rounded-md text-center"
-                  value={disqualifyAmount}
-                />
+                <div className="flex place-items-center gap-6 justify-center w-full">
+                  <i className="fa-solid fa-person-circle-minus text-2xl text-slate-600"></i>
+                  <input
+                    onChange={(e) =>
+                      setDisqualifyAmount(parseInt(e.target.value))
+                    }
+                    min={0}
+                    type="number"
+                    className="w-24 p-2 bg-slate-100 rounded-md text-center"
+                    value={disqualifyAmount}
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-2 place-items-center">
                 <label className="text-lg font-semibold">
                   Laiks atbildei (sek.)
                 </label>
-                <input
-                  onChange={(e) => setAnswerTime(parseInt(e.target.value))}
-                  type="number"
-                  min={0}
-                  className="w-24 p-2 bg-slate-100 rounded-md text-center"
-                  value={answerTime}
-                />
+                <div className="flex place-items-center gap-6 justify-center w-full">
+                  <i className="fa-solid fa-stopwatch text-2xl text-slate-600"></i>
+                  <input
+                    onChange={(e) => setAnswerTime(parseInt(e.target.value))}
+                    type="number"
+                    min={0}
+                    className="w-24 p-2 bg-slate-100 rounded-md text-center"
+                    value={answerTime}
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-2 place-items-center">
                 <label className="text-lg font-semibold">
                   Punktu skaits par pareizu atbildi
                 </label>
-                <input
-                  onChange={(e) => setPoints(parseInt(e.target.value))}
-                  type="number"
-                  min={0}
-                  className="w-24 p-2 bg-slate-100 rounded-md text-center"
-                  value={points}
-                />
+                <div className="flex place-items-center gap-6 justify-center w-full">
+                  <i className="fa-solid fa-bullseye text-2xl text-slate-600"></i>
+                  <input
+                    onChange={(e) => setPoints(parseInt(e.target.value))}
+                    type="number"
+                    min={0}
+                    className="w-24 p-2 bg-slate-100 rounded-md text-center"
+                    value={points}
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-2 place-items-center justify-between">
                 <label className="text-lg font-semibold">
@@ -204,23 +268,10 @@ export const GameCreatorQuestionRound = () => {
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-6">
-            <div className="place-self-end">
-              {Object.keys(error).map((key, index) => (
-                <InputMessage key={index} error={true} message={error[key]} />
-              ))}
-              {Object.keys(success).length > 0 && (
-                <InputMessage error={false} message={success.message} />
-              )}
-            </div>
-            <div className="flex gap-6">
-              <GroupMinimap />
-              <input
-                className="h-12 w-60 bg-[#E63946] rounded-md shadow-lg text-white text-xl font-bold hover:bg-opacity-50 transition-all hover:cursor-pointer place-self-end"
-                type="submit"
-                value="Turpināt"
-              />
-            </div>
+
+          <div className="flex gap-6">
+            <GroupMinimap />
+            <SubmitSaveButton onSave={onSave} />
           </div>
         </form>
       </div>

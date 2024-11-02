@@ -5,7 +5,7 @@ export const localization = {
       passwordConfirmation: "Ievadītās paroles nesakrīt.",
       emailRequired: "E-pasta lauks ir obligāts.",
       passwordRequired: "Paroles lauks ir obligāts.",
-      invalidCredentials: "Nepareizi ievadīts lietotājvārds vai parole.",
+      invalidCredentials: "Nepareizi ievadīts e-pasts vai parole.",
       titleRequired: "Virsraksta lauks ir obligāts.",
       disqualifyAmountRequired: "Diskvalificēto skaita lauks ir obligāts.",
       pointAmountRequired: "Punktu skaita lauks ir obligāts.",
@@ -16,6 +16,9 @@ export const localization = {
       gameCreated: "Spēle veiksmīgi izveidota.",
       roundCreated: "Kārta veiksmīgi izveidota.",
       gameSaved: "Spēle veiksmīgi saglabāta.",
+      userCreated: "Lietotājs veiksmīgi piereģistrēts.",
+      userLoggedIn: "Ienākšana veiksmīga.",
+      roundSaved: "Kārta veiksmīgi saglabāta.",
     },
   },
   en: {
@@ -35,6 +38,39 @@ export const localization = {
       gameCreated: "Game successfully created.",
       roundCreated: "Round successfully created.",
       gameSaved: "Game successfully saved.",
+      userCreated: "User successfully registered.",
+      userLoggedIn: "Login successful.",
+      roundSaved: "Round successfully saved.",
     },
   },
+};
+
+export const localizeError = (message: any) => {
+  const enErrors = localization.en.errors;
+  const lvErrors = localization.lv.errors;
+
+  const errorKey = (Object.keys(enErrors) as (keyof typeof enErrors)[]).find(
+    (key) => enErrors[key] === message[0]
+  );
+
+  if (errorKey && lvErrors[errorKey]) {
+    return lvErrors[errorKey];
+  }
+
+  return message;
+};
+
+export const localizeSuccess = (message: any) => {
+  const enSuccess = localization.en.success;
+  const lvSuccess = localization.lv.success;
+
+  const successKey = (
+    Object.keys(enSuccess) as (keyof typeof enSuccess)[]
+  ).find((key) => enSuccess[key] === message[0]);
+
+  if (successKey && lvSuccess[successKey]) {
+    return lvSuccess[successKey];
+  }
+
+  return message;
 };

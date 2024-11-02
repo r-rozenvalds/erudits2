@@ -7,7 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Game;
 use App\Models\User;
+use App\Models\Round;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+
 
 class GamesController extends Controller
 {
@@ -28,11 +32,11 @@ class GamesController extends Controller
      */
     public function store(Request $request)
     {
-        $user = User::find($request->user()->id);
+        $user = $request->user();
 
         $gamesCount = $user->games()->count();
 
-        $game = Game::create(['title' => 'Erudīcijas spēle nr. ' . $gamesCount+1, 'description' => 'Spēles apraksts', 'user_id' => $user->id]);
+        $game = Game::create(['id' => Str::uuid()->toString(), 'title' => 'Erudīcijas spēle nr. ' . $gamesCount+1, 'description' => 'Spēles apraksts', 'user_id' => $user->id]);
 
         return response()->json($game, 201);
     }
@@ -72,7 +76,16 @@ class GamesController extends Controller
         $validated = $validator->validated();
 
         $game->update($validated);
-        return response()->json(['message' => ["Game successfully saved."], 'id' => $game->id], 200);
+
+        $round = Round::where('game_id', $game->id)->first();
+        if($round) {
+            return response()->json(['message' => ["Game successfully saved."], 'existingId' => $round->id], 200);
+        }
+        $roundCount = $game->rounds()->count();
+
+        $round = Round::create(['id' => Str::uuid()->toString(), 'title' => $roundCount + 1 .'. spēles kārta', 'disqualify_amount' => 0, 'answer_time' => 0, 'points' => 0, 'is_additional' => false, 'game_id' => $game->id]);
+        
+        return response()->json(['message' => ["Game successfully saved."], 'id' => $round->id], 200);
     }
 
     /**

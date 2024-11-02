@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 
 use App\Models\Round;
+use App\Models\Game;
+use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 
 
 class RoundController extends Controller
@@ -38,7 +42,7 @@ class RoundController extends Controller
             return response()->json(['existingId' => $existingRound->id], 201);
         }
 
-        $round = Round::create(['title' => 'Spēles kārta', 'disqualify_amount' => 0, 'answer_time' => 0, 'points' => 0, 'is_additional' => false, 'game_id' => $request->game_id]);
+        $round = Round::create(['id' => Str::uuid()->toString(), 'title' => 'Spēles kārta', 'disqualify_amount' => 0, 'answer_time' => 0, 'points' => 0, 'is_additional' => false, 'game_id' => $request->game_id]);
                 
         return response()->json(['message' => ['Round successfully created.'], 'id' => $round->id], 201);
     }
@@ -46,9 +50,25 @@ class RoundController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Round $round)
+    public function show(string $id)
     {
-        //
+        $round = Round::findOrFail($id);
+
+        if($round !== null) {
+            return response()->json($round, 200);
+        }
+    }
+
+    public function showByGame(string $gameId)
+    {
+        $rounds = Round::where('game_id', $gameId)->get()->map(function ($round) {
+            $round->question_amount = $round->questions()->count();
+            return $round;
+        });
+
+        if($rounds !== null) {
+            return response()->json(['rounds' => $rounds], 200);
+        }
     }
 
     /**
@@ -62,14 +82,12 @@ class RoundController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Round $round)
+    public function update(Request $request, string $id)
     {
-
-        $user = User::find($request->user()->id);
-
+        $round = Round::findOrFail($id);
         $game = Game::findOrFail($round->game_id);
 
-        if ($game->user_id !== $user->id) {
+        if ($game->user_id !== $request->user()->id) {
             return response()->json(['message' => ['You are not authorized to perform this action.']], 403);
         }
 
@@ -79,7 +97,7 @@ class RoundController extends Controller
             'answer_time' => 'required|integer',
             'points' => 'required|integer',
             'is_additional' => 'boolean|nullable',
-            'game_id' => 'required|integer',
+            'game_id' => 'required|string',
         ]);
     
         if ($validator->fails()) {
@@ -90,7 +108,7 @@ class RoundController extends Controller
         
         $round->update($validated);
     
-        return response()->json(['message' => ['Round successfully updated.'], 'id' => $round->id], 200);
+        return response()->json(['message' => ['Round successfully saved.'], 'id' => $round->id], 200);
     }
 
     /**

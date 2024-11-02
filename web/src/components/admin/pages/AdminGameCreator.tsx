@@ -4,18 +4,17 @@ import { CreateGameFormValues } from "../interface/CreateGameFormValues";
 import CreateGameModel from "../models/CreateGameModel";
 import useDebounce from "../../universal/useDebounce";
 import { constants } from "../../../constants";
-import { InputMessage } from "../../ui/InputMessage";
 import { useNavigate, useParams } from "react-router-dom";
 import { SubmitSaveButton } from "../ui/SubmitSaveButton";
 import { BreadCrumbs } from "../../universal/BreadCrumbs";
 import { BreadCrumb } from "../interface/BreadCrumb";
+import { useToast } from "../../universal/Toast";
+import { localizeError, localizeSuccess } from "../../../localization";
 
 export const AdminGameCreator = () => {
   const [title, setTitle] = useState(CreateGameModel.title);
   const [description, setDescription] = useState(CreateGameModel.description);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<{ [key: string]: string }>({});
-  const [success, setSuccess] = useState<{ [key: string]: string }>({});
 
   var formValues: CreateGameFormValues = CreateGameModel;
 
@@ -25,6 +24,8 @@ export const AdminGameCreator = () => {
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDescription = useDebounce(description, 300);
+
+  const showToast = useToast();
 
   const saveToSessionStorage = () => {
     sessionStorage.setItem(
@@ -80,8 +81,6 @@ export const AdminGameCreator = () => {
 
   const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError({});
-    setSuccess({});
     await fetch(`${constants.baseApiUrl}/games/${gameId}`, {
       method: "PUT",
       headers: {
@@ -96,23 +95,26 @@ export const AdminGameCreator = () => {
         const data = await response.json();
         if (response.ok) {
           if (data.existingId) {
+            console.log("existing");
             navigate(`/admin/games/creator/${gameId}/round/${data.existingId}`);
             return;
           }
-          setSuccess(data);
+          console.log("data", data);
+          showToast!(true, localizeSuccess(data.message));
+
           navigate(`/admin/games/creator/${gameId}/round/${data.id}`);
         } else {
-          setError(data);
+          Object.keys(data).map((key) =>
+            showToast!(false, localizeError(data[key]))
+          );
         }
       })
       .catch((err) => {
-        setError(err);
+        console.log(err);
       });
   };
 
   const onSave = async () => {
-    setError({});
-    setSuccess({});
     await fetch(`${constants.baseApiUrl}/games/${gameId}`, {
       method: "PUT",
       headers: {
@@ -126,13 +128,15 @@ export const AdminGameCreator = () => {
       .then(async (response) => {
         const data = await response.json();
         if (response.ok) {
-          setSuccess(data);
+          showToast!(true, localizeSuccess(data.message));
         } else {
-          setError(data);
+          Object.keys(data).map((key) =>
+            showToast!(false, localizeError(data[key]))
+          );
         }
       })
       .catch((err) => {
-        setError(err);
+        console.log(err);
       });
   };
 
@@ -164,13 +168,7 @@ export const AdminGameCreator = () => {
               className="p-2 px-4 shadow-sm h-40 rounded-sm bg-slate-100 resize-none"
             />
           </div>
-          <div className="flex gap-4 place-self-end">
-            {Object.keys(error).map((key, index) => (
-              <InputMessage key={index} error={true} message={error[key]} />
-            ))}
-            {Object.keys(success).length > 0 && (
-              <InputMessage error={false} message={success.message} />
-            )}
+          <div className="place-self-end">
             <SubmitSaveButton onSave={onSave} />
           </div>
         </form>

@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rounds', function (Blueprint $table) {
-            $table->id();
-            $table->string("title");
+            $table->uuid('id')->primary();
+            $table->string("title")->index();
             $table->integer("disqualify_amount")->default(0);
             $table->float("answer_time")->default(30);
             $table->integer("points")->default(1);
             $table->boolean("is_additional")->default(false);
-            $table->foreignId("game_id")->constrained()->onDelete('cascade');
+            $table->foreignUuid("game_id")->constrained('games')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\RoundController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,8 @@ Route::middleware('auth:sanctum')->post('/auth/logout', [UserController::class, 
 Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::apiResource('/games', 'App\Http\Controllers\Api\GamesController');
     Route::apiResource('/rounds', 'App\Http\Controllers\Api\RoundController');
+
+    Route::get('/gamerounds/{game_id}', [RoundController::class, 'showByGame']);
 });
 
 

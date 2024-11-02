@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { InputMessage } from "./components/ui/InputMessage";
 import InstanceCard from "./components/ui/InstanceCard";
 
 function App() {
@@ -22,16 +21,6 @@ function App() {
                 className="font-[Manrope] w-32 h-14 bg-[#E63946] lg:rounded-s-none rounded-md shadow-lg text-white text-2xl font-bold hover:bg-opacity-50 transition-all hover:cursor-pointer"
                 type="submit"
                 value="Spēlēt"
-              />
-            </div>
-            <div className="flex flex-col font-[Manrope] place-items-center">
-              <InputMessage
-                error={false}
-                message={"Kods pareizs. Vienojas spēlei..."}
-              />
-              <InputMessage
-                error={true}
-                message={"Kods nepareizs. Lūdzu, mēģiniet vēlreiz!"}
               />
             </div>
           </div>

@@ -1,6 +1,9 @@
 import { constants } from "../../constants";
 
 export const getCurrentUser = async () => {
+  if (!sessionStorage.getItem(constants.sessionStorage.TOKEN)) {
+    return false;
+  }
   try {
     const response = await fetch(`${constants.baseApiUrl}/user`, {
       method: "GET",

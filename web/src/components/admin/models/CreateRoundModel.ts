@@ -4,5 +4,5 @@ export default {
   answer_time: 0,
   points: 0,
   is_additional: false,
-  game_id: 0,
+  game_id: "",
 };

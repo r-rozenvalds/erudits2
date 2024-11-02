@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
 import { constants } from "../../../constants";
-import { InputMessage } from "../../ui/InputMessage";
 import { getCurrentUser } from "../../universal/functions";
 import { useNavigate } from "react-router-dom";
+import { localizeError, localizeSuccess } from "../../../localization";
+import { useToast } from "../../universal/Toast";
 
 const AdminRegister = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
-  const [error, setError] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  const showToast = useToast();
+
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
     setIsLoading(true);
-    setError({});
     e.preventDefault();
     await fetch(`${constants.baseApiUrl}/auth/register`, {
       body: JSON.stringify({
@@ -31,20 +32,23 @@ const AdminRegister = () => {
       .then(async (response) => {
         const data = await response.json();
         if (response.ok) {
-          sessionStorage.setItem(constants.sessionStorage.TOKEN, data.token);
-          navigate("/admin/games");
+          Object.keys(data).map((key) =>
+            showToast!(true, localizeSuccess(data[key]))
+          );
+          navigate("/admin/login");
         } else {
-          setError(data);
+          Object.keys(data).map((key) =>
+            showToast!(false, localizeError(data[key]))
+          );
         }
       })
       .catch((err) => {
-        setError(err);
+        console.log(err);
       });
     setIsLoading(false);
   };
 
   const redirectIfLoggedIn = async () => {
-    console.log(await getCurrentUser());
     if (await getCurrentUser()) {
       navigate("/admin/games");
     }
@@ -62,27 +66,21 @@ const AdminRegister = () => {
         className="flex flex-col gap-6 place-items-center"
       >
         <input
-          className={`h-10 w-80 rounded-md px-4 text-xl ${
-            Object.keys(error).length ? "border-2 border-[#E63946]" : ""
-          }`}
+          className="h-10 w-80 rounded-md px-4 text-xl"
           placeholder="E-pasts"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
-          className={`h-10 w-80 rounded-md px-4 text-xl ${
-            Object.keys(error).length ? "border-2 border-[#E63946]" : ""
-          }`}
+          className="h-10 w-80 rounded-md px-4 text-xl"
           placeholder="Parole"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <input
-          className={`h-10 w-80 rounded-md px-4 text-xl ${
-            Object.keys(error).length ? "border-2 border-[#E63946]" : ""
-          }`}
+          className="h-10 w-80 rounded-md px-4 text-xl"
           placeholder="Paroles apstiprinājums"
           type="password"
           value={passwordConfirmation}
@@ -99,11 +97,7 @@ const AdminRegister = () => {
             value="Turpināt"
             disabled={isLoading}
           />
-          <div className="flex flex-col">
-            {Object.keys(error).map((key, index) => (
-              <InputMessage key={index} error={true} message={error[key]} />
-            ))}
-          </div>
+          <div className="flex flex-col"></div>
         </div>
         <hr className="border-dashed w-80" />
         <button

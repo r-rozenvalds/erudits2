@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -59,7 +60,7 @@ class UserController extends Controller
     public function createUser(Request $request) {
         $validateUser = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
-            'password' => 'required|confirmed',
+            'password' => 'required|confirmed|min:6',
         ]);
 
         if ($validateUser->fails()){
@@ -67,12 +68,13 @@ class UserController extends Controller
         }
 
         $user = User::create([
+            'id' => Str::uuid()->toString(),
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
         return response()->json([
-            'token' => $user->createToken("TOKEN")->plainTextToken,
+            'message' => ['User successfully registered.'],
                 ], 201);
     }
 
@@ -93,6 +95,7 @@ class UserController extends Controller
         }
 
         return response()->json([
+            'message' => ['Login successful.'],
             'token' => $user->createToken("TOKEN")->plainTextToken,
         ], 200);
     }

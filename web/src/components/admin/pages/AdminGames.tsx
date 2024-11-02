@@ -46,8 +46,6 @@ export const AdminGames = () => {
           AdminSessionStorage.gameCreator,
           JSON.stringify({ title: data.title, description: data.description })
         );
-        console.log("SessionStorage updated. Now navigating...");
-        console.log(data);
         navigate(`creator/${data.id}`);
       } else {
         console.error("Failed to create game:", response.statusText);
@@ -58,19 +56,22 @@ export const AdminGames = () => {
   };
 
   const fetchGames = async () => {
-    await fetch(`${constants.baseApiUrl}/games`, {
+    const response = await fetch(`${constants.baseApiUrl}/games`, {
       method: "get",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem(
           constants.sessionStorage.TOKEN
         )}`,
       },
-    }).then(async (response) => {
-      const data = await response.json();
-      if (response.ok) {
-        setGames(data);
-      }
     });
+
+    if (response.ok) {
+      const data = await response.json();
+      setGames(data);
+      return;
+    }
+
+    navigate("/admin/login");
   };
 
   return (

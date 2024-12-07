@@ -18,30 +18,30 @@ export const GroupMinimap = () => {
 
   const { gameId } = useParams();
 
-  const getRounds = async () => {
-    await fetch(`${constants.baseApiUrl}/gamerounds/${gameId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
-        )}`,
-      },
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          console.log(data);
-          setRounds(data.rounds);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+  // const getRounds = async () => {
+  //   await fetch(`${constants.baseApiUrl}/gamerounds/${gameId}`, {
+  //     method: "GET",
+  //     headers: {
+  //       Authorization: `Bearer ${sessionStorage.getItem(
+  //         constants.sessionStorage.TOKEN
+  //       )}`,
+  //     },
+  //   })
+  //     .then(async (response) => {
+  //       const data = await response.json();
+  //       if (response.ok) {
+  //         console.log(data);
+  //         setRounds(data.rounds);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //     });
+  // };
 
-  useEffect(() => {
-    getRounds();
-  }, []);
+  // useEffect(() => {
+  //   getRounds();
+  // }, []);
 
   return (
     <div

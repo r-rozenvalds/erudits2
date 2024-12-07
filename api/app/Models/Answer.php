@@ -5,27 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class Game extends Model
+class Answer extends Model
 {
     use HasFactory, HasUuids;
-    
 
     protected $fillable = [
         'id',
-        'title',
-        'description',
-        'user_id',
+        'text',
+        'is_correct',
+        'question_id',
     ];
-
-    public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
-    }
-
-    public function rounds(): HasMany {
-        return $this->hasMany(Round::class);
+    
+    public function question(): BelongsTo {
+        return $this->belongsTo(Question::class);
     }
 
 }

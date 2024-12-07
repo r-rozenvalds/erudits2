@@ -1,4 +1,5 @@
-export interface CreateRoundFormValues {
+export interface ICreateRoundFormValues {
+  id: string;
   title: string;
   disqualify_amount: number;
   answer_time: number;

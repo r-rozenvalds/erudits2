@@ -6,45 +6,46 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Round;
 use App\Models\Game;
-use App\Models\Question;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Http\Requests\RoundRequest;
 
 
 
 class RoundController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(string $gameId)
     {
-        //
+        if(!$gameId) {
+            return response()->json(['message' => ['Game ID is required.']], 400);
+        }
+
+        $round = [
+            'id' => Str::uuid()->toString(), 
+            'title' => 'Spēles kārta', 
+            'disqualify_amount' => 0, 
+            'answer_time' => 0, 
+            'points' => 0, 
+            'is_additional' => false, 
+            'game_id' => $gameId,
+        ];
+                
+        return response()->json(['message' => ['Round is ready for creation.'], 'round' => $round], 201);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(RoundRequest $request)
     {
-        $existingRound = Round::where('game_id', $request->game_id)->first();
-
-        if ($existingRound) {
-            return response()->json(['existingId' => $existingRound->id], 201);
-        }
-
-        $round = Round::create(['id' => Str::uuid()->toString(), 'title' => 'Spēles kārta', 'disqualify_amount' => 0, 'answer_time' => 0, 'points' => 0, 'is_additional' => false, 'game_id' => $request->game_id]);
-                
-        return response()->json(['message' => ['Round successfully created.'], 'id' => $round->id], 201);
+        $validated = $request->validated();
+        $round = Round::create($validated);
+    
+        return response()->json(['message' => ['Round successfully created.'], 'round' => $round], 201);
     }
 
     /**
@@ -54,68 +55,42 @@ class RoundController extends Controller
     {
         $round = Round::findOrFail($id);
 
-        if($round !== null) {
-            return response()->json($round, 200);
-        }
+        return response()->json($round, 200);
     }
 
-    public function showByGame(string $gameId)
+    public function roundsByGame(string $gameId)
     {
-        $rounds = Round::where('game_id', $gameId)->get()->map(function ($round) {
-            $round->question_amount = $round->questions()->count();
-            return $round;
-        });
+        $rounds = Round::withCount('questions')->where('game_id', $gameId)->get();
 
-        if($rounds !== null) {
-            return response()->json(['rounds' => $rounds], 200);
-        }
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Round $round)
-    {
-        //
+        return response()->json(['rounds' => $rounds], 200);
+        
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(RoundRequest $request, string $id)
     {
         $round = Round::findOrFail($id);
-        $game = Game::findOrFail($round->game_id);
-
-        if ($game->user_id !== $request->user()->id) {
-            return response()->json(['message' => ['You are not authorized to perform this action.']], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string',
-            'disqualify_amount' => 'required|integer',
-            'answer_time' => 'required|integer',
-            'points' => 'required|integer',
-            'is_additional' => 'boolean|nullable',
-            'game_id' => 'required|string',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-    
-        $validated = $validator->validated();
         
+        $this->authorize('manage', Game::findOrFail($round->game_id));
+
+        $validated = $request->validated();        
         $round->update($validated);
     
-        return response()->json(['message' => ['Round successfully saved.'], 'id' => $round->id], 200);
+        return response()->json(['message' => ['Round successfully updated.'], 'round' => $round], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Round $round)
+    public function destroy(Request $request, string $id)
     {
-        //
+        $round = Round::findOrFail($id);
+
+        $this->authorize('manage', Game::findOrFail($round->game_id));
+
+        $round->delete();
+        return response()->json(null, 204);
     }
 }

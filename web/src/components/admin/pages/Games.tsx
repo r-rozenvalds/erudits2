@@ -3,10 +3,10 @@ import { constants } from "../../../constants";
 import { AdminSessionStorage } from "../enum/AdminSessionStorage";
 import { AdminGameTable } from "../ui/table/AdminGameTable";
 import { useEffect, useState } from "react";
-import { Game } from "../interface/Game";
+import { IGame } from "../interface/IGame";
 
 export const AdminGames = () => {
-  const [games, setGames] = useState<Game[]>();
+  const [games, setGames] = useState<IGame[]>([]);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -14,25 +14,25 @@ export const AdminGames = () => {
   }, []);
 
   const logout = async () => {
-    await fetch(`${constants.baseApiUrl}/auth/logout`, {
+    const response = await fetch(`${constants.baseApiUrl}/auth/logout`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${sessionStorage.getItem(
           constants.sessionStorage.TOKEN
         )}`,
       },
-    }).then(async (response) => {
-      if (response.ok) {
-        sessionStorage.removeItem(constants.sessionStorage.TOKEN);
-        navigate("/");
-      }
     });
+
+    if (response.ok) {
+      sessionStorage.removeItem(constants.sessionStorage.TOKEN);
+      navigate("/");
+    }
   };
 
   const createGame = async () => {
     try {
-      const response = await fetch(`${constants.baseApiUrl}/games`, {
-        method: "POST",
+      const response = await fetch(`${constants.baseApiUrl}/create-game`, {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem(
             constants.sessionStorage.TOKEN
@@ -44,9 +44,14 @@ export const AdminGames = () => {
         const data = await response.json();
         sessionStorage.setItem(
           AdminSessionStorage.gameCreator,
-          JSON.stringify({ title: data.title, description: data.description })
+          JSON.stringify({
+            id: data.game.id,
+            title: data.game.title,
+            description: data.game.description,
+            user_id: data.game.user_id,
+          })
         );
-        navigate(`creator/${data.id}`);
+        navigate(`creator/${data.game.id}`);
       } else {
         console.error("Failed to create game:", response.statusText);
       }
@@ -67,7 +72,7 @@ export const AdminGames = () => {
 
     if (response.ok) {
       const data = await response.json();
-      setGames(data);
+      setGames(data.games);
       return;
     }
 

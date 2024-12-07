@@ -1,17 +1,16 @@
-import { Game } from "../../interface/Game";
+import { IGame } from "../../interface/IGame";
 import { AdminGameTableHeader } from "./AdminGameTableHeader";
 import { AdminGameTableItem } from "./AdminGameTableItem";
 
-export const AdminGameTable = ({ games }: { games: Game[] | undefined }) => {
+export const AdminGameTable = ({ games = [] }: { games?: IGame[] }) => {
   return (
     <ul className="w-full gap-2 flex flex-col pb-4">
       <li>
         <AdminGameTableHeader />
       </li>
-      {games &&
-        games.map((game) => {
-          return <AdminGameTableItem key={game.id} game={game} />;
-        })}
+      {games.map((game) => {
+        return <AdminGameTableItem key={game.id} game={game} />;
+      })}
     </ul>
   );
 };

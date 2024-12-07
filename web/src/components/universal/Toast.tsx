@@ -29,7 +29,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="toast-slide bg-white border-x border-t flex flex-col border-gray-400 shadow-md h-[70px] "
+            className="toast-slide bg-white border-x border-t flex flex-col min-w-[300px] border-gray-400 shadow-md h-[70px] "
           >
             <div className="gap-4 flex place-items-center justify-center place-self-center px-6 h-[62px]">
               {toast.success ? (

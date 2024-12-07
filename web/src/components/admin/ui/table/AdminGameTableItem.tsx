@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Game } from "../../interface/Game";
+import { Game } from "../../interface/IGame";
 import { useNavigate } from "react-router-dom";
 
 export const AdminGameTableItem = ({ game }: { game: Game }) => {

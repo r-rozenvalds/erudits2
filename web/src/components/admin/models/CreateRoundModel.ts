@@ -1,4 +1,5 @@
 export default {
+  id: "",
   title: "",
   disqualify_amount: 0,
   answer_time: 0,

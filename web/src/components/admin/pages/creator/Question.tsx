@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
-import { AdminSessionStorage } from "../enum/AdminSessionStorage";
-import { CreateQuestionFormValues } from "../interface/CreateQuestionFormValues";
-import useDebounce from "../../universal/useDebounce";
-import { GroupMinimap } from "../ui/minimap/GroupMinimap";
-import { QuestionMinimap } from "../ui/minimap/QuestionMinimap";
-import CreateQuestionModel from "../models/CreateQuestionModel";
-import { Answer } from "../ui/Answer";
-import { useNavigate } from "react-router-dom";
+import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
+import { ICreateQuestionFormValues } from "../../interface/ICreateQuestionFormValues";
+import useDebounce from "../../../universal/useDebounce";
+import { GroupMinimap } from "../../ui/minimap/GroupMinimap";
+import { QuestionMinimap } from "../../ui/minimap/QuestionMinimap";
+import CreateQuestionModel from "../../models/CreateQuestionModel";
+import { Answer } from "../../ui/Answer";
 
 export const GameCreatorQuestion = () => {
-  const [question, setQuestion] = useState(CreateQuestionModel.question);
+  const [question, setQuestion] = useState(CreateQuestionModel.title);
   const [isOpenAnswer, setIsOpenAnswer] = useState(
     CreateQuestionModel.is_open_answer
   );
@@ -20,14 +19,12 @@ export const GameCreatorQuestion = () => {
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  let formValues: CreateQuestionFormValues = CreateQuestionModel;
+  let formValues: ICreateQuestionFormValues = CreateQuestionModel;
 
   const debounceQuestion = useDebounce(question, 300);
   const debounceIsOpenAnswer = useDebounce(isOpenAnswer, 300);
   const debounceAnswers = useDebounce(answers, 300);
   const debounceOpenAnswers = useDebounce(openAnswers, 300);
-
-  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     sessionStorage.setItem(
@@ -39,12 +36,12 @@ export const GameCreatorQuestion = () => {
   const loadFormValues = () => {
     return JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.questionCreator) || "{}"
-    ) as CreateQuestionFormValues;
+    ) as ICreateQuestionFormValues;
   };
 
   useEffect(() => {
     if (isLoaded) {
-      formValues.question = debounceQuestion;
+      formValues.title = debounceQuestion;
       saveToSessionStorage();
     }
   }, [debounceQuestion]);
@@ -74,7 +71,7 @@ export const GameCreatorQuestion = () => {
   useEffect(() => {
     const loadedValues = loadFormValues();
     formValues = { ...formValues, ...loadedValues };
-    setQuestion(formValues.question);
+    setQuestion(formValues.title);
     setIsOpenAnswer(formValues.is_open_answer);
     setAnswers(formValues.answers);
     setOpenAnswers(formValues.open_answers);
@@ -95,17 +92,6 @@ export const GameCreatorQuestion = () => {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
-      <div className="flex w-full p-4 rounded-md font-[Manrope] gap-4 bg-white place-items-center">
-        <button onClick={() => navigate("/admin/games")} className="text-lg">
-          Spēļu saraksts
-        </button>
-        <i className="fa-solid fa-chevron-right"></i>
-        <a className="text-lg">Spēles izveide</a>
-        <i className="fa-solid fa-chevron-right"></i>
-        <a className="text-lg">Pirmā kārta</a>
-        <i className="fa-solid fa-chevron-right"></i>
-        <a className="text-lg">Jautājums</a>
-      </div>
       <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
         <form className="flex flex-col gap-2 w-full justify-between">
           <div className="flex grow flex-col gap-6">

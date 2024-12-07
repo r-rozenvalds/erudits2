@@ -59,25 +59,36 @@ const AdminLogin = () => {
       <h1 className="text-white font-bold text-4xl">Autorizācija</h1>
       <form
         onSubmit={onFormSubmit}
-        className="flex flex-col gap-6 max-w-96 place-items-center"
+        className="flex flex-col gap-3 max-w-96 place-items-center"
       >
-        <input
-          className="h-10 w-80 rounded-md px-4 text-xl"
-          placeholder="E-pasts"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="h-10 w-80 rounded-md px-4 text-xl"
-          placeholder="Parole"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="flex flex-col gap-1">
+          <label htmlFor="email" className="text-white">
+            E-pasts
+          </label>
+          <input
+            id="email"
+            className="h-10 w-80 rounded-md px-4 text-xl"
+            placeholder="janis.berzins@erudits.lv"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="email" className="text-white">
+            Parole
+          </label>
+          <input
+            className="h-10 w-80 rounded-md px-4 text-xl"
+            placeholder="••••••••"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
         <div className="flex flex-col gap-4 place-items-center">
           <input
-            className={`h-12 rounded-md shadow-lg text-white text-2xl font-bold transition-all w-80 ${
+            className={`h-12 rounded-md shadow-lg mt-4 text-white text-2xl font-bold transition-all w-80 ${
               isLoading
                 ? "cursor-not-allowed bg-gray-500"
                 : "hover:cursor-pointer bg-[#E63946] hover:bg-opacity-50"

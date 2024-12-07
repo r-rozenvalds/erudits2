@@ -15,7 +15,6 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string("title")->index();
             $table->boolean("is_text_answer")->default(false);
-            $table->integer("points")->default(0);
             $table->foreignUuid("round_id")->constrained('rounds')->onDelete('cascade');
             $table->string("guidelines")->nullable();
             $table->string("image_url")->nullabe();

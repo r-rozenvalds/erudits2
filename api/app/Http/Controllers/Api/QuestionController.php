@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use App\Models\Round;
 
 class QuestionController extends Controller
 {
@@ -22,41 +24,35 @@ class QuestionController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(string $roundId)
     {
-        $question = (['id' => Str::uuid()->toString(), 'title' => 'Spēles jautājums', 'points' => 0, 'is_text_answer' => false, 'guidelines' => null, 'image_url' => null, 'round_id' => null]);
-        return response()->json(['id' => $question->id], 201);
-    }
+        if(!$roundId) {
+            return response()->json(['message' => 'Round ID is required.'], 400);
+        }
+
+
+        $question = [
+            'id' => Str::uuid()->toString(), 
+            'title' => 'Spēles jautājums', 
+            'is_text_answer' => false, 
+            'guidelines' => null, 
+            'image_url' => null, 
+            'round_id' => $roundId
+        ];
+
+        return response()->json(['message' => 'Question is ready for creation.', 'question' => $question], 201);
+        }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'string',
-            'points' => 'integer|default:0',
-            'is_text_answer' => 'boolean|nullabe|default:false',
-            'guidelines' => 'string|nullable',
-            'image_url' => 'string|nullable',
-            'round_id' => 'required|exists:rounds,id'
-        ]);
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return response()->json($validation->errors(), 400);
-        }
-
-        $validated = $validator->validated();
-
-        $question = Question::findOrFail($request->id);
-
-        if ($question) {
-            $question->update($validated);
-            return response()->json(['message' => ['Question successfully created.'], 'id' => $question->id], 200);
-        }
-
-        return response()->json(['message' => ['Question not found.']], 404);
-
+        $question = Question::create($validated);
+    
+        return response()->json(['message' => 'Question successfully created.', 'question' => $question], 201);
     }
 
     /**
@@ -66,18 +62,10 @@ class QuestionController extends Controller
     {
         $question = Question::findOrFail($id);
 
-        if($question !== null) {
-            return response()->json($question, 200);
-        }
+        return response()->json($question, 200);
+        
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Question $question)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -86,28 +74,14 @@ class QuestionController extends Controller
     {
         $question = Question::findOrFail($id);
 
-        if ($question->user_id !== $request->user()->id) {
-            return response()->json(['message' => ['You are not authorized to perform this action.']], 403);
-        }
+        $round = Round::findOrFail($question->round_id);
 
-        $validator = Validator::make($request->all(), [
-            'title' => 'string',
-            'points' => 'integer|default:0',
-            'is_text_answer' => 'boolean|nullabe|default:false',
-            'guidelines' => 'string|nullable',
-            'image_url' => 'string|nullable',
-            'round_id' => 'required|exists:rounds,id'
-        ]);
+        $this->authorize('manage', Game::findOrFail($round->game_id));
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        $validated = $validator->validated();
-
+        $validated = $request->validated();
         $question->update($validated);
         
-        return response()->json(['message' => ["Question successfully saved."], 'id' => $question->id], 200);
+        return response()->json(['message' => "Question successfully saved.", 'id' => $question->id], 200);
     }
 
     /**
@@ -116,7 +90,12 @@ class QuestionController extends Controller
     public function destroy(string $id)
     {
         $question = Question::findOrFail($id);
+
+        $round = Round::findOrFail($question->round_id);
+
+        $this->authorize('manage', Game::findOrFail($round->game_id));
+
         $question->delete();
-        return response()->json(204);
+        return response()->json(null, 204);
     }
 }

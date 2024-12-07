@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoundController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\QuestionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/gamerounds/{game_id}', [RoundController::class, 'roundsByGame']);
 
     //questions
+    Route::apiResource('/questions', QuestionController::class);
+    Route::get('/create-question/{round_id}', [QuestionController::class, 'create']);
 
     //answers
 });

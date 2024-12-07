@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
+import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 
 export const AdminGameCreator = () => {
   const [title, setTitle] = useState(CreateGameModel.title);
@@ -139,33 +140,39 @@ export const AdminGameCreator = () => {
     }
   };
 
+  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
+
+  useEffect(() => {
+    clearBreadCrumbs();
+    setBreadCrumbs("/admin/games", "Spēļu saraksts");
+    setBreadCrumbs("", "Spēles izveide");
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
-      <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
-        <form
-          onSubmit={(e) => onFormSubmit(e)}
-          className="flex flex-col gap-2 w-full justify-between"
-        >
-          <div className="flex flex-col gap-2">
-            <label className="text-lg font-semibold">Spēles nosaukums</label>
-            <input
-              onChange={(e) => setTitle(e.target.value)}
-              type="text"
-              className="p-2 px-4 shadow-sm rounded-sm bg-slate-100"
-              value={title}
-            />
-            <label className="text-lg font-semibold">Apraksts</label>
-            <textarea
-              onChange={(e) => setDescription(e.target.value)}
-              value={description}
-              className="p-2 px-4 shadow-sm h-40 rounded-sm bg-slate-100 resize-none"
-            />
-          </div>
-          <div className="place-self-end">
-            <SubmitSaveButton hideSaveButton={true} />
-          </div>
-        </form>
-      </div>
+    <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
+      <form
+        onSubmit={(e) => onFormSubmit(e)}
+        className="flex flex-col gap-2 w-full justify-between"
+      >
+        <div className="flex flex-col gap-2">
+          <label className="text-lg font-semibold">Spēles nosaukums</label>
+          <input
+            onChange={(e) => setTitle(e.target.value)}
+            type="text"
+            className="p-2 px-4 shadow-sm rounded-sm bg-slate-100"
+            value={title}
+          />
+          <label className="text-lg font-semibold">Apraksts</label>
+          <textarea
+            onChange={(e) => setDescription(e.target.value)}
+            value={description}
+            className="p-2 px-4 shadow-sm h-40 rounded-sm bg-slate-100 resize-none"
+          />
+        </div>
+        <div className="place-self-end">
+          <SubmitSaveButton hideSaveButton={true} />
+        </div>
+      </form>
     </div>
   );
 };

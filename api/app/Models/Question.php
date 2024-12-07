@@ -14,7 +14,6 @@ class Question extends Model
     protected $fillable =[
         'id',
         'title',
-        'points',
         'is_text_answer',
         'guidelines',
         'image_url',

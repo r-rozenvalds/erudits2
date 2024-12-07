@@ -8,6 +8,7 @@ import { localizeError, localizeSuccess } from "../../../../localization";
 import { useToast } from "../../../universal/Toast";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
+import { useNavigate } from "react-router-dom";
 
 export const GameCreatorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
@@ -31,6 +32,8 @@ export const GameCreatorQuestionRound = () => {
   const debounceIsAdditional = useDebounce(isAdditional, 300);
 
   const showToast = useToast();
+
+  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     var values = JSON.parse(
@@ -132,8 +135,7 @@ export const GameCreatorQuestionRound = () => {
     if (response.ok) {
       const data = await response.json();
       showToast!(true, localizeSuccess(data.message));
-
-      //navigate(`round/${data.id}/question`);
+      createQuestion();
     } else {
       const data = await response.json();
       Object.keys(data).map((key) =>
@@ -148,8 +150,46 @@ export const GameCreatorQuestionRound = () => {
     clearBreadCrumbs();
     setBreadCrumbs("/admin/games", "Spēļu saraksts");
     setBreadCrumbs("/admin/games", "Spēles izveide");
-    setBreadCrumbs("/admin/games", "Kārtas izveide");
+    setBreadCrumbs("", "Kārtas izveide");
   }, []);
+
+  const createQuestion = async () => {
+    const values = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
+    );
+    if (!values) {
+      return;
+    }
+    const response = await fetch(
+      `${constants.baseApiUrl}/create-question/${values.id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      sessionStorage.setItem(
+        AdminSessionStorage.questionCreator,
+        JSON.stringify({
+          id: data.question.id,
+          title: data.question.title,
+          is_text_answer: data.question.is_text_answer,
+          guidelines: data.question.guidelines,
+          image_url: data.question.image_url,
+          round_id: data.question.round_id,
+        })
+      );
+      navigate(`/admin/games/creator/round/${data.round.id}`);
+    } else {
+      console.error("Failed to create game:", response.statusText);
+    }
+  };
 
   return (
     <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">

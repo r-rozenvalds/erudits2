@@ -21,7 +21,7 @@ class RoundController extends Controller
     public function create(string $gameId)
     {
         if(!$gameId) {
-            return response()->json(['message' => ['Game ID is required.']], 400);
+            return response()->json(['message' => 'Game ID is required.'], 400);
         }
 
         $round = [
@@ -34,7 +34,7 @@ class RoundController extends Controller
             'game_id' => $gameId,
         ];
                 
-        return response()->json(['message' => ['Round is ready for creation.'], 'round' => $round], 201);
+        return response()->json(['message' => 'Round is ready for creation.', 'round' => $round], 201);
     }
 
     /**
@@ -42,10 +42,19 @@ class RoundController extends Controller
      */
     public function store(RoundRequest $request)
     {
+        $this->authorize('manage', Game::findOrFail($request->game_id));
+
+        $existingRound = Round::find($request->id);
+        if($existingRound) {
+            $validated = $request->validated();        
+            $existingRound->update($validated);
+            return response()->json(['message' => 'Round successfully saved.'], 200);
+        }
+
         $validated = $request->validated();
         $round = Round::create($validated);
     
-        return response()->json(['message' => ['Round successfully created.'], 'round' => $round], 201);
+        return response()->json(['message' => 'Round successfully created.', 'round' => $round], 201);
     }
 
     /**
@@ -78,7 +87,7 @@ class RoundController extends Controller
         $validated = $request->validated();        
         $round->update($validated);
     
-        return response()->json(['message' => ['Round successfully updated.'], 'round' => $round], 200);
+        return response()->json(['message' => 'Round successfully updated.', 'round' => $round], 200);
     }
 
     /**

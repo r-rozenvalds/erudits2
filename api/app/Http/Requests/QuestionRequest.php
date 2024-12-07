@@ -11,7 +11,7 @@ class QuestionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,11 +22,11 @@ class QuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'text',
-            'points' => 'integer',
-            'is_text_answer' => 'boolean',
-            'guidelines' => 'text',
-            'image_url' => 'text',
+            'id' => 'string|required',
+            'title' => 'string|required',
+            'is_text_answer' => 'boolean|required',
+            'guidelines' => 'string|nullable',
+            'image_url' => 'string|nullable',
             'round_id' => 'required|exists:rounds,id'
         ];
     }

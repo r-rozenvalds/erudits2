@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import CreateRoundModel from "../../models/CreateRoundModel";
-import { ICreateRoundFormValues } from "../../interface/ICreateRoundFormValues";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
 import { localizeError, localizeSuccess } from "../../../../localization";
@@ -9,6 +8,8 @@ import { useToast } from "../../../universal/Toast";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { useNavigate } from "react-router-dom";
+import { IRound } from "../../interface/IRound";
+import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 
 export const GameCreatorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
@@ -20,10 +21,13 @@ export const GameCreatorQuestionRound = () => {
   const [isAdditional, setIsAdditional] = useState(
     CreateRoundModel.is_additional
   );
+  const [isLoading, setIsLoading] = useState(false); // for spinner
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false); // for debounce
 
-  let formValues: ICreateRoundFormValues = CreateRoundModel;
+  let formValues: IRound = CreateRoundModel;
+
+  const { rounds, setRounds } = useSidebar();
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 300);
@@ -57,7 +61,7 @@ export const GameCreatorQuestionRound = () => {
   const loadFormValues = () => {
     return JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
-    ) as ICreateRoundFormValues;
+    ) as IRound;
   };
 
   useEffect(() => {
@@ -95,6 +99,8 @@ export const GameCreatorQuestionRound = () => {
     }
   }, [debounceIsAdditional]);
 
+  const { setBreadCrumbs, removeLastBreadCrumb } = useBreadCrumbs();
+
   useEffect(() => {
     formValues = loadFormValues();
     setTitle(formValues.title);
@@ -107,6 +113,7 @@ export const GameCreatorQuestionRound = () => {
   }, []);
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
+    setIsLoading(true);
     e.preventDefault();
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
@@ -134,9 +141,16 @@ export const GameCreatorQuestionRound = () => {
     });
     if (response.ok) {
       const data = await response.json();
-      showToast!(true, localizeSuccess(data.message));
-      createQuestion();
+      setRounds([...(rounds || []), values]);
+      showToast(true, localizeSuccess(data.message));
+
+      removeLastBreadCrumb();
+      setBreadCrumbs("/admin/games/editor/round/" + values.id, values.title);
+      setBreadCrumbs("", "Spēles jautājums");
+
+      await createQuestion();
     } else {
+      setIsLoading(false);
       const data = await response.json();
       Object.keys(data).map((key) =>
         showToast!(false, localizeError(data[key]))
@@ -144,16 +158,8 @@ export const GameCreatorQuestionRound = () => {
     }
   };
 
-  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
-
-  useEffect(() => {
-    clearBreadCrumbs();
-    setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("/admin/games", "Spēles izveide");
-    setBreadCrumbs("", "Kārtas izveide");
-  }, []);
-
   const createQuestion = async () => {
+    setIsLoading(true);
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
     );
@@ -174,6 +180,7 @@ export const GameCreatorQuestionRound = () => {
 
     if (response.ok) {
       const data = await response.json();
+      console.log("resposne data", data);
       sessionStorage.setItem(
         AdminSessionStorage.questionCreator,
         JSON.stringify({
@@ -183,12 +190,14 @@ export const GameCreatorQuestionRound = () => {
           guidelines: data.question.guidelines,
           image_url: data.question.image_url,
           round_id: data.question.round_id,
+          answers: data.question.answers,
         })
       );
-      navigate(`/admin/games/creator/round/${data.round.id}`);
+      navigate(`/admin/games/creator/question/${data.question.id}`);
     } else {
-      console.error("Failed to create game:", response.statusText);
+      console.error("Failed to create question:", response.statusText);
     }
+    setIsLoading(false);
   };
 
   return (
@@ -270,7 +279,7 @@ export const GameCreatorQuestionRound = () => {
         </div>
 
         <div className="flex gap-6 place-self-end">
-          <SubmitSaveButton hideSaveButton={true} />
+          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
         </div>
       </form>
     </div>

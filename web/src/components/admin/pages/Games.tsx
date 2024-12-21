@@ -4,9 +4,12 @@ import { AdminSessionStorage } from "../enum/AdminSessionStorage";
 import { AdminGameTable } from "../ui/table/AdminGameTable";
 import { useEffect, useState } from "react";
 import { IGame } from "../interface/IGame";
+import { SpinnerCircularFixed } from "spinners-react";
+import { useToast } from "../../universal/Toast";
 
 export const AdminGames = () => {
-  const [games, setGames] = useState<IGame[]>([]);
+  const [games, setGames] = useState<IGame[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -14,6 +17,7 @@ export const AdminGames = () => {
   }, []);
 
   const logout = async () => {
+    setIsLoading(true);
     const response = await fetch(`${constants.baseApiUrl}/auth/logout`, {
       method: "POST",
       headers: {
@@ -27,9 +31,11 @@ export const AdminGames = () => {
       sessionStorage.removeItem(constants.sessionStorage.TOKEN);
       navigate("/");
     }
+    setIsLoading(false);
   };
 
   const createGame = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${constants.baseApiUrl}/create-game`, {
         method: "GET",
@@ -51,13 +57,14 @@ export const AdminGames = () => {
             user_id: data.game.user_id,
           })
         );
-        navigate(`creator/${data.game.id}`);
+        navigate(`creator/game/${data.game.id}`);
       } else {
         console.error("Failed to create game:", response.statusText);
       }
     } catch (error) {
       console.error("Error during game creation:", error);
     }
+    setIsLoading(false);
   };
 
   const fetchGames = async () => {
@@ -88,18 +95,40 @@ export const AdminGames = () => {
           </span>
           <div className="flex gap-4">
             <button
-              className="bg-white px-6 rounded-sm shadow-sm hover:cursor-pointer hover:bg-opacity-80 py-2"
+              disabled={isLoading}
+              className={`${
+                isLoading ? "bg-slate-500" : "bg-white hover:bg-slate-200"
+              } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
               onClick={() => logout()}
             >
               <span className="font-[Manrope] font-semibold">Beigt darbu</span>
-              <i className="fa-solid fa-right-from-bracket ms-6"></i>
+              {!isLoading && <i className="fa-solid fa-right-from-bracket"></i>}
+              {isLoading && (
+                <SpinnerCircularFixed
+                  color="#ffffff"
+                  size={20}
+                  thickness={150}
+                />
+              )}
             </button>
             <button
               onClick={createGame}
-              className="bg-emerald-400 px-6 rounded-sm shadow-sm hover:cursor-pointer hover:bg-emerald-300 py-2"
+              disabled={isLoading}
+              className={`${
+                isLoading
+                  ? "bg-slate-500"
+                  : "bg-emerald-400 hover:bg-emerald-300 "
+              } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
             >
               <span className="font-[Manrope] font-semibold">Jauna spēle</span>
-              <i className="fa-solid fa-plus ms-6"></i>
+              {!isLoading && <i className="fa-solid fa-plus"></i>}
+              {isLoading && (
+                <SpinnerCircularFixed
+                  color="#ffffff"
+                  size={20}
+                  thickness={150}
+                />
+              )}
             </button>
           </div>
         </div>

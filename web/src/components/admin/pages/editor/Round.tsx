@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import CreateRoundModel from "../../models/CreateRoundModel";
-import { ICreateRoundFormValues } from "../../interface/ICreateRoundFormValues";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
-import { useParams } from "react-router-dom";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useToast } from "../../../universal/Toast";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
+import { useNavigate } from "react-router-dom";
+import { IRound } from "../../interface/IRound";
+import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 
-export const GameCreatorQuestionRound = () => {
+export const GameEditorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
   const [disqualifyAmount, setDisqualifyAmount] = useState(
     CreateRoundModel.disqualify_amount
@@ -20,14 +21,13 @@ export const GameCreatorQuestionRound = () => {
   const [isAdditional, setIsAdditional] = useState(
     CreateRoundModel.is_additional
   );
+  const [isLoading, setIsLoading] = useState(false); // for spinner
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false); // for debounce
 
-  let formValues: ICreateRoundFormValues = CreateRoundModel;
+  let formValues: IRound = CreateRoundModel;
 
-  const { gameId, roundId } = useParams();
-
-  formValues.game_id = gameId;
+  const { rounds, setRounds } = useSidebar();
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 300);
@@ -36,6 +36,8 @@ export const GameCreatorQuestionRound = () => {
   const debounceIsAdditional = useDebounce(isAdditional, 300);
 
   const showToast = useToast();
+
+  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     var values = JSON.parse(
@@ -59,7 +61,7 @@ export const GameCreatorQuestionRound = () => {
   const loadFormValues = () => {
     return JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
-    ) as ICreateRoundFormValues;
+    ) as IRound;
   };
 
   useEffect(() => {
@@ -109,6 +111,7 @@ export const GameCreatorQuestionRound = () => {
   }, []);
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
+    setIsLoading(true);
     e.preventDefault();
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
@@ -136,62 +139,16 @@ export const GameCreatorQuestionRound = () => {
     });
     if (response.ok) {
       const data = await response.json();
-      showToast!(true, localizeSuccess(data.message));
-
-      //navigate(`round/${data.id}/question`);
+      setRounds([...(rounds || []), values]);
+      showToast(true, localizeSuccess(data.message));
+      createQuestion();
     } else {
+      setIsLoading(false);
       const data = await response.json();
       Object.keys(data).map((key) =>
         showToast!(false, localizeError(data[key]))
       );
     }
-  };
-
-  // const getRound = async () => {
-  //   const response = await fetch(`${constants.baseApiUrl}/rounds/${roundId}`, {
-  //     method: "GET",
-  //     headers: {
-  //       Authorization: `Bearer ${sessionStorage.getItem(
-  //         constants.sessionStorage.TOKEN
-  //       )}`,
-  //     },
-  //   })
-  //       if (response.ok) {
-  //         const data = await response.json();
-
-  //         setAnswerTime(data.answer_time);
-  //         setTitle(data.title);
-  //         setDisqualifyAmount(data.disqualify_amount);
-  //         setPoints(data.points);
-  //         setIsAdditional(data.is_additional);
-  //       }
-
-  // };
-
-  const onSave = async () => {
-    await fetch(`${constants.baseApiUrl}/rounds/${roundId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
-        )}`,
-      },
-      body: JSON.stringify(formValues),
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          showToast!(true, localizeSuccess(data.message));
-        } else {
-          Object.keys(data).map((key) =>
-            showToast!(false, localizeError(data[key]))
-          );
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
@@ -200,8 +157,48 @@ export const GameCreatorQuestionRound = () => {
     clearBreadCrumbs();
     setBreadCrumbs("/admin/games", "Spēļu saraksts");
     setBreadCrumbs("/admin/games", "Spēles izveide");
-    setBreadCrumbs("/admin/games", "Kārtas izveide");
+    setBreadCrumbs("", "Kārtas izveide");
   }, []);
+
+  const createQuestion = async () => {
+    setIsLoading(true);
+    const values = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
+    );
+    if (!values) {
+      return;
+    }
+    const response = await fetch(
+      `${constants.baseApiUrl}/create-question/${values.id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      sessionStorage.setItem(
+        AdminSessionStorage.questionCreator,
+        JSON.stringify({
+          id: data.question.id,
+          title: data.question.title,
+          is_text_answer: data.question.is_text_answer,
+          guidelines: data.question.guidelines,
+          image_url: data.question.image_url,
+          round_id: data.question.round_id,
+        })
+      );
+      navigate(`/admin/games/creator/round/question/${data.question.id}`);
+    } else {
+      console.error("Failed to create question:", response.statusText);
+    }
+    setIsLoading(false);
+  };
 
   return (
     <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
@@ -282,7 +279,7 @@ export const GameCreatorQuestionRound = () => {
         </div>
 
         <div className="flex gap-6 place-self-end">
-          <SubmitSaveButton hideSaveButton={true} />
+          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
         </div>
       </form>
     </div>

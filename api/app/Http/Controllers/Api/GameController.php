@@ -27,6 +27,17 @@ class GameController extends Controller
         return response()->json(['games' => $games], 200);
     }
 
+    public function sidebar(string $id) {
+        $game = Game::findOrFail($id);
+        $rounds = $game->rounds()->get();
+        $questions = collect();
+
+        foreach ($rounds as $round) {
+            $questions = $questions->merge($round->questions()->get());
+        }
+        return response()->json(['game' => $game, 'rounds' => $rounds, 'questions' => $questions], 200);
+    }
+
     public function create(Request $request)
     {
         $user = $request->user();
@@ -47,6 +58,13 @@ class GameController extends Controller
      */
     public function store(GameRequest $request)
     {
+        $existingGame = Game::find($request->id);
+        if($existingGame) {
+            $validated = $request->validated();        
+            $existingGame->update($validated);
+            return response()->json(['message' => 'Game successfully saved.'], 200);
+        }
+
         $game = Game::create($request->validated());
 
         return response()->json(['message' => 'Game successfully created.', 'game' => $game], 201);    }

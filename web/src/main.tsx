@@ -12,6 +12,9 @@ import { GameCreatorQuestion } from "./components/admin/pages/creator/Question.t
 import { ToastProvider } from "./components/universal/Toast.tsx";
 import { CreatorLayout } from "./components/admin/pages/layouts/CreatorLayout.tsx";
 import { BreadCrumbProvider } from "./components/universal/BreadCrumbContext.tsx";
+import { AdminGameEditor } from "./components/admin/pages/editor/Game.tsx";
+import { GameEditorQuestionRound } from "./components/admin/pages/editor/Round.tsx";
+import { GameEditorQuestion } from "./components/admin/pages/editor/Question.tsx";
 
 const router = createBrowserRouter([
   {
@@ -30,18 +33,40 @@ const router = createBrowserRouter([
     path: "admin/games",
     element: <AdminGames />,
   },
+
   {
     path: "admin/games/creator",
     element: <CreatorLayout />,
     children: [
-      { path: ":gameId", element: <AdminGameCreator /> },
+      {
+        path: "game/:gameId",
+        element: <AdminGameCreator />,
+      },
       {
         path: "round/:roundId",
         element: <GameCreatorQuestionRound />,
       },
       {
-        path: "round/question/:questionId",
+        path: "question/:questionId",
         element: <GameCreatorQuestion />,
+      },
+    ],
+  },
+  {
+    path: "admin/games/editor",
+    element: <CreatorLayout />,
+    children: [
+      {
+        path: "game/:roundId",
+        element: <AdminGameEditor />,
+      },
+      {
+        path: "round/:roundId",
+        element: <GameEditorQuestionRound />,
+      },
+      {
+        path: "question/:questionId",
+        element: <GameEditorQuestion />,
       },
     ],
   },

@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { Game } from "../../interface/IGame";
+import { IGame } from "../../interface/IGame";
 import { useNavigate } from "react-router-dom";
 
-export const AdminGameTableItem = ({ game }: { game: Game }) => {
+export const AdminGameTableItem = ({ game }: { game: IGame }) => {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
-
-  console.log("game", game);
-
   return (
     <li className="flex flex-col font-[Manrope] bg-white rounded-md">
       <div className="flex w-full ">

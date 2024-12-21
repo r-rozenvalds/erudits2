@@ -7,7 +7,11 @@ type ToastContextType = (success: boolean, text: string) => void;
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export const useToast = () => {
-  return useContext(ToastContext);
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error("toast must be used within a toastProvider");
+  }
+  return context;
 };
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
@@ -31,7 +35,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
             key={toast.id}
             className="toast-slide bg-white border-x border-t flex flex-col min-w-[300px] border-gray-400 shadow-md h-[70px] "
           >
-            <div className="gap-4 flex place-items-center justify-center place-self-center px-6 h-[62px]">
+            <div className="gap-4 flex place-items-center px-6 h-[62px]">
               {toast.success ? (
                 <div className="rounded-full text-green-600 w-8 h-8 text-center border-green-600 border-2">
                   <i className="fa-solid fa-check text-lg"></i>
@@ -41,13 +45,15 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
                   <i className="fa-solid fa-xmark text-lg"></i>
                 </div>
               )}
-              <p
-                className={`font-[Manrope] font-semibold ${
-                  toast.success ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {toast.text}
-              </p>
+              <div className="flex grow place-items-center justify-center">
+                <p
+                  className={`font-[Manrope] font-semibold ${
+                    toast.success ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {toast.text}
+                </p>
+              </div>
             </div>
             <div
               className={`${

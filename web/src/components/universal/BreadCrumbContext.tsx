@@ -5,6 +5,7 @@ type BreadCrumbContextType = {
   breadCrumbs: BreadCrumb[];
   setBreadCrumbs: (path: string, name: string) => void;
   clearBreadCrumbs: () => void;
+  removeLastBreadCrumb: () => void;
 };
 
 // Create a context with an undefined default value
@@ -33,9 +34,18 @@ export const BreadCrumbProvider = ({ children }: { children: ReactNode }) => {
     setBreadCrumbsState([]);
   };
 
+  const removeLastBreadCrumb = () => {
+    setBreadCrumbsState((prev) => prev.slice(0, prev.length - 1));
+  };
+
   return (
     <BreadCrumbContext.Provider
-      value={{ breadCrumbs, setBreadCrumbs, clearBreadCrumbs }}
+      value={{
+        breadCrumbs,
+        setBreadCrumbs,
+        clearBreadCrumbs,
+        removeLastBreadCrumb,
+      }}
     >
       {children}
     </BreadCrumbContext.Provider>

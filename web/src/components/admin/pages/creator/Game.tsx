@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
-import { ICreateGameFormValues } from "../../interface/ICreateGameFormValues";
 import CreateGameModel from "../../models/CreateGameModel";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
@@ -9,13 +8,17 @@ import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
+import { IGame } from "../../interface/IGame";
+import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 
 export const AdminGameCreator = () => {
   const [title, setTitle] = useState(CreateGameModel.title);
   const [description, setDescription] = useState(CreateGameModel.description);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false); // for debounce
+  const [isLoading, setIsLoading] = useState(false); // for spinner
+  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
 
-  var formValues: ICreateGameFormValues = CreateGameModel;
+  var formValues: IGame = CreateGameModel;
 
   const navigate = useNavigate();
 
@@ -23,6 +26,7 @@ export const AdminGameCreator = () => {
   const debounceDescription = useDebounce(description, 300);
 
   const showToast = useToast();
+  const { setGame, clearSidebar } = useSidebar();
 
   const saveToSessionStorage = () => {
     var values = JSON.parse(
@@ -39,7 +43,7 @@ export const AdminGameCreator = () => {
   const loadFormValues = () => {
     return JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    ) as ICreateGameFormValues;
+    ) as IGame;
   };
 
   useEffect(() => {
@@ -57,6 +61,7 @@ export const AdminGameCreator = () => {
   }, [debounceDescription]);
 
   useEffect(() => {
+    clearSidebar();
     formValues = loadFormValues();
     setTitle(formValues.title);
     setDescription(formValues.description);
@@ -64,6 +69,7 @@ export const AdminGameCreator = () => {
   }, []);
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
+    setIsLoading(true);
     e.preventDefault();
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
@@ -90,10 +96,18 @@ export const AdminGameCreator = () => {
     });
 
     if (response.ok) {
+      console.log("values", values);
+      setGame(values);
+      clearBreadCrumbs();
+      setBreadCrumbs("/admin/games", "Spēļu saraksts");
+      setBreadCrumbs("/admin/games/editor/game/" + values.id, values.title);
+      setBreadCrumbs("", "Spēles kārta");
+      setIsLoading(false);
       const data = await response.json();
-      showToast!(true, localizeSuccess(data.message));
-      createRound();
+      showToast(true, localizeSuccess(data.message));
+      await createRound();
     } else {
+      setIsLoading(false);
       const data = await response.json();
       Object.keys(data).map((key) =>
         showToast!(false, localizeError(data[key]))
@@ -102,12 +116,14 @@ export const AdminGameCreator = () => {
   };
 
   const createRound = async () => {
+    setIsLoading(true);
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
     );
     if (!values) {
       return;
     }
+    sessionStorage.setItem(AdminSessionStorage.gameId, values.id);
     const response = await fetch(
       `${constants.baseApiUrl}/create-round/${values.id}`,
       {
@@ -138,14 +154,13 @@ export const AdminGameCreator = () => {
     } else {
       console.error("Failed to create game:", response.statusText);
     }
+    setIsLoading(false);
   };
-
-  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
 
   useEffect(() => {
     clearBreadCrumbs();
     setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("", "Spēles izveide");
+    setBreadCrumbs("", title ?? "Jauna spēle");
   }, []);
 
   return (
@@ -170,7 +185,7 @@ export const AdminGameCreator = () => {
           />
         </div>
         <div className="place-self-end">
-          <SubmitSaveButton hideSaveButton={true} />
+          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
         </div>
       </form>
     </div>

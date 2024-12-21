@@ -29,6 +29,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     //games
     Route::apiResource('/games', GameController::class);
     Route::get('/create-game', [GameController::class, 'create']);
+    Route::get('/game-sidebar/{game_id}', [GameController::class, 'sidebar']);
 
     //rounds
     Route::apiResource('/rounds', RoundController::class);

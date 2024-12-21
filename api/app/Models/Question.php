@@ -20,7 +20,7 @@ class Question extends Model
         'round_id'
     ];
 
-    public function question_group(): BelongsTo {
-        return $this->belongsTo(QuestionGroup::class);
+    public function round(): BelongsTo {
+        return $this->belongsTo(Round::class);
     }
 }

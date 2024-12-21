@@ -1,30 +1,32 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
-import { ICreateGameFormValues } from "../../interface/ICreateGameFormValues";
 import CreateGameModel from "../../models/CreateGameModel";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
-import { IBreadCrumb } from "../../interface/IBreadCrumb";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
+import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
+import { BreadCrumbs } from "../../../universal/BreadCrumbs";
+import { IGame } from "../../interface/IGame";
+import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 
-export const AdminGameCreator = () => {
+export const AdminGameEditor = () => {
   const [title, setTitle] = useState(CreateGameModel.title);
   const [description, setDescription] = useState(CreateGameModel.description);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false); // for debounce
+  const [isLoading, setIsLoading] = useState(false); // for spinner
 
-  var formValues: ICreateGameFormValues = CreateGameModel;
+  var formValues: IGame = CreateGameModel;
 
   const navigate = useNavigate();
-
-  const { gameId } = useParams();
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDescription = useDebounce(description, 300);
 
   const showToast = useToast();
+  const { setGame } = useSidebar();
 
   const saveToSessionStorage = () => {
     var values = JSON.parse(
@@ -41,7 +43,7 @@ export const AdminGameCreator = () => {
   const loadFormValues = () => {
     return JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    ) as ICreateGameFormValues;
+    ) as IGame;
   };
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export const AdminGameCreator = () => {
   }, []);
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
+    setIsLoading(true);
     e.preventDefault();
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
@@ -92,44 +95,14 @@ export const AdminGameCreator = () => {
     });
 
     if (response.ok) {
+      console.log("values", values);
+      setGame(values);
+      setIsLoading(false);
       const data = await response.json();
-      showToast!(true, localizeSuccess(data.message));
-      createRound();
+      showToast(true, localizeSuccess(data.message));
+      await createRound();
     } else {
-      const data = await response.json();
-      Object.keys(data).map((key) =>
-        showToast!(false, localizeError(data[key]))
-      );
-    }
-  };
-
-  const onSave = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    const values = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    );
-    if (!values) {
-      return;
-    }
-    const response = await fetch(`${constants.baseApiUrl}/games/${gameId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
-        )}`,
-      },
-      body: JSON.stringify({
-        id: values.id,
-        title: values.title,
-        description: values.description,
-        user_id: values.user_id,
-      }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      showToast!(true, localizeSuccess(data.message));
-    } else {
+      setIsLoading(false);
       const data = await response.json();
       Object.keys(data).map((key) =>
         showToast!(false, localizeError(data[key]))
@@ -138,12 +111,14 @@ export const AdminGameCreator = () => {
   };
 
   const createRound = async () => {
+    setIsLoading(true);
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
     );
     if (!values) {
       return;
     }
+    sessionStorage.setItem(AdminSessionStorage.gameId, values.id);
     const response = await fetch(
       `${constants.baseApiUrl}/create-round/${values.id}`,
       {
@@ -174,35 +149,42 @@ export const AdminGameCreator = () => {
     } else {
       console.error("Failed to create game:", response.statusText);
     }
+    setIsLoading(false);
   };
 
+  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
+
+  useEffect(() => {
+    clearBreadCrumbs();
+    setBreadCrumbs("/admin/games", "Spēļu saraksts");
+    setBreadCrumbs("", title ?? "kļūda");
+  }, []);
+
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden p-12 bg-gradient-to-r from-[#31587A] to-[#3C3266] gap-6">
-      <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
-        <form
-          onSubmit={(e) => onFormSubmit(e)}
-          className="flex flex-col gap-2 w-full justify-between"
-        >
-          <div className="flex flex-col gap-2">
-            <label className="text-lg font-semibold">Spēles nosaukums</label>
-            <input
-              onChange={(e) => setTitle(e.target.value)}
-              type="text"
-              className="p-2 px-4 shadow-sm rounded-sm bg-slate-100"
-              value={title}
-            />
-            <label className="text-lg font-semibold">Apraksts</label>
-            <textarea
-              onChange={(e) => setDescription(e.target.value)}
-              value={description}
-              className="p-2 px-4 shadow-sm h-40 rounded-sm bg-slate-100 resize-none"
-            />
-          </div>
-          <div className="place-self-end">
-            <SubmitSaveButton hideSaveButton={true} onSave={onSave} />
-          </div>
-        </form>
-      </div>
+    <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
+      <form
+        onSubmit={(e) => onFormSubmit(e)}
+        className="flex flex-col gap-2 w-full justify-between"
+      >
+        <div className="flex flex-col gap-2">
+          <label className="text-lg font-semibold">Spēles nosaukums</label>
+          <input
+            onChange={(e) => setTitle(e.target.value)}
+            type="text"
+            className="p-2 px-4 shadow-sm rounded-sm bg-slate-100"
+            value={title}
+          />
+          <label className="text-lg font-semibold">Apraksts</label>
+          <textarea
+            onChange={(e) => setDescription(e.target.value)}
+            value={description}
+            className="p-2 px-4 shadow-sm h-40 rounded-sm bg-slate-100 resize-none"
+          />
+        </div>
+        <div className="place-self-end">
+          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
+        </div>
+      </form>
     </div>
   );
 };

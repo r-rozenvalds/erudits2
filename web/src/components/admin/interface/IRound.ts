@@ -1,4 +1,6 @@
-export interface ICreateRoundFormValues {
+import { IQuestion } from "./IQuestion";
+
+export interface IRound {
   id: string;
   title: string;
   disqualify_amount: number;
@@ -6,4 +8,5 @@ export interface ICreateRoundFormValues {
   points: number;
   is_additional: boolean;
   game_id?: string;
+  questions?: IQuestion[];
 }

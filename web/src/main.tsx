@@ -15,6 +15,7 @@ import { BreadCrumbProvider } from "./components/universal/BreadCrumbContext.tsx
 import { AdminGameEditor } from "./components/admin/pages/editor/Game.tsx";
 import { GameEditorQuestionRound } from "./components/admin/pages/editor/Round.tsx";
 import { GameEditorQuestion } from "./components/admin/pages/editor/Question.tsx";
+import { ConfirmationProvider } from "./components/universal/ConfirmationWindowContext.tsx";
 
 const router = createBrowserRouter([
   {
@@ -75,9 +76,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ToastProvider>
-      <BreadCrumbProvider>
-        <RouterProvider router={router} />
-      </BreadCrumbProvider>
+      <ConfirmationProvider>
+        <BreadCrumbProvider>
+          <RouterProvider router={router} />
+        </BreadCrumbProvider>
+      </ConfirmationProvider>
     </ToastProvider>
   </React.StrictMode>
 );

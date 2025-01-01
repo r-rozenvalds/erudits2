@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\RoundController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\QuestionController;
+use App\Http\Controllers\Api\AnswerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,13 +24,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::post('/auth/register', [UserController::class, 'createUser']);
 Route::post('/auth/login', [UserController::class, 'loginUser']);
-Route::middleware('auth:sanctum')->post('/auth/logout', [UserController::class, 'logout']);
-
 Route::group(['middleware' => 'auth:sanctum'], function() {
+
+    Route::post('/auth/logout', [UserController::class, 'logout']);
+
     //games
     Route::apiResource('/games', GameController::class);
     Route::get('/create-game', [GameController::class, 'create']);
     Route::get('/game-sidebar/{game_id}', [GameController::class, 'sidebar']);
+    Route::get('/full-game/{game_id}', [GameController::class, 'fullIndex']);
 
     //rounds
     Route::apiResource('/rounds', RoundController::class);
@@ -41,6 +44,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/create-question/{round_id}', [QuestionController::class, 'create']);
 
     //answers
+    Route::delete('/answers/{answer_id}', [AnswerController::class, 'destroy']);
+    Route::get('/create-answer/{question_id}', [AnswerController::class, 'create']);
 });
 
 

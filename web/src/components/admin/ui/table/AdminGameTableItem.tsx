@@ -1,10 +1,44 @@
 import { useState } from "react";
 import { IGame } from "../../interface/IGame";
 import { useNavigate } from "react-router-dom";
+import { constants } from "../../../../constants";
+import { useSidebar } from "../../../universal/AdminGameSidebarContext";
+import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 
 export const AdminGameTableItem = ({ game }: { game: IGame }) => {
   const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
+
+  const { setGame, setRounds, setQuestions } = useSidebar();
+
+  const openEditor = async () => {
+    const response = await fetch(
+      `${constants.baseApiUrl}/full-game/${game.id}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(data);
+      setGame(data.game);
+      setRounds(data.rounds);
+      setQuestions(data.questions);
+
+      sessionStorage.setItem(
+        AdminSessionStorage.gameCreator,
+        JSON.stringify(data.game)
+      );
+      window.location.assign("/admin/games/editor/game/" + game.id);
+    }
+  };
+
   return (
     <li className="flex flex-col font-[Manrope] bg-white rounded-md">
       <div className="flex w-full ">
@@ -55,7 +89,7 @@ export const AdminGameTableItem = ({ game }: { game: IGame }) => {
           </div>
           <div className="flex place-items-end">
             <button
-              onClick={() => navigate(`creator/${game.id}`)}
+              onClick={openEditor}
               className="hover:cursor-pointer group w-8 h-8"
             >
               <i className="fa-solid fa-gear text-2xl text-gray-400 group-hover:text-black"></i>

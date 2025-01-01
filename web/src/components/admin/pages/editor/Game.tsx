@@ -3,12 +3,10 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import CreateGameModel from "../../models/CreateGameModel";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
-import { useNavigate } from "react-router-dom";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
-import { BreadCrumbs } from "../../../universal/BreadCrumbs";
 import { IGame } from "../../interface/IGame";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 
@@ -18,9 +16,10 @@ export const AdminGameEditor = () => {
   const [isLoaded, setIsLoaded] = useState(false); // for debounce
   const [isLoading, setIsLoading] = useState(false); // for spinner
 
-  var formValues: IGame = CreateGameModel;
+  const { setBreadCrumbs, clearBreadCrumbs, removeLastBreadCrumb } =
+    useBreadCrumbs();
 
-  const navigate = useNavigate();
+  var formValues: IGame = CreateGameModel;
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDescription = useDebounce(description, 300);
@@ -64,6 +63,9 @@ export const AdminGameEditor = () => {
     formValues = loadFormValues();
     setTitle(formValues.title);
     setDescription(formValues.description);
+    clearBreadCrumbs();
+    setBreadCrumbs("/admin/games", "Spēļu saraksts");
+    setBreadCrumbs("", formValues.title);
     setIsLoaded(true);
   }, []);
 
@@ -73,13 +75,12 @@ export const AdminGameEditor = () => {
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
     );
-    console.log("values", values);
 
     if (!values) {
       return;
     }
-    const response = await fetch(`${constants.baseApiUrl}/games`, {
-      method: "POST",
+    const response = await fetch(`${constants.baseApiUrl}/games/${values.id}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${sessionStorage.getItem(
@@ -95,70 +96,20 @@ export const AdminGameEditor = () => {
     });
 
     if (response.ok) {
-      console.log("values", values);
       setGame(values);
+      removeLastBreadCrumb();
+      setBreadCrumbs("", formValues.title);
       setIsLoading(false);
       const data = await response.json();
       showToast(true, localizeSuccess(data.message));
-      await createRound();
     } else {
       setIsLoading(false);
       const data = await response.json();
       Object.keys(data).map((key) =>
-        showToast!(false, localizeError(data[key]))
+        showToast(false, localizeError(data[key]))
       );
     }
   };
-
-  const createRound = async () => {
-    setIsLoading(true);
-    const values = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    );
-    if (!values) {
-      return;
-    }
-    sessionStorage.setItem(AdminSessionStorage.gameId, values.id);
-    const response = await fetch(
-      `${constants.baseApiUrl}/create-round/${values.id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
-          )}`,
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      sessionStorage.setItem(
-        AdminSessionStorage.roundCreator,
-        JSON.stringify({
-          id: data.round.id,
-          title: data.round.title,
-          disqualify_amount: data.round.disqualify_amount,
-          points: data.round.points,
-          answer_time: data.round.answer_time,
-          is_additional: data.round.is_additional,
-          game_id: data.round.game_id,
-        })
-      );
-      navigate(`/admin/games/creator/round/${data.round.id}`);
-    } else {
-      console.error("Failed to create game:", response.statusText);
-    }
-    setIsLoading(false);
-  };
-
-  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
-
-  useEffect(() => {
-    clearBreadCrumbs();
-    setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("", title ?? "kļūda");
-  }, []);
 
   return (
     <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">
@@ -182,7 +133,11 @@ export const AdminGameEditor = () => {
           />
         </div>
         <div className="place-self-end">
-          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
+          <SubmitSaveButton
+            hideContinueButton={true}
+            showSpinner={isLoading}
+            onSave={onFormSubmit}
+          />
         </div>
       </form>
     </div>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import useDebounce from "../../../universal/useDebounce";
-import { QuestionMinimap } from "../../ui/minimap/QuestionMinimap";
 import CreateQuestionModel from "../../models/CreateQuestionModel";
 import { Answer } from "../../ui/Answer";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
@@ -11,6 +10,9 @@ import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 import { constants } from "../../../../constants";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
+import { useNavigate, useParams } from "react-router-dom";
+import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
+import { AnswerType } from "../../../universal/AnswerType";
 
 export const GameEditorQuestion = () => {
   const [question, setQuestion] = useState(CreateQuestionModel.title);
@@ -24,7 +26,7 @@ export const GameEditorQuestion = () => {
 
   let formValues: IQuestion = CreateQuestionModel;
 
-  const { questions, setQuestions } = useSidebar();
+  const { questions, rounds, game } = useSidebar();
 
   const [isLoading, setIsLoading] = useState(false); // for spinner
 
@@ -35,10 +37,24 @@ export const GameEditorQuestion = () => {
   const debounceAnswers = useDebounce(answers, 300);
   const debounceOpenAnswers = useDebounce(openAnswers, 300);
 
+  const confirm = useConfirmation();
+
   const saveToSessionStorage = () => {
+    var values = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.questionCreator) || "{}"
+    );
+
+    values = {
+      ...values,
+      title: formValues.title,
+      is_text_answer: formValues.is_text_answer,
+      guidelines: formValues.guidelines,
+      image_url: formValues.image_url,
+      answers: formValues.answers,
+    };
     sessionStorage.setItem(
       AdminSessionStorage.questionCreator,
-      JSON.stringify(formValues)
+      JSON.stringify(values)
     );
   };
 
@@ -73,9 +89,10 @@ export const GameEditorQuestion = () => {
     if (isLoaded) {
       formValues.open_answers = debounceOpenAnswers;
       saveToSessionStorage();
-      console.log(formatOpenAnswers());
     }
   }, [debounceOpenAnswers]);
+
+  const { questionId } = useParams();
 
   useEffect(() => {
     const loadedValues = loadFormValues();
@@ -85,31 +102,44 @@ export const GameEditorQuestion = () => {
     setAnswers(formValues.answers);
     setOpenAnswers(formValues.open_answers);
 
-    setIsLoaded(true);
-  }, []);
+    const selectedRound = rounds?.filter(
+      (round) => round.id === formValues.round_id
+    )[0];
 
-  const addNewAnswer = (e: { preventDefault: () => void }) => {
+    sessionStorage.setItem(
+      AdminSessionStorage.roundCreator,
+      JSON.stringify(selectedRound)
+    );
+
+    clearBreadCrumbs();
+    setBreadCrumbs("/admin/games", "Spēļu saraksts");
+    setBreadCrumbs("/admin/games/editor/game/" + game?.id, game?.title || "");
+    setBreadCrumbs(
+      "/admin/games/editor/round/" + selectedRound?.id,
+      selectedRound?.title || ""
+    );
+    setBreadCrumbs(
+      "/admin/games/editor/question/" + formValues.id,
+      formValues.title
+    );
+
+    setIsLoaded(true);
+  }, [questionId]);
+
+  const addNewAnswer = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (answers.length < 4) {
-      setAnswers([...answers, { prompt: "", isCorrect: false }]);
+      setAnswers([
+        ...answers,
+        { id: "", text: "", is_correct: false } as AnswerType,
+      ]);
     }
   };
 
-  const formatOpenAnswers = () => {
-    return openAnswers.toString().split(",");
-  };
-
-  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
+  const { setBreadCrumbs, clearBreadCrumbs, removeLastBreadCrumb } =
+    useBreadCrumbs();
 
   const showToast = useToast();
-
-  useEffect(() => {
-    clearBreadCrumbs();
-    setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("/admin/games", "Spēles izveide");
-    setBreadCrumbs("/admin/games", "Kārtas izveide");
-    setBreadCrumbs("", "Jautājuma izveide");
-  }, []);
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
     setIsLoading(true);
@@ -120,26 +150,37 @@ export const GameEditorQuestion = () => {
     if (!values) {
       return;
     }
-    const response = await fetch(`${constants.baseApiUrl}/questions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
-        )}`,
-      },
-      body: JSON.stringify({
-        id: values.id,
-        title: values.title,
-        is_text_answer: values.is_text_answer,
-        guidelines: values.guidelines,
-        image_url: values.image_url,
-        round_id: values.round_id,
-      }),
-    });
+    const response = await fetch(
+      `${constants.baseApiUrl}/questions/${values.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+        body: JSON.stringify({
+          id: values.id,
+          title: values.title,
+          is_text_answer: values.is_text_answer,
+          guidelines: values.guidelines,
+          image_url: values.image_url,
+          round_id: values.round_id,
+          answers: values.answers,
+        }),
+      }
+    );
     if (response.ok) {
       const data = await response.json();
-      setQuestions([...(questions || []), values]);
+      setIsLoading(false);
+      const updatedQuestion = questions?.findIndex(
+        (round) => round.id === values.id
+      );
+      questions![updatedQuestion!] = data.question;
+      removeLastBreadCrumb();
+      setBreadCrumbs("", formValues.title);
+
       showToast(true, localizeSuccess(data.message));
     } else {
       setIsLoading(false);
@@ -148,6 +189,42 @@ export const GameEditorQuestion = () => {
         showToast!(false, localizeError(data[key]))
       );
     }
+    setIsLoading(false);
+  };
+
+  const addOpenAnswer = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setAnswers([
+      ...answers,
+      { id: "", text: "", is_correct: true } as AnswerType,
+    ]);
+  };
+
+  const toggleOpenAnswer = async () => {
+    if (answers.length > 0) {
+      if (
+        await confirm(
+          "Vai tiešām mainīt jautājuma veidu? Pašlaik ierakstītās atbildes tiks dzēstas."
+        )
+      ) {
+        setAnswers([]);
+        setIsOpenAnswer(!isOpenAnswer);
+        return;
+      }
+      return;
+    }
+    setIsOpenAnswer(!isOpenAnswer);
+  };
+
+  const deleteOpenAnswer = async (
+    e: { preventDefault: () => void },
+    index: number
+  ) => {
+    e.preventDefault();
+
+    const updatedAnswers = answers.filter((_, i) => i !== index);
+
+    setAnswers(updatedAnswers);
   };
 
   return (
@@ -182,7 +259,7 @@ export const GameEditorQuestion = () => {
                 Atvērtais jautājums
               </label>
               <input
-                onChange={() => setIsOpenAnswer(!isOpenAnswer)}
+                onChange={toggleOpenAnswer}
                 type="checkbox"
                 className="w-8 h-8 p-2 rounded-md text-center accent-[#E63946]"
                 checked={isOpenAnswer}
@@ -215,7 +292,7 @@ export const GameEditorQuestion = () => {
                         const updatedAnswers = [...answers];
                         updatedAnswers[index] = {
                           ...updatedAnswers[index],
-                          prompt: newPrompt,
+                          text: newPrompt,
                         };
                         setAnswers(updatedAnswers);
                       }}
@@ -223,7 +300,7 @@ export const GameEditorQuestion = () => {
                         const updatedAnswers = [...answers];
                         updatedAnswers[index] = {
                           ...updatedAnswers[index],
-                          isCorrect: isCorrect,
+                          is_correct: isCorrect,
                         };
                         setAnswers(updatedAnswers);
                       }}
@@ -242,29 +319,55 @@ export const GameEditorQuestion = () => {
               </div>
             </div>
           )}
-          {isOpenAnswer && (
+          {!!isOpenAnswer && (
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-lg">
                 Spēlētājs uz šo jautājumu atbildi sniegs rakstiski.
               </span>
-              <label>
-                Pareizās atbildes: (mazie burti, atdalīt ar komatiem,
-                <b> bez liekām atstarpēm</b>)
-              </label>
-              <textarea
-                value={openAnswers}
-                onChange={(e) => setOpenAnswers(e.target.value)}
-                placeholder="jānis čakste,j.čakste,j. čakste"
-                className="resize-none grow h-48 p-2 px-4 bg-slate-100 rounded-md"
-              />
+              <label>Pareizās atbildes:</label>
+              <ul>
+                {answers.map((answer, index) => (
+                  <li className="mb-2 flex gap-1" key={index}>
+                    <input
+                      type="text"
+                      className="w-72 h-10 px-2 rounded-s-md shadow-sm bg-slate-100"
+                      placeholder="j.čakste"
+                      value={answer.text}
+                      onChange={(e) => {
+                        const updatedAnswers = [...answers];
+                        updatedAnswers[index] = {
+                          ...updatedAnswers[index],
+                          text: e.target.value,
+                        };
+                        setAnswers(updatedAnswers);
+                      }}
+                    />
+                    <button
+                      onClick={(e) => deleteOpenAnswer(e, index)}
+                      className="w-10 h-10 bg-slate-100 rounded-e-md shadow-sm hover:bg-red-100"
+                    >
+                      <i className="fa-regular  fa-trash-can"></i>
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <button
+                    onClick={addOpenAnswer}
+                    className="w-[332px] h-10 rounded-md text-white text-lg shadow-sm hover:opacity-70 bg-[#E63946]"
+                  >
+                    <i className="fa-plus fa-solid"></i>
+                  </button>
+                </li>
+              </ul>
             </div>
           )}
         </div>
-        <div className="flex flex-col gap-6">
-          <QuestionMinimap />
-          <div className="flex gap-6 justify-end">
-            <SubmitSaveButton hideContinueButton={true} />
-          </div>
+        <div className="flex gap-6 justify-end">
+          <SubmitSaveButton
+            showSpinner={isLoading}
+            hideSaveButton={false}
+            hideContinueButton={true}
+          />
         </div>
       </form>
     </div>

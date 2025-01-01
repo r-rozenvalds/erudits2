@@ -7,9 +7,9 @@ import { localizeError, localizeSuccess } from "../../../../localization";
 import { useToast } from "../../../universal/Toast";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
-import { useNavigate } from "react-router-dom";
 import { IRound } from "../../interface/IRound";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
+import { useParams } from "react-router-dom";
 
 export const GameEditorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
@@ -27,7 +27,9 @@ export const GameEditorQuestionRound = () => {
 
   let formValues: IRound = CreateRoundModel;
 
-  const { rounds, setRounds } = useSidebar();
+  const { rounds, game } = useSidebar();
+
+  const { roundId } = useParams();
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 300);
@@ -36,8 +38,6 @@ export const GameEditorQuestionRound = () => {
   const debounceIsAdditional = useDebounce(isAdditional, 300);
 
   const showToast = useToast();
-
-  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     var values = JSON.parse(
@@ -99,6 +99,9 @@ export const GameEditorQuestionRound = () => {
     }
   }, [debounceIsAdditional]);
 
+  const { setBreadCrumbs, clearBreadCrumbs, removeLastBreadCrumb } =
+    useBreadCrumbs();
+
   useEffect(() => {
     formValues = loadFormValues();
     setTitle(formValues.title);
@@ -107,8 +110,19 @@ export const GameEditorQuestionRound = () => {
     setPoints(formValues.points);
     setIsAdditional(formValues.is_additional);
 
+    clearBreadCrumbs();
+    setBreadCrumbs("/admin/games", "Spēļu saraksts");
+    setBreadCrumbs(
+      "/admin/games/editor/game/" + game?.id,
+      game?.title ?? "Spēle"
+    );
+    setBreadCrumbs(
+      "/admin/games/editor/round/" + formValues.id,
+      formValues.title
+    );
+
     setIsLoaded(true);
-  }, []);
+  }, [roundId]);
 
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
     setIsLoading(true);
@@ -119,29 +133,38 @@ export const GameEditorQuestionRound = () => {
     if (!values) {
       return;
     }
-    const response = await fetch(`${constants.baseApiUrl}/rounds`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
-        )}`,
-      },
-      body: JSON.stringify({
-        id: values.id,
-        title: values.title,
-        disqualify_amount: values.disqualify_amount,
-        answer_time: values.answer_time,
-        points: values.points,
-        is_additional: values.is_additional,
-        game_id: values.game_id,
-      }),
-    });
+    const response = await fetch(
+      `${constants.baseApiUrl}/rounds/${values.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+        body: JSON.stringify({
+          id: values.id,
+          title: values.title,
+          disqualify_amount: values.disqualify_amount,
+          answer_time: values.answer_time,
+          points: values.points,
+          is_additional: values.is_additional,
+          game_id: values.game_id,
+        }),
+      }
+    );
     if (response.ok) {
       const data = await response.json();
-      setRounds([...(rounds || []), values]);
+      const updatedRounds = rounds?.findIndex(
+        (round) => round.id === values.id
+      );
+      rounds![updatedRounds!] = data.round;
+
+      removeLastBreadCrumb();
+      setBreadCrumbs("", formValues.title);
+
       showToast(true, localizeSuccess(data.message));
-      createQuestion();
     } else {
       setIsLoading(false);
       const data = await response.json();
@@ -149,55 +172,6 @@ export const GameEditorQuestionRound = () => {
         showToast!(false, localizeError(data[key]))
       );
     }
-  };
-
-  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
-
-  useEffect(() => {
-    clearBreadCrumbs();
-    setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("/admin/games", "Spēles izveide");
-    setBreadCrumbs("", "Kārtas izveide");
-  }, []);
-
-  const createQuestion = async () => {
-    setIsLoading(true);
-    const values = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
-    );
-    if (!values) {
-      return;
-    }
-    const response = await fetch(
-      `${constants.baseApiUrl}/create-question/${values.id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
-          )}`,
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      sessionStorage.setItem(
-        AdminSessionStorage.questionCreator,
-        JSON.stringify({
-          id: data.question.id,
-          title: data.question.title,
-          is_text_answer: data.question.is_text_answer,
-          guidelines: data.question.guidelines,
-          image_url: data.question.image_url,
-          round_id: data.question.round_id,
-        })
-      );
-      navigate(`/admin/games/creator/round/question/${data.question.id}`);
-    } else {
-      console.error("Failed to create question:", response.statusText);
-    }
-    setIsLoading(false);
   };
 
   return (
@@ -279,7 +253,11 @@ export const GameEditorQuestionRound = () => {
         </div>
 
         <div className="flex gap-6 place-self-end">
-          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
+          <SubmitSaveButton
+            showSpinner={isLoading}
+            hideSaveButton={false}
+            hideContinueButton={true}
+          />
         </div>
       </form>
     </div>

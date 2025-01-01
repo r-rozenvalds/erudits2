@@ -4,7 +4,7 @@ export default {
   is_text_answer: false,
   image_url: "",
   guidelines: "",
-  answers: [{ prompt: "", isCorrect: false }],
+  answers: [{ id: "", text: "", is_correct: false }],
   open_answers: "",
   round_id: "",
 };

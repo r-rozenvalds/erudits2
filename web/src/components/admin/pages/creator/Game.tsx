@@ -65,6 +65,9 @@ export const AdminGameCreator = () => {
     formValues = loadFormValues();
     setTitle(formValues.title);
     setDescription(formValues.description);
+    clearBreadCrumbs();
+    setBreadCrumbs("/admin/games", "Spēļu saraksts");
+    setBreadCrumbs("", formValues.title);
     setIsLoaded(true);
   }, []);
 
@@ -156,12 +159,6 @@ export const AdminGameCreator = () => {
     }
     setIsLoading(false);
   };
-
-  useEffect(() => {
-    clearBreadCrumbs();
-    setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("", title ?? "Jauna spēle");
-  }, []);
 
   return (
     <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white">

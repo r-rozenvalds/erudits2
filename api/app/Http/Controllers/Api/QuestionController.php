@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Round;
 use App\Http\Requests\QuestionRequest;
+use App\Models\Game;
+use App\Models\Answer;
 
 
 class QuestionController extends Controller
@@ -19,6 +21,9 @@ class QuestionController extends Controller
     {
         $question_group = $request->question_group()->id;
         $questions = Question::where('question_group_id', $question_group)->get();
+        foreach ($questions as $question) {
+            $question['answers'] = Answer::where('question_id', $question->id)->get();
+        }
         return response()->json($questions);
     }
 
@@ -38,7 +43,8 @@ class QuestionController extends Controller
             'is_text_answer' => false, 
             'guidelines' => null, 
             'image_url' => null, 
-            'round_id' => $roundId
+            'round_id' => $roundId,
+            'answers' => []
         ];
 
         return response()->json(['message' => 'Question is ready for creation.', 'question' => $question], 201);
@@ -51,7 +57,15 @@ class QuestionController extends Controller
     {
         $validated = $request->validated();
 
+
         $question = Question::create($validated);
+        $answers = $validated['answers'];
+        foreach ($answers as $answer) {
+            $answer['question_id'] = $question->id;
+            Answer::create($answer);
+        }
+        
+        $question['answers'] = $answers;
     
         return response()->json(['message' => 'Question successfully created.', 'question' => $question], 201);
     }
@@ -80,9 +94,18 @@ class QuestionController extends Controller
         $this->authorize('manage', Game::findOrFail($round->game_id));
 
         $validated = $request->validated();
-        $question->update($validated);
+        $answers = $validated['answers'];
+        Answer::where('question_id', $question->id)->delete();
+        foreach ($answers as $answer) {
+            $answer['question_id'] = $question->id;
+            Answer::create($answer);     
+        }
         
-        return response()->json(['message' => "Question successfully saved.", 'id' => $question->id], 200);
+        $question->update($validated);
+
+        $question['answers'] = $answers;
+        
+        return response()->json(['message' => "Question successfully updated.", 'question' => $question], 200);
     }
 
     /**

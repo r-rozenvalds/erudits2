@@ -28,5 +28,10 @@ export const getCurrentUser = async () => {
 };
 
 export const formatText = (text: string, maxLength: number) => {
-  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+  if (text) {
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
+  }
+  return "";
 };

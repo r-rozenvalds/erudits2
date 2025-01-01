@@ -5,7 +5,6 @@ import { AdminGameTable } from "../ui/table/AdminGameTable";
 import { useEffect, useState } from "react";
 import { IGame } from "../interface/IGame";
 import { SpinnerCircularFixed } from "spinners-react";
-import { useToast } from "../../universal/Toast";
 
 export const AdminGames = () => {
   const [games, setGames] = useState<IGame[] | null>(null);
@@ -13,8 +12,20 @@ export const AdminGames = () => {
 
   const navigate = useNavigate();
   useEffect(() => {
+    clearSessionStorage();
     fetchGames();
   }, []);
+
+  const clearSessionStorage = () => {
+    sessionStorage.removeItem(AdminSessionStorage.gameCreator);
+    sessionStorage.removeItem(AdminSessionStorage.roundCreator);
+    sessionStorage.removeItem(AdminSessionStorage.questionCreator);
+    sessionStorage.removeItem(AdminSessionStorage.sidebarGame);
+    sessionStorage.removeItem(AdminSessionStorage.sidebarQuestions);
+    sessionStorage.removeItem(AdminSessionStorage.sidebarRounds);
+    sessionStorage.removeItem(AdminSessionStorage.breadCrumbs);
+    sessionStorage.removeItem(AdminSessionStorage.gameId);
+  };
 
   const logout = async () => {
     setIsLoading(true);
@@ -35,6 +46,7 @@ export const AdminGames = () => {
   };
 
   const createGame = async () => {
+    clearSessionStorage();
     setIsLoading(true);
     try {
       const response = await fetch(`${constants.baseApiUrl}/create-game`, {
@@ -99,7 +111,7 @@ export const AdminGames = () => {
               className={`${
                 isLoading ? "bg-slate-500" : "bg-white hover:bg-slate-200"
               } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
-              onClick={() => logout()}
+              onClick={logout}
             >
               <span className="font-[Manrope] font-semibold">Beigt darbu</span>
               {!isLoading && <i className="fa-solid fa-right-from-bracket"></i>}

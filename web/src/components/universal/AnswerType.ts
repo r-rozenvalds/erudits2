@@ -1,4 +1,5 @@
 export type AnswerType = {
-  prompt: string;
-  isCorrect: boolean;
+  id: string;
+  text: string;
+  is_correct: boolean;
 };

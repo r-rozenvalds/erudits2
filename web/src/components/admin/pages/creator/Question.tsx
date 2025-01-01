@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import useDebounce from "../../../universal/useDebounce";
-import { QuestionMinimap } from "../../ui/minimap/QuestionMinimap";
 import CreateQuestionModel from "../../models/CreateQuestionModel";
 import { Answer } from "../../ui/Answer";
 import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
@@ -11,6 +10,9 @@ import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 import { constants } from "../../../../constants";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
+import { useNavigate, useParams } from "react-router-dom";
+import { AnswerType } from "../../../universal/AnswerType";
+import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 
 export const GameCreatorQuestion = () => {
   const [question, setQuestion] = useState(CreateQuestionModel.title);
@@ -34,6 +36,8 @@ export const GameCreatorQuestion = () => {
   const debounceIsOpenAnswer = useDebounce(isOpenAnswer, 300);
   const debounceAnswers = useDebounce(answers, 300);
   const debounceOpenAnswers = useDebounce(openAnswers, 300);
+
+  const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
     var values = JSON.parse(
@@ -85,7 +89,6 @@ export const GameCreatorQuestion = () => {
     if (isLoaded) {
       formValues.open_answers = debounceOpenAnswers;
       saveToSessionStorage();
-      console.log(formatOpenAnswers());
     }
   }, [debounceOpenAnswers]);
 
@@ -100,19 +103,17 @@ export const GameCreatorQuestion = () => {
     setIsLoaded(true);
   }, []);
 
-  const addNewAnswer = (e: { preventDefault: () => void }) => {
+  const addNewAnswer = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     if (answers.length < 4) {
-      setAnswers([...answers, { prompt: "", isCorrect: false }]);
+      setAnswers([
+        ...answers,
+        { id: "", text: "", is_correct: false } as AnswerType,
+      ]);
     }
   };
 
-  const formatOpenAnswers = () => {
-    return openAnswers.toString().split(",");
-  };
-
-  const { setBreadCrumbs, clearBreadCrumbs, removeLastBreadCrumb } =
-    useBreadCrumbs();
+  const { setBreadCrumbs, removeLastBreadCrumb } = useBreadCrumbs();
 
   const showToast = useToast();
 
@@ -145,10 +146,13 @@ export const GameCreatorQuestion = () => {
     });
     if (response.ok) {
       const data = await response.json();
+      setIsLoading(false);
       setQuestions([...(questions || []), values]);
       removeLastBreadCrumb();
       setBreadCrumbs("/admin/games/editor/question/" + values.id, values.title);
       showToast(true, localizeSuccess(data.message));
+
+      navigate(`/admin/games/editor/question/${values.id}`);
     } else {
       setIsLoading(false);
       const data = await response.json();
@@ -156,6 +160,44 @@ export const GameCreatorQuestion = () => {
         showToast!(false, localizeError(data[key]))
       );
     }
+    setIsLoading(false);
+  };
+
+  const deleteOpenAnswer = async (
+    e: { preventDefault: () => void },
+    index: number
+  ) => {
+    e.preventDefault();
+
+    const updatedAnswers = answers.filter((_, i) => i !== index);
+
+    setAnswers(updatedAnswers);
+  };
+
+  const confirm = useConfirmation();
+
+  const toggleOpenAnswer = async () => {
+    if (answers.length > 0) {
+      if (
+        await confirm(
+          "Vai tiešām mainīt jautājuma veidu? Pašlaik ierakstītās atbildes tiks dzēstas."
+        )
+      ) {
+        setAnswers([]);
+        setIsOpenAnswer(!isOpenAnswer);
+        return;
+      }
+      return;
+    }
+    setIsOpenAnswer(!isOpenAnswer);
+  };
+
+  const addOpenAnswer = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setAnswers([
+      ...answers,
+      { id: "", text: "", is_correct: true } as AnswerType,
+    ]);
   };
 
   return (
@@ -190,7 +232,7 @@ export const GameCreatorQuestion = () => {
                 Atvērtais jautājums
               </label>
               <input
-                onChange={() => setIsOpenAnswer(!isOpenAnswer)}
+                onChange={toggleOpenAnswer}
                 type="checkbox"
                 className="w-8 h-8 p-2 rounded-md text-center accent-[#E63946]"
                 checked={isOpenAnswer}
@@ -223,7 +265,7 @@ export const GameCreatorQuestion = () => {
                         const updatedAnswers = [...answers];
                         updatedAnswers[index] = {
                           ...updatedAnswers[index],
-                          prompt: newPrompt,
+                          text: newPrompt,
                         };
                         setAnswers(updatedAnswers);
                       }}
@@ -231,7 +273,7 @@ export const GameCreatorQuestion = () => {
                         const updatedAnswers = [...answers];
                         updatedAnswers[index] = {
                           ...updatedAnswers[index],
-                          isCorrect: isCorrect,
+                          is_correct: isCorrect,
                         };
                         setAnswers(updatedAnswers);
                       }}
@@ -255,21 +297,46 @@ export const GameCreatorQuestion = () => {
               <span className="font-semibold text-lg">
                 Spēlētājs uz šo jautājumu atbildi sniegs rakstiski.
               </span>
-              <label>
-                Pareizās atbildes: (mazie burti, atdalīt ar komatiem,
-                <b> bez liekām atstarpēm</b>)
-              </label>
-              <textarea
-                value={openAnswers}
-                onChange={(e) => setOpenAnswers(e.target.value)}
-                placeholder="jānis čakste,j.čakste,j. čakste"
-                className="resize-none grow h-48 p-2 px-4 bg-slate-100 rounded-md"
-              />
+              <label>Pareizās atbildes:</label>
+              <ul>
+                {answers.map((answer, index) => (
+                  <li className="mb-2 flex gap-1" key={index}>
+                    <input
+                      type="text"
+                      className="w-72 h-10 px-2 rounded-s-md shadow-sm bg-slate-100"
+                      placeholder="j.čakste"
+                      value={answer.text}
+                      onChange={(e) => {
+                        const updatedAnswers = [...answers];
+                        updatedAnswers[index] = {
+                          ...updatedAnswers[index],
+                          text: e.target.value,
+                        };
+                        setAnswers(updatedAnswers);
+                      }}
+                    />
+                    <button
+                      onClick={(e) => deleteOpenAnswer(e, index)}
+                      className="w-10 h-10 bg-slate-100 rounded-e-md shadow-sm hover:bg-red-100"
+                    >
+                      <i className="fa-regular  fa-trash-can"></i>
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <button
+                    onClick={addOpenAnswer}
+                    className="w-[332px] h-10 rounded-md text-white text-lg shadow-sm hover:opacity-70 bg-[#E63946]"
+                  >
+                    <i className="fa-plus fa-solid"></i>
+                  </button>
+                </li>
+              </ul>
             </div>
           )}
         </div>
         <div className="flex gap-6 justify-end">
-          <SubmitSaveButton showSpinner={isLoading} hideContinueButton={true} />
+          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
         </div>
       </form>
     </div>

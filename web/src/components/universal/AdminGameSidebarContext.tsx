@@ -1,7 +1,14 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { IGame } from "../admin/interface/IGame";
 import { IRound } from "../admin/interface/IRound";
 import { IQuestion } from "../admin/interface/IQuestion";
+import { AdminSessionStorage } from "../admin/enum/AdminSessionStorage";
 
 type AdminSidebarContextType = {
   game: IGame | undefined;
@@ -51,6 +58,55 @@ export const AdminSidebarProvider = ({ children }: { children: ReactNode }) => {
     setRoundsState(undefined);
     setQuestionsState(undefined);
   };
+
+  useEffect(() => {
+    if (gameState) {
+      sessionStorage.setItem(
+        AdminSessionStorage.sidebarGame,
+        JSON.stringify(gameState)
+      );
+    }
+  }, [gameState]);
+
+  useEffect(() => {
+    if (questionsState) {
+      sessionStorage.setItem(
+        AdminSessionStorage.sidebarQuestions,
+        JSON.stringify(questionsState)
+      );
+    }
+  }, [questionsState]);
+
+  useEffect(() => {
+    if (roundsState) {
+      sessionStorage.setItem(
+        AdminSessionStorage.sidebarRounds,
+        JSON.stringify(roundsState)
+      );
+    }
+  }, [roundsState]);
+
+  useEffect(() => {
+    const game = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.sidebarGame) || "[]"
+    ) as IGame;
+    const rounds = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.sidebarRounds) || "[]"
+    ) as IRound[];
+    const questions = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.sidebarQuestions) || "[]"
+    ) as IQuestion[];
+
+    if (Object.keys(game).length > 0) {
+      setGameState(game);
+    }
+    if (rounds.length > 0) {
+      setRoundsState(rounds);
+    }
+    if (questions.length > 0) {
+      setQuestionsState(questions);
+    }
+  }, []);
 
   return (
     <AdminGameSidebarContext.Provider

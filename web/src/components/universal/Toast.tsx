@@ -33,15 +33,15 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="toast-slide bg-white border-x border-t flex flex-col min-w-[300px] border-gray-400 shadow-md h-[70px] "
+            className="toast-slide bg-white border-x border-t flex flex-col min-w-[300px] max-w-[300px] border-gray-400 shadow-md h-[70px] "
           >
             <div className="gap-4 flex place-items-center px-6 h-[62px]">
               {toast.success ? (
-                <div className="rounded-full text-green-600 w-8 h-8 text-center border-green-600 border-2">
+                <div className="rounded-full text-green-600 min-w-8 h-8 text-center border-green-600 border-2">
                   <i className="fa-solid fa-check text-lg"></i>
                 </div>
               ) : (
-                <div className="rounded-full text-red-600 w-8 h-8 text-center border-red-600 border-2">
+                <div className="rounded-full text-red-600 min-w-8 h-8 text-center border-red-600 border-2">
                   <i className="fa-solid fa-xmark text-lg"></i>
                 </div>
               )}

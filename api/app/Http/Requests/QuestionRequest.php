@@ -27,7 +27,7 @@ class QuestionRequest extends FormRequest
             'is_text_answer' => 'boolean|required',
             'guidelines' => 'string|nullable',
             'image_url' => 'string|nullable',
-            'round_id' => 'required|exists:rounds,id',
+            'round_id' => 'required|string',
             'answers' => 'array|nullable'
         ];
     }

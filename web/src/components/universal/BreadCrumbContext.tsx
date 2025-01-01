@@ -1,4 +1,11 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { AdminSessionStorage } from "../admin/enum/AdminSessionStorage";
 
 type BreadCrumb = { path: string; name: string };
 type BreadCrumbContextType = {
@@ -37,6 +44,25 @@ export const BreadCrumbProvider = ({ children }: { children: ReactNode }) => {
   const removeLastBreadCrumb = () => {
     setBreadCrumbsState((prev) => prev.slice(0, prev.length - 1));
   };
+
+  useEffect(() => {
+    if (breadCrumbs.length !== 0) {
+      sessionStorage.setItem(
+        AdminSessionStorage.breadCrumbs,
+        JSON.stringify(breadCrumbs)
+      );
+    }
+  }, [breadCrumbs]);
+
+  useEffect(() => {
+    const breadCrumbs = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.breadCrumbs) || "[]"
+    ) as BreadCrumb[];
+
+    if (breadCrumbs.length > 0) {
+      setBreadCrumbsState(breadCrumbs);
+    }
+  }, []);
 
   return (
     <BreadCrumbContext.Provider

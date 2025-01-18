@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer("points")->default(1);
             $table->boolean("is_additional")->default(false);
             $table->foreignUuid("game_id")->constrained('games')->onDelete('cascade');
+            $table->number("order")->nullable();
             $table->timestamps();
         });
     }

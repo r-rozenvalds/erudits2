@@ -10,7 +10,7 @@ import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 import { constants } from "../../../../constants";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 import { AnswerType } from "../../../universal/AnswerType";
 

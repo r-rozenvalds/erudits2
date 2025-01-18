@@ -12,8 +12,9 @@ class GameInstance extends Model
 
     protected $fillable = [
         'id',
-        'is_public',
-        'is_active',
+        'private',
+        'code',
+        'end_date',
         'game_id',
     ];
 

@@ -78,4 +78,50 @@
       transform: rotate(360deg);
     }
   }
+
+  .slide-up {
+    animation-name: slide-up;
+    animation-duration: 2s;
+    animation-timing-function: ease-in;
+  }
+
+  .fade-in {
+    animation-name: fade-in;
+    animation-duration: 2.2s;
+    animation-timing-function: ease-in;
+  }
+
+  @keyframes slide-up {
+    0% {
+      transform: translateY(300%);
+    }
+    50% {
+      transform: translateY(300%);
+    }
+    100% {
+      transform: translateY(0%);
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    90% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .rose-filter {
+    filter: invert(31%) sepia(85%) saturate(463%) hue-rotate(293deg)
+      brightness(93%) contrast(88%);
+  }
+
+  .sunflower-filter {
+    filter: brightness(0) saturate(100%) invert(86%) sepia(99%) saturate(393%)
+      hue-rotate(323deg) brightness(98%) contrast(89%);
+  }
 }

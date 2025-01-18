@@ -8,4 +8,7 @@ export interface IGame {
   updated_at: string;
   user_id: string;
   rounds?: IRound[];
+  roundCount?: number;
+  hasActiveGameInstance?: boolean;
+  questionCount?: number;
 }

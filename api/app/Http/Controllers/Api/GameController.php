@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Game;
+use App\Models\GameInstance;
 use App\Models\Answer;
 use App\Models\User;
 use App\Models\Round;
@@ -25,6 +26,16 @@ class GameController extends Controller
     public function index(Request $request)
     {
         $games = Game::where('user_id', $request->user()->id)->get();
+        foreach ($games as $game) {
+            $rounds = $game->rounds()->get();
+            $game['roundCount'] = $rounds->count();
+            $game['questions'] = collect();
+            foreach ($rounds as $round) {
+                $game['questions'] = $game['questions']->merge($round->questions()->get());
+            }
+            $game['hasActiveGameInstance'] = GameInstance::where('game_id', $game->id)->whereNull('end_date')->exists();
+            $game['questionCount'] = $game['questions']->count();
+        }
 
         return response()->json(['games' => $games], 200);
     }

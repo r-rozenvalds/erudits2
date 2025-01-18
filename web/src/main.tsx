@@ -16,6 +16,11 @@ import { AdminGameEditor } from "./components/admin/pages/editor/Game.tsx";
 import { GameEditorQuestionRound } from "./components/admin/pages/editor/Round.tsx";
 import { GameEditorQuestion } from "./components/admin/pages/editor/Question.tsx";
 import { ConfirmationProvider } from "./components/universal/ConfirmationWindowContext.tsx";
+import { Lobby } from "./components/player/pages/Lobby.tsx";
+import { Game } from "./components/player/pages/Game.tsx";
+import { Panel } from "./components/admin/pages/panel/Panel.tsx";
+import { PlayerLayout } from "./components/player/pages/layouts/PlayerLayout.tsx";
+import { PanelLayout } from "./components/admin/pages/layouts/PanelLayout.tsx";
 
 const router = createBrowserRouter([
   {
@@ -68,6 +73,30 @@ const router = createBrowserRouter([
       {
         path: "question/:questionId",
         element: <GameEditorQuestion />,
+      },
+    ],
+  },
+  {
+    path: "play/:gameId",
+    element: <PlayerLayout />,
+    children: [
+      {
+        path: "lobby",
+        element: <Lobby />,
+      },
+      {
+        path: "game",
+        element: <Game />,
+      },
+    ],
+  },
+  {
+    path: "admin/panel",
+    element: <PanelLayout />,
+    children: [
+      {
+        path: ":gameId",
+        element: <Panel />,
       },
     ],
   },

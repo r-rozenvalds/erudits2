@@ -5,10 +5,13 @@ import { AdminGameTable } from "../ui/table/AdminGameTable";
 import { useEffect, useState } from "react";
 import { IGame } from "../interface/IGame";
 import { SpinnerCircularFixed } from "spinners-react";
+import { ActivationModal } from "../ui/ActivationModal";
 
 export const AdminGames = () => {
   const [games, setGames] = useState<IGame[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<IGame | null>(null);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -98,54 +101,76 @@ export const AdminGames = () => {
     navigate("/admin/login");
   };
 
+  const onActivationModalOpen = (game: IGame) => {
+    setSelectedGame(game);
+    setIsActivationModalOpen(true);
+  };
+
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-[#31587A] to-[#3C3266]">
-      <div className="flex flex-col w-screen h-screen p-12 gap-12">
-        <div className="flex justify-between">
-          <span className="font-[Manrope] font-semibold text-white text-3xl">
-            Izveidotās spēles
-          </span>
-          <div className="flex gap-4">
-            <button
-              disabled={isLoading}
-              className={`${
-                isLoading ? "bg-slate-500" : "bg-white hover:bg-slate-200"
-              } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
-              onClick={logout}
-            >
-              <span className="font-[Manrope] font-semibold">Beigt darbu</span>
-              {!isLoading && <i className="fa-solid fa-right-from-bracket"></i>}
-              {isLoading && (
-                <SpinnerCircularFixed
-                  color="#ffffff"
-                  size={20}
-                  thickness={150}
-                />
-              )}
-            </button>
-            <button
-              onClick={createGame}
-              disabled={isLoading}
-              className={`${
-                isLoading
-                  ? "bg-slate-500"
-                  : "bg-emerald-400 hover:bg-emerald-300 "
-              } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
-            >
-              <span className="font-[Manrope] font-semibold">Jauna spēle</span>
-              {!isLoading && <i className="fa-solid fa-plus"></i>}
-              {isLoading && (
-                <SpinnerCircularFixed
-                  color="#ffffff"
-                  size={20}
-                  thickness={150}
-                />
-              )}
-            </button>
+    <>
+      <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-[#31587A] to-[#3C3266]">
+        <div className="flex flex-col w-screen h-screen p-12 gap-12">
+          <div className="flex justify-between">
+            <span className="font-[Manrope] font-semibold text-white text-3xl">
+              Izveidotās spēles
+            </span>
+            <div className="flex gap-4">
+              <button
+                disabled={isLoading}
+                className={`${
+                  isLoading ? "bg-slate-500" : "bg-white hover:bg-slate-200"
+                } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
+                onClick={logout}
+              >
+                <span className="font-[Manrope] font-semibold">
+                  Beigt darbu
+                </span>
+                {!isLoading && (
+                  <i className="fa-solid fa-right-from-bracket"></i>
+                )}
+                {isLoading && (
+                  <SpinnerCircularFixed
+                    color="#ffffff"
+                    size={20}
+                    thickness={150}
+                  />
+                )}
+              </button>
+              <button
+                onClick={createGame}
+                disabled={isLoading}
+                className={`${
+                  isLoading
+                    ? "bg-slate-500"
+                    : "bg-emerald-400 hover:bg-emerald-300 "
+                } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
+              >
+                <span className="font-[Manrope] font-semibold">
+                  Jauna spēle
+                </span>
+                {!isLoading && <i className="fa-solid fa-plus"></i>}
+                {isLoading && (
+                  <SpinnerCircularFixed
+                    color="#ffffff"
+                    size={20}
+                    thickness={150}
+                  />
+                )}
+              </button>
+            </div>
           </div>
+          <AdminGameTable
+            games={games}
+            onActivationModalOpen={onActivationModalOpen}
+          />
         </div>
-        <AdminGameTable games={games} />
       </div>
-    </div>
+      {isActivationModalOpen && selectedGame && (
+        <ActivationModal
+          game={selectedGame}
+          onClose={() => setIsActivationModalOpen(false)}
+        />
+      )}
+    </>
   );
 };

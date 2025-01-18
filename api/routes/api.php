@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RoundController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\AnswerController;
+use App\Http\Controllers\Api\GameInstanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     //answers
     Route::delete('/answers/{answer_id}', [AnswerController::class, 'destroy']);
     Route::get('/create-answer/{question_id}', [AnswerController::class, 'create']);
+
+    //game-instances
+    Route::post('/activate', [GameInstanceController::class, 'activate']);
+    Route::get('/status/{game_id}', [GameInstanceController::class, 'status']);
 });
 
 

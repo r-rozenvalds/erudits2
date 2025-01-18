@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignUuid("round_id")->constrained('rounds')->onDelete('cascade');
             $table->string("guidelines")->nullable();
             $table->string("image_url")->nullable();
+            $table->number("order")->nullable();
             $table->timestamps();
         });
     }

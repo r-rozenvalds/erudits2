@@ -1,15 +1,26 @@
 import { useState } from "react";
 import { IGame } from "../../interface/IGame";
-import { useNavigate } from "react-router-dom";
 import { constants } from "../../../../constants";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
+import { useToast } from "../../../universal/Toast";
+import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
+import { SpinnerCircularFixed } from "spinners-react";
+import { ActivationModal } from "../ActivationModal";
 
-export const AdminGameTableItem = ({ game }: { game: IGame }) => {
+export const AdminGameTableItem = ({
+  game,
+  onActivationModalOpen,
+}: {
+  game: IGame;
+  onActivationModalOpen: (game: IGame) => void;
+}) => {
   const [expanded, setExpanded] = useState(false);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { setGame, setRounds, setQuestions } = useSidebar();
+  const showToast = useToast();
+  const confirm = useConfirmation();
 
   const openEditor = async () => {
     const response = await fetch(
@@ -39,6 +50,32 @@ export const AdminGameTableItem = ({ game }: { game: IGame }) => {
     }
   };
 
+  const gameAction = async () => {
+    if (game.hasActiveGameInstance) {
+      window.location.assign("/admin/panel/" + game.id);
+      return;
+    }
+    onActivationModalOpen(game);
+  };
+
+  const deleteGame = async () => {
+    if (await confirm(`Dzēst spēli ${game.title}?`)) {
+      const response = await fetch(`${constants.baseApiUrl}/games/${game.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem(
+            constants.sessionStorage.TOKEN
+          )}`,
+        },
+      });
+      if (response.ok) {
+        showToast(true, "Spēle veiksmīgi izdzēsta");
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    }
+    return;
+  };
+
   return (
     <li className="flex flex-col font-[Manrope] bg-white rounded-md">
       <div className="flex w-full ">
@@ -53,8 +90,16 @@ export const AdminGameTableItem = ({ game }: { game: IGame }) => {
           </div>
           <div></div>
         </div>
-        <button className="w-32 text-lg bg-[#E63946] text-white font-semibold hover:bg-opacity-50 transition-all hover:cursor-pointer">
-          Spēlēt
+        <button
+          onClick={gameAction}
+          className="w-32 text-lg bg-[#E63946] text-white font-semibold hover:bg-opacity-50 transition-all hover:cursor-pointer"
+        >
+          {!isLoading && (game.hasActiveGameInstance ? "Panelis" : "Spēlēt")}
+          {isLoading && (
+            <div className="mx-auto w-8">
+              <SpinnerCircularFixed color="#fff" thickness={180} size={32} />
+            </div>
+          )}
         </button>
         <div
           onClick={() => (expanded ? setExpanded(false) : setExpanded(true))}
@@ -81,18 +126,24 @@ export const AdminGameTableItem = ({ game }: { game: IGame }) => {
               <tbody>
                 <tr>
                   <td className="pe-4">{game.updated_at.slice(0, 10)}</td>
-                  <td className="pe-4">6</td>
-                  <td className="pe-4">28</td>
+                  <td className="pe-4">{game.roundCount}</td>
+                  <td className="pe-4">{game.questionCount}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div className="flex place-items-end">
+          <div className="flex place-items-end gap-4">
             <button
               onClick={openEditor}
               className="hover:cursor-pointer group w-8 h-8"
             >
               <i className="fa-solid fa-gear text-2xl text-gray-400 group-hover:text-black"></i>
+            </button>
+            <button
+              className="hover:cursor-pointer group w-8 h-8"
+              onClick={deleteGame}
+            >
+              <i className="fa-solid fa-trash text-2xl text-gray-400 group-hover:text-black"></i>
             </button>
           </div>
         </div>

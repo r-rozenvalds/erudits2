@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('game_instances', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->boolean("is_public")->default(true);
-            $table->boolean("is_active")->default(true);
+            $table->boolean("private")->default(false);
+            $table->string("code")->unique();
+            $table->date("end_date")->nullable();
             $table->foreignUuid("game_id")->constrained('games')->onDelete('cascade');
+            $table->uuid('current_round')->nullable()->constrained('rounds')->onDelete('cascade');
             $table->timestamps();
         });
     }

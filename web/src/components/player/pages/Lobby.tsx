@@ -1,25 +1,80 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SpinnerCircularFixed } from "spinners-react";
+import { PlayerSessionStorage } from "../enum/PlayerSessionStorage";
+import { IGameSessionStorage } from "../interface/IGameSessionStorage";
+import { constants } from "../../../constants";
 
 export const Lobby = () => {
   const [playerName, setPlayerName] = useState("");
   const [isReady, setIsReady] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState("");
+  const [gameTitle, setGameTitle] = useState("");
+  const [instanceId, setInstanceId] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
-  const readyPlayer = () => {
-    setIsError(false);
-    if (playerName === "") {
-      setIsError(true);
+  useEffect(() => {
+    const gameSessionStorage = JSON.parse(
+      sessionStorage.getItem(PlayerSessionStorage.currentGame) ?? "{}"
+    ) as IGameSessionStorage;
+    setInstanceId(gameSessionStorage.id);
+
+    if (gameSessionStorage?.title) {
+      setGameTitle(gameSessionStorage.title);
+    }
+  }, []);
+
+  const readyPlayer = async () => {
+    setError("");
+    if (!agreed) {
+      setError("Lūdzu, atzīmējiet, ka piekrītat noteikumiem!");
       return;
     }
-    setIsReady(true);
+    if (playerName === "") {
+      setError("Lūdzu, ievadiet spēlētāja nosaukumu!");
+      return;
+    }
+    if (await createPlayer()) {
+      setIsReady(true);
+    }
+  };
+
+  const createPlayer = async () => {
+    const response = await fetch(`${constants.baseApiUrl}/create-player`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        player_name: playerName,
+        instance_id: instanceId,
+      }),
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+      sessionStorage.setItem(
+        PlayerSessionStorage.currentPlayer,
+        JSON.stringify({
+          id: data.id,
+          name: data.name,
+        })
+      );
+      return true;
+    }
+    setError(data?.error ?? "Kļūda veidojot spēlētāju");
+    return false;
+  };
+
+  const changeAgreed = (value: boolean) => {
+    setError("");
+    setAgreed(value);
   };
 
   return (
     <div className="flex flex-col gap-12">
       <div className="flex flex-col place-items-center justify-center text-white drop-shadow-lg">
         <p className="font-semibold text-lg">Jūs esat pievienojušies spēlei</p>
-        <p className="font-bold text-4xl ">"Gudrs, vēl gudrāks 2025"</p>
+        <p className="font-bold text-4xl">"{gameTitle}"</p>
       </div>
       <div className="flex place-items-center flex-col gap-4">
         <label
@@ -36,10 +91,25 @@ export const Lobby = () => {
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
         />
+        <div className="flex gap-2 place-items-center justify-center">
+          <input
+            className="h-5 w-5 accent-[#E63946] shadow-md"
+            type="checkbox"
+            id="agreement"
+            checked={agreed}
+            onChange={(e) => changeAgreed(e.target.checked)}
+            disabled={isReady}
+          />
+          <label htmlFor="agreement" className="text-white">
+            Es piekrītu neizmantot palīgierīces spēles laikā.
+          </label>
+        </div>
         {!isReady && (
           <button
             onClick={readyPlayer}
-            className="text-white bg-[#E63946] w-32 h-12 rounded-md text-2xl shadow-md hover:opacity-70"
+            className={`text-white w-32 h-12 rounded-md text-2xl shadow-md hover:opacity-70 ${
+              agreed ? "bg-[#E63946]" : "bg-gray-400 cursor-not-allowed"
+            }`}
           >
             <i className="fa-solid fa-check"></i>
           </button>
@@ -50,17 +120,17 @@ export const Lobby = () => {
             className="text-white bg-slate-400 w-32 h-12 rounded-md text-2xl shadow-md"
           >
             <div className="mx-auto w-8">
-              <SpinnerCircularFixed color="#ffffff" size={32} thickness={280} />
+              <SpinnerCircularFixed color="#ffffff" size={32} thickness={180} />
             </div>
           </button>
         )}
         <p
           className={`font-semibold ${
-            isError ? "text-red-600" : "text-white"
+            error.length > 0 ? "text-red-600" : "text-white"
           } drop-shadow-lg`}
         >
           {isReady ? "Lūdzu, gaidiet spēles sākumu!" : ""}
-          {isError ? "Lūdzu, ievadiet spēlētāja nosaukumu!" : ""}
+          {error.length > 0 ? error : ""}
         </p>
       </div>
     </div>

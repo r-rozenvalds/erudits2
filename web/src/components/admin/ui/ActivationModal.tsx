@@ -1,4 +1,4 @@
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { constants } from "../../../constants";
 import { IGame } from "../interface/IGame";
 import { useToast } from "../../universal/Toast";
@@ -14,11 +14,22 @@ export const ActivationModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
   const [privateGame, setPrivateGame] = useState(false);
+  const [expiryDate, setExpiryDate] = useState(new Date());
   const showToast = useToast();
 
   const handleCancel = () => {
     onClose();
   };
+
+  const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  };
+
+  useEffect(() => {
+    setExpiryDate(getTomorrow());
+  }, []);
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -40,12 +51,16 @@ export const ActivationModal = ({
         code: code,
         private: privateGame,
         game_id: game.id,
+        end_date: expiryDate.toISOString().split("T")[0],
       }),
     });
 
     if (response.ok) {
       const data = await response.json();
       showToast(true, data.message);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } else {
       const data = await response.json();
       showToast(false, data.message);
@@ -112,6 +127,23 @@ export const ActivationModal = ({
                 title="Privātas spēles nav redzamas lokālajā tīklā un ir pieejamas tikai ar kodu."
                 className="fa-solid fa-info-circle text-sm text-gray-400"
               ></i>
+            </div>
+            <div className="flex gap-2 place-items-center">
+              <label htmlFor="expiryDate" className="font-semibold">
+                Aktīvs līdz
+              </label>
+              <input
+                id="expiryDate"
+                className="bg-slate-100 shadow-sm p-1 border-1 border-slate-400"
+                min={getTomorrow().toISOString().split("T")[0]}
+                type="date"
+                value={expiryDate.toISOString().split("T")[0]}
+                onChange={(e) => {
+                  if (e.target.valueAsDate) {
+                    setExpiryDate(e.target.valueAsDate);
+                  }
+                }}
+              />
             </div>
           </div>
           <div className="flex gap-8">

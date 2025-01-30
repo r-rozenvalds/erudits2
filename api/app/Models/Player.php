@@ -13,9 +13,10 @@ class Player extends Model
 
     protected $fillable =[
         'id',
-        'name',
+        'player_name',
         'points',
-        'is_disqualified'
+        'is_disqualified',
+        'instance_id'
     ];
 
     public function game_instance()

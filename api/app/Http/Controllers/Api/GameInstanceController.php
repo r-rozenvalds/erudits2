@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\GameController;
 use App\Models\GameInstance;
+use App\Models\Game;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Http\Requests\GameInstanceRequest;
@@ -31,8 +33,13 @@ class GameInstanceController extends Controller
     public function activate(GameInstanceRequest $request) {
         $validated = $request->validated();
         
-        if(GameInstance::where('game_id', $validated['game_id'])->whereNull('end_date')->exists()) {
+        if(GameInstance::where('game_id', $validated['game_id'])->whereNull('end_date')
+        ->orWhere('end_date', '>', now())->exists()) {
             return response()->json(['message' => 'Game instance already active.'], 400);
+        }
+
+        if(GameInstance::where('code', '=', $validated['code'])->where('end_date', '>', now())->exists()) {
+            return response()->json(['message' => 'Code already in use.'], 400);
         }
 
         $gameInstance = [
@@ -40,6 +47,7 @@ class GameInstanceController extends Controller
             'game_id' => $validated['game_id'],
             'code' => $validated['code'],
             'private' => $validated['private'],
+            'end_date' => $validated['end_date'],
         ];
         GameInstance::create($gameInstance);
 
@@ -53,6 +61,36 @@ class GameInstanceController extends Controller
         } else {
             return response()->json(['message' => 'Game instance not found.'], 404);
         }
+    }
+
+    public function join(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|min:3',
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['error' => 'Invalid code.'], 400);
+        }
+
+        $gameInstance = GameInstance::where('code', $request->code)
+            ->where(function($query) {
+            $query->whereNull('end_date')
+                  ->orWhere('end_date', '>', now());
+            })->first();
+        if($gameInstance) {
+            $game = Game::where('id', $gameInstance->game_id)->first();
+            return response()->json(['message' => 'Game instance found.', 'id' => $gameInstance['id'], 'end_date' => $gameInstance['end_date'], 'title' => $game['title']], 200);
+        } else {
+            return response()->json(['error' => 'Game instance not found.'], 404);
+        }
+    }
+
+    public function instanceGame(Request $request, string $id) {
+        $gameInstance = GameInstance::findOrFail($id);
+        $game = Game::where('id', $gameInstance->game_id)->first();
+        $gameController = new GameController();
+        $fullIndex = $gameController->fullIndex($request, $game->id);
+        return response()->json(['game' => $fullIndex->original], 200);
     }
 
     /**

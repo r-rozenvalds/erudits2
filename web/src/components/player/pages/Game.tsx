@@ -4,6 +4,7 @@ export const Game = () => {
   const [intro, setIntro] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [selectedAnswer, setSelectedAnswer] = useState(0);
+  const [viewImage, setViewImage] = useState(false);
 
   useEffect(() => {
     if (intro) {
@@ -102,30 +103,46 @@ export const Game = () => {
     );
   };
 
+  const [message, setMessage] = useState<string>("Waiting for response...");
+
   return (
     <div className="text-center select-none p-12 w-screen flex flex-col gap-4 h-screen">
-      <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
-        <div className="text-white font-semibold text-2xl flex gap-4 place-items-center">
-          <i className="fa-regular fa-clock text-3xl drop-shadow-lg"></i>
-          <span>00:23</span>
+      {viewImage && <div>{message}</div>}
+      {!viewImage && (
+        <>
+          <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
+            <div className="text-white font-semibold text-2xl flex gap-4 place-items-center">
+              <i className="fa-regular fa-clock text-3xl drop-shadow-lg"></i>
+              <span>00:23</span>
+            </div>
+            <p className="font-semibold text-3xl drop-shadow-md">
+              Kā sauca cilvēku, kas bija viens no pasaules cilvēkiem ar dažādiem
+              citiem cilvēkiem?
+            </p>
+            <div className="text-white font-semibold text-2xl flex gap-4 place-items-center">
+              <span>1/10</span>
+              <i className="fa-regular fa-circle-question text-3xl drop-shadow-lg"></i>
+            </div>
+          </div>
+          <div className="bg-black bg-opacity-40 rounded-md fade-in text-white grow place-items-center p-8 justify-between">
+            <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
+              {answerOption()}
+              {answerOption2()}
+              {answerOption()}
+              {answerOption2()}
+            </div>
+          </div>
+        </>
+      )}
+      <button
+        onClick={() => setViewImage(!viewImage)}
+        className="bg-black bg-opacity-40 hover:bg-opacity-30 transition-all rounded-md fade-in text-white grow place-items-center justify-center"
+      >
+        <div className="font-bold text-2xl">
+          Skatīt attēlu
+          <i className="fa-regular fa-image text-xl ms-2"></i>
         </div>
-        <p className="font-semibold text-3xl drop-shadow-md">
-          Kā sauca cilvēku, kas bija viens no pasaules cilvēkiem ar dažādiem
-          citiem cilvēkiem?
-        </p>
-        <div className="text-white font-semibold text-2xl flex gap-4 place-items-center">
-          <span>1/10</span>
-          <i className="fa-regular fa-circle-question text-3xl drop-shadow-lg"></i>
-        </div>
-      </div>
-      <div className="bg-black bg-opacity-40 rounded-md fade-in text-white grow place-items-center p-8 justify-between">
-        <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
-          {answerOption()}
-          {answerOption2()}
-          {answerOption()}
-          {answerOption2()}
-        </div>
-      </div>
+      </button>
     </div>
   );
 };

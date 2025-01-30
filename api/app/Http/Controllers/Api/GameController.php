@@ -33,7 +33,12 @@ class GameController extends Controller
             foreach ($rounds as $round) {
                 $game['questions'] = $game['questions']->merge($round->questions()->get());
             }
-            $game['hasActiveGameInstance'] = GameInstance::where('game_id', $game->id)->whereNull('end_date')->exists();
+            $activeGameInstance = GameInstance::where('game_id', $game->id)
+                ->where(function ($query) {
+                    $query->whereNull('end_date')
+                          ->orWhere('end_date', '>', now());
+                })->first();
+            $game['activeGameInstance'] = $activeGameInstance ? $activeGameInstance->id : null;
             $game['questionCount'] = $game['questions']->count();
         }
 

@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string("name");
-            $table->integer("points");
+            $table->string("player_name")->nullable();
+            $table->integer("points")->default(0);
             $table->integer("is_disqualified")->default(false);
-            $table->foreignUuid("game_instance_id")->constrained('game_instances')->onDelete('cascade');
+            $table->foreignUuid("instance_id")->constrained('game_instances')->onDelete('cascade');
             $table->timestamps();
         });
     }

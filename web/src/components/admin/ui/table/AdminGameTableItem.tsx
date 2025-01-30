@@ -51,8 +51,8 @@ export const AdminGameTableItem = ({
   };
 
   const gameAction = async () => {
-    if (game.hasActiveGameInstance) {
-      window.location.assign("/admin/panel/" + game.id);
+    if (game.activeGameInstance) {
+      window.location.assign("/admin/panel/" + game.activeGameInstance);
       return;
     }
     onActivationModalOpen(game);
@@ -94,7 +94,7 @@ export const AdminGameTableItem = ({
           onClick={gameAction}
           className="w-32 text-lg bg-[#E63946] text-white font-semibold hover:bg-opacity-50 transition-all hover:cursor-pointer"
         >
-          {!isLoading && (game.hasActiveGameInstance ? "Panelis" : "Spēlēt")}
+          {!isLoading && (!!game.activeGameInstance ? "Panelis" : "Spēlēt")}
           {isLoading && (
             <div className="mx-auto w-8">
               <SpinnerCircularFixed color="#fff" thickness={180} size={32} />

@@ -11,42 +11,35 @@ import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 
 type Player = {
   id: number;
-  name: string;
+  player_name: string;
   points: number;
   is_disqualified: boolean;
 };
-
-const players = [
-  { id: 1, name: "Player 1", points: 100, is_disqualified: false },
-  { id: 2, name: "Player 2", points: 200, is_disqualified: false },
-  { id: 3, name: "Player 3", points: 300, is_disqualified: true },
-] as Player[];
-
 export const PlayerList = ({ gameId }: { gameId: string }) => {
   const [sorting, setSorting] = useState([
     { id: "is_disqualified", desc: false },
   ]);
 
-  //const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
 
-  //   const fetchPlayers = async () => {
-  //     const response = await fetch(`${constants.baseApiUrl}/players/${gameId}`, {
-  //       method: "GET",
-  //       headers: {
-  //         Authorization: `Bearer ${sessionStorage.getItem(
-  //           constants.sessionStorage.TOKEN
-  //         )}`,
-  //       },
-  //     });
+  const fetchPlayers = async () => {
+    const response = await fetch(`${constants.baseApiUrl}/players/${gameId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${sessionStorage.getItem(
+          constants.sessionStorage.TOKEN
+        )}`,
+      },
+    });
 
-  //     if (response.ok) {
-  //       const data = await response.json();
-  //       setPlayers(data.players);
-  //     }
-  //   };
+    if (response.ok) {
+      const data = await response.json();
+      setPlayers(data.players);
+    }
+  };
 
   useEffect(() => {
-    //fetchPlayers();
+    fetchPlayers();
   }, []);
 
   const confirm = useConfirmation();
@@ -54,7 +47,7 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
   const disqualifyPlayer = async (player: Player) => {
     if (
       await confirm(
-        `Vai tiešām vēlaties diskvalificēt spēlētāju ${player.name}?`
+        `Vai tiešām vēlaties diskvalificēt spēlētāju ${player.player_name}?`
       )
     ) {
       const response = await fetch(
@@ -74,14 +67,16 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
       );
 
       if (response.ok) {
-        //fetchPlayers();
+        fetchPlayers();
       }
     }
   };
 
   const requalifyPlayer = async (player: Player) => {
     if (
-      await confirm(`Vai tiešām vēlaties kvalificēt spēlētāju ${player.name}?`)
+      await confirm(
+        `Vai tiešām vēlaties kvalificēt spēlētāju ${player.player_name}?`
+      )
     ) {
       const response = await fetch(`${constants.baseApiUrl}/requalify-player`, {
         method: "POST",
@@ -97,7 +92,7 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
       });
 
       if (response.ok) {
-        //fetchPlayers();
+        fetchPlayers();
       }
     }
   };
@@ -115,7 +110,7 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
           return sortedRowIndex + 1;
         },
       }),
-      columnHelper.accessor("name", {
+      columnHelper.accessor("player_name", {
         header: "Nosaukums",
         cell: (info) => info.getValue(),
         enableSorting: false,

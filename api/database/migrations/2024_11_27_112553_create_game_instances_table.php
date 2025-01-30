@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('game_instances', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->boolean("private")->default(false);
-            $table->string("code")->unique();
+            $table->string("code");
             $table->date("end_date")->nullable();
             $table->foreignUuid("game_id")->constrained('games')->onDelete('cascade');
             $table->uuid('current_round')->nullable()->constrained('rounds')->onDelete('cascade');

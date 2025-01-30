@@ -7,7 +7,9 @@ use App\Http\Controllers\Api\RoundController;
 use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\AnswerController;
+use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\GameInstanceController;
+use App\Http\Controllers\Api\PingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +27,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::post('/auth/register', [UserController::class, 'createUser']);
 Route::post('/auth/login', [UserController::class, 'loginUser']);
+
+Route::post('/join', [GameInstanceController::class, 'join']);
+Route::post('/create-player', [PlayerController::class, 'createPlayer']);
+
+Route::get('/ping', [PingController::class, 'sendPing']);
+
 Route::group(['middleware' => 'auth:sanctum'], function() {
 
     Route::post('/auth/logout', [UserController::class, 'logout']);
@@ -51,6 +59,12 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     //game-instances
     Route::post('/activate', [GameInstanceController::class, 'activate']);
     Route::get('/status/{game_id}', [GameInstanceController::class, 'status']);
+    Route::get('/instance-game/{game_id}', [GameInstanceController::class, 'instanceGame']);
+
+    //players
+    Route::get('/players/{instance_id}', [PlayerController::class, 'index']);
+    Route::post('/disqualify-player', [PlayerController::class, 'disqualify']);
+    Route::post('/requalify-player', [PlayerController::class, 'requalify']);
 });
 
 

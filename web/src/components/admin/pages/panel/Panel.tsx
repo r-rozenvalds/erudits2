@@ -4,7 +4,6 @@ import { IQuestion } from "../../interface/IQuestion";
 import { IRound } from "../../interface/IRound";
 import { constants } from "../../../../constants";
 import { useParams } from "react-router-dom";
-import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 import { PlayerList } from "../../ui/panel/PlayerList";
 import { StartStop } from "../../ui/panel/StartStop";
 
@@ -24,7 +23,7 @@ export const Panel = () => {
   const fetchGame = async () => {
     setIsLoading(true);
     const response = await fetch(
-      `${constants.baseApiUrl}/full-game/${gameId}`,
+      `${constants.baseApiUrl}/instance-game/${gameId}`,
       {
         method: "GET",
         headers: {
@@ -37,9 +36,9 @@ export const Panel = () => {
 
     if (response.ok) {
       const data = await response.json();
-      setGame(data.game);
-      setRounds(data.rounds);
-      setQuestions(data.questions);
+      setGame(data.game.game);
+      setRounds(data.game.rounds);
+      setQuestions(data.game.questions);
     }
     setIsLoading(false);
   };
@@ -58,7 +57,7 @@ export const Panel = () => {
           <img src="/maxwell-cat.gif" width="60" />
         </div>
         <h1 className="font-bold text-2xl">{game?.title}</h1>
-        {game && <StartStop game={game} />}
+        {game && gameId && <StartStop instanceId={gameId} game={game} />}
       </div>
       <div className="flex mt-2 mx-4">
         <div className="flex flex-col gap-2">

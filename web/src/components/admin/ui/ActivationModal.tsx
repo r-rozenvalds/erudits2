@@ -42,8 +42,8 @@ export const ActivationModal = ({
     const response = await fetch(`${constants.baseApiUrl}/activate`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
         "Content-Type": "application/json",
       },

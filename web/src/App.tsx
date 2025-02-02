@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useToast } from "./components/universal/Toast";
 import { constants } from "./constants";
 import { SpinnerCircularFixed } from "spinners-react";
-import { PlayerSessionStorage } from "./components/player/enum/PlayerSessionStorage";
+import { PlayerLocalStorage } from "./components/player/enum/PlayerLocalStorage";
 import { IGameSessionStorage } from "./components/player/interface/IGameSessionStorage";
+import { usePlayer } from "./components/universal/PlayerContext";
 
 function App() {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ function App() {
   const showToast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [hasExistingGame, setHasExistingGame] = useState(false);
+
+  const { playerId } = usePlayer();
 
   const handleJoin = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -30,12 +33,13 @@ function App() {
       },
       body: JSON.stringify({
         code,
+        playerId,
       }),
     });
     const data = await response.json();
     if (response.ok) {
-      sessionStorage.setItem(
-        PlayerSessionStorage.currentGame,
+      localStorage.setItem(
+        PlayerLocalStorage.currentGame,
         JSON.stringify({
           id: data.id,
           end_date: data.end_date,
@@ -68,7 +72,7 @@ function App() {
 
   useEffect(() => {
     const existingGame = JSON.parse(
-      sessionStorage.getItem(PlayerSessionStorage.currentGame) ?? "{}"
+      localStorage.getItem(PlayerLocalStorage.currentGame) ?? "{}"
     ) as IGameSessionStorage;
     if (
       existingGame?.id &&

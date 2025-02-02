@@ -86,8 +86,8 @@ export const AdminGameCreator = () => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
       },
       body: JSON.stringify({
@@ -132,8 +132,8 @@ export const AdminGameCreator = () => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
       }

@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Http\Requests\GameInstanceRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Player;
 
 class GameInstanceController extends Controller
 {
@@ -33,8 +34,10 @@ class GameInstanceController extends Controller
     public function activate(GameInstanceRequest $request) {
         $validated = $request->validated();
         
-        if(GameInstance::where('game_id', $validated['game_id'])->whereNull('end_date')
-        ->orWhere('end_date', '>', now())->exists()) {
+        if(GameInstance::where('game_id', $validated['game_id'])->where(function($query) {
+            $query->whereNull('end_date')
+                  ->orWhere('end_date', '>', now());
+        })->exists()) {
             return response()->json(['message' => 'Game instance already active.'], 400);
         }
 
@@ -66,6 +69,7 @@ class GameInstanceController extends Controller
     public function join(Request $request) {
         $validator = Validator::make($request->all(), [
             'code' => 'required|min:3',
+            'playerId' => 'nullable',
         ]);
 
         if($validator->fails()) {
@@ -77,6 +81,15 @@ class GameInstanceController extends Controller
             $query->whereNull('end_date')
                   ->orWhere('end_date', '>', now());
             })->first();
+        if($gameInstance && $gameInstance->current_round !== null) { // if game already started
+            $player = Player::find($request->playerId);
+            if(!$player) { // and player not found
+            return response()->json(['error' => 'Game already started'], 400);
+            }
+            if($player->disqualified) { // if found but disqualified
+            return response()->json(['error' => 'Player disqualified'], 400);
+            }
+        }
         if($gameInstance) {
             $game = Game::where('id', $gameInstance->game_id)->first();
             return response()->json(['message' => 'Game instance found.', 'id' => $gameInstance['id'], 'end_date' => $gameInstance['end_date'], 'title' => $game['title']], 200);
@@ -90,7 +103,7 @@ class GameInstanceController extends Controller
         $game = Game::where('id', $gameInstance->game_id)->first();
         $gameController = new GameController();
         $fullIndex = $gameController->fullIndex($request, $game->id);
-        return response()->json(['game' => $fullIndex->original], 200);
+        return response()->json(['game' => $fullIndex->original, 'instance' => $gameInstance], 200);
     }
 
     /**

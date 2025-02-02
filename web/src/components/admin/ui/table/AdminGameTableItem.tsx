@@ -28,8 +28,8 @@ export const AdminGameTableItem = ({
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
       }
@@ -64,7 +64,7 @@ export const AdminGameTableItem = ({
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+            constants.localStorage.TOKEN
           )}`,
         },
       });

@@ -20,6 +20,7 @@ class Round extends Model
         'points',
         'is_additional',
         'game_id',
+        'order',
     ];
 
     public function game(): BelongsTo {

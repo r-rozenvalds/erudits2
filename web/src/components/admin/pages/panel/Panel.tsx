@@ -6,11 +6,13 @@ import { constants } from "../../../../constants";
 import { useParams } from "react-router-dom";
 import { PlayerList } from "../../ui/panel/PlayerList";
 import { StartStop } from "../../ui/panel/StartStop";
+import { IInstance } from "../../interface/IInstance";
 
 export const Panel = () => {
   const [game, setGame] = useState<IGame | null>(null);
   const [rounds, setRounds] = useState<IRound[] | null>(null);
   const [questions, setQuestions] = useState<IQuestion[] | null>(null);
+  const [instance, setInstance] = useState<IInstance | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,8 +29,8 @@ export const Panel = () => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
       }
@@ -36,6 +38,7 @@ export const Panel = () => {
 
     if (response.ok) {
       const data = await response.json();
+      setInstance(data.instance);
       setGame(data.game.game);
       setRounds(data.game.rounds);
       setQuestions(data.game.questions);
@@ -57,13 +60,12 @@ export const Panel = () => {
           <img src="/maxwell-cat.gif" width="60" />
         </div>
         <h1 className="font-bold text-2xl">{game?.title}</h1>
-        {game && gameId && <StartStop instanceId={gameId} game={game} />}
+        {game && gameId && instance && (
+          <StartStop instanceId={gameId} game={game} instance={instance} />
+        )}
       </div>
       <div className="flex mt-2 mx-4">
-        <div className="flex flex-col gap-2">
-          <p className="place-self-center font-semibold">Spēlētāji</p>
-          {gameId && <PlayerList gameId={gameId} />}
-        </div>
+        {gameId && <PlayerList gameId={gameId} />}
       </div>
     </div>
   );

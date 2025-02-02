@@ -9,7 +9,7 @@ use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\AnswerController;
 use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\GameInstanceController;
-use App\Http\Controllers\Api\PingController;
+use App\Http\Controllers\Api\BroadcastController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +31,10 @@ Route::post('/auth/login', [UserController::class, 'loginUser']);
 Route::post('/join', [GameInstanceController::class, 'join']);
 Route::post('/create-player', [PlayerController::class, 'createPlayer']);
 
-Route::get('/ping', [PingController::class, 'sendPing']);
+Route::get('/ping', [BroadcastController::class, 'ping']);
+Route::post('/game-control', [BroadcastController::class, 'gameControl']);
+
+Route::get('/player/{id}', [PlayerController::class, 'show']);
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
 
@@ -65,6 +68,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/players/{instance_id}', [PlayerController::class, 'index']);
     Route::post('/disqualify-player', [PlayerController::class, 'disqualify']);
     Route::post('/requalify-player', [PlayerController::class, 'requalify']);
+    Route::delete('/players/{id}', [PlayerController::class, 'destroy']);
+    Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
 });
 
 

@@ -52,6 +52,8 @@ class RoundController extends Controller
         }
 
         $validated = $request->validated();
+        $roundCount = Round::where('game_id', $request->game_id)->count();
+        $validated['order'] = $roundCount + 1;
         $round = Round::create($validated);
     
         return response()->json(['message' => 'Round successfully created.', 'round' => $round], 201);

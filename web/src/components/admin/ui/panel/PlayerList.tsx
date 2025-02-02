@@ -8,26 +8,25 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { constants } from "../../../../constants";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
+import echo from "../../../../useEcho";
+import { IPlayer } from "../../interface/IPlayer";
+import { SpinnerCircularFixed } from "spinners-react";
 
-type Player = {
-  id: number;
-  player_name: string;
-  points: number;
-  is_disqualified: boolean;
-};
 export const PlayerList = ({ gameId }: { gameId: string }) => {
   const [sorting, setSorting] = useState([
     { id: "is_disqualified", desc: false },
   ]);
 
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<IPlayer[]>([]);
+  const [fetchDisabled, setFetchDisabled] = useState(false);
+  const [pointsDisabled, setPointsDisabled] = useState(false);
 
   const fetchPlayers = async () => {
     const response = await fetch(`${constants.baseApiUrl}/players/${gameId}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
       },
     });
@@ -44,7 +43,7 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
 
   const confirm = useConfirmation();
 
-  const disqualifyPlayer = async (player: Player) => {
+  const disqualifyPlayer = async (player: IPlayer) => {
     if (
       await confirm(
         `Vai tiešām vēlaties diskvalificēt spēlētāju ${player.player_name}?`
@@ -55,8 +54,8 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem(
-              constants.sessionStorage.TOKEN
+            Authorization: `Bearer ${localStorage.getItem(
+              constants.localStorage.TOKEN
             )}`,
             "Content-Type": "application/json",
           },
@@ -72,7 +71,32 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
     }
   };
 
-  const requalifyPlayer = async (player: Player) => {
+  const deletePlayer = async (player: IPlayer) => {
+    if (
+      await confirm(
+        `Vai tiešām vēlaties dzēst spēlētāju ${player.player_name}?`
+      )
+    ) {
+      const response = await fetch(
+        `${constants.baseApiUrl}/players/${player.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              constants.localStorage.TOKEN
+            )}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        fetchPlayers();
+      }
+    }
+  };
+
+  const requalifyPlayer = async (player: IPlayer) => {
     if (
       await confirm(
         `Vai tiešām vēlaties kvalificēt spēlētāju ${player.player_name}?`
@@ -81,8 +105,8 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
       const response = await fetch(`${constants.baseApiUrl}/requalify-player`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
           "Content-Type": "application/json",
         },
@@ -97,7 +121,44 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
     }
   };
 
-  const columnHelper = createColumnHelper<Player>();
+  const adjustPoints = async (player: IPlayer, amount: number) => {
+    if (!pointsDisabled) {
+      setPointsDisabled(true);
+      const response = await fetch(`${constants.baseApiUrl}/adjust-points`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
+          )}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          player_id: player.id,
+          amount,
+        }),
+      });
+      const data = await response.json();
+      setPlayers((prevPlayers) =>
+        prevPlayers.map((p) =>
+          p.id === player.id ? { ...p, points: data.points } : p
+        )
+      );
+
+      setPointsDisabled(false);
+    }
+  };
+
+  useEffect(() => {
+    echo.channel("player-channel").listen(".player-event", fetchPlayers);
+
+    return () => {
+      echo
+        .channel("player-channel")
+        .stopListening(".player-event", fetchPlayers);
+    };
+  }, []);
+
+  const columnHelper = createColumnHelper<IPlayer>();
 
   const columns = useMemo(
     () => [
@@ -117,7 +178,35 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
       }),
       columnHelper.accessor("points", {
         header: "Punkti",
-        cell: (info) => info.getValue(),
+        cell: (info) => {
+          return (
+            <div className="flex gap-3 place-items-center">
+              <button
+                disabled={pointsDisabled}
+                onClick={() => adjustPoints(info.row.original, 1)}
+                className={`font-bold ${
+                  pointsDisabled
+                    ? "bg-slate-400"
+                    : "bg-red-500 hover:bg-red-400"
+                } text-white h-6 w-6 rounded-full transition-all`}
+              >
+                <i className="fa-solid fa-plus"></i>
+              </button>
+              <p>{info.getValue()}</p>
+              <button
+                disabled={pointsDisabled}
+                onClick={() => adjustPoints(info.row.original, -1)}
+                className={`font-bold ${
+                  pointsDisabled
+                    ? "bg-slate-400"
+                    : "bg-red-500 hover:bg-red-400"
+                } text-white h-6 w-6 rounded-full transition-all`}
+              >
+                <i className="fa-solid fa-minus"></i>
+              </button>
+            </div>
+          );
+        },
         enableSorting: false,
       }),
       columnHelper.accessor("is_disqualified", {
@@ -152,27 +241,45 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
         cell: (info) => {
           if (info.row.original.is_disqualified) {
             return (
-              <button
-                className="h-6 rounded-md w-full bg-green-500 text-white text-sm font-bold"
-                onClick={() => requalifyPlayer(info.row.original)}
-              >
-                Kvalific.
-              </button>
+              <div className="flex gap-2 justify-items-center">
+                <button
+                  className="rounded-md w-full bg-green-500 text-white text-sm font-bold px-2"
+                  onClick={() => requalifyPlayer(info.row.original)}
+                >
+                  Kvalific.
+                </button>
+                <button
+                  className="rounded-md w-full"
+                  onClick={() => deletePlayer(info.row.original)}
+                >
+                  <i className="fa-solid fa-xmark text-xl"></i>
+                </button>
+              </div>
             );
           }
           return (
-            <button
-              className="h-6 rounded-md w-full bg-red-500 text-white text-sm font-bold"
-              onClick={() => disqualifyPlayer(info.row.original)}
-            >
-              Diskv.
-            </button>
+            <>
+              <button
+                className="rounded-md w-full bg-red-500 text-white text-sm font-bold px-2 py-1"
+                onClick={() => disqualifyPlayer(info.row.original)}
+              >
+                Diskv.
+              </button>
+            </>
           );
         },
       }),
     ],
     [columnHelper, requalifyPlayer, disqualifyPlayer]
   );
+
+  const refresh = () => {
+    if (!fetchDisabled) {
+      fetchPlayers();
+      setFetchDisabled(true);
+      setTimeout(() => setFetchDisabled(false), 1000);
+    }
+  };
 
   const table = useReactTable({
     data: players,
@@ -185,7 +292,17 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
     getSortedRowModel: getSortedRowModel(),
   });
   return (
-    <div className="">
+    <div className="text-center">
+      <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
+        <p className="font-semibold">Spēlētāji</p>
+        <button disabled={fetchDisabled} onClick={refresh}>
+          {fetchDisabled ? (
+            <SpinnerCircularFixed size={12} thickness={230} color="#fff" />
+          ) : (
+            <i className="fa-solid fa-refresh"></i>
+          )}
+        </button>
+      </div>
       <table>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (

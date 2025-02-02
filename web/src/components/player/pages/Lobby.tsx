@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react";
 import { SpinnerCircularFixed } from "spinners-react";
-import { PlayerSessionStorage } from "../enum/PlayerSessionStorage";
+import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
 import { IGameSessionStorage } from "../interface/IGameSessionStorage";
 import { constants } from "../../../constants";
 
+import { usePlayer } from "../../universal/PlayerContext";
+
 export const Lobby = () => {
-  const [playerName, setPlayerName] = useState("");
-  const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState("");
   const [gameTitle, setGameTitle] = useState("");
   const [instanceId, setInstanceId] = useState("");
+
+  const {
+    playerName,
+    setPlayerName,
+    setPlayerId,
+    setIsReady,
+    isReady,
+    playerId,
+  } = usePlayer();
+
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     const gameSessionStorage = JSON.parse(
-      sessionStorage.getItem(PlayerSessionStorage.currentGame) ?? "{}"
+      localStorage.getItem(PlayerLocalStorage.currentGame) ?? "{}"
     ) as IGameSessionStorage;
     setInstanceId(gameSessionStorage.id);
 
@@ -22,6 +32,10 @@ export const Lobby = () => {
       setGameTitle(gameSessionStorage.title);
     }
   }, []);
+
+  useEffect(() => {
+    setAgreed(isReady);
+  }, [isReady]);
 
   const readyPlayer = async () => {
     setError("");
@@ -52,13 +66,15 @@ export const Lobby = () => {
     const data = await response.json();
 
     if (response.ok) {
-      sessionStorage.setItem(
-        PlayerSessionStorage.currentPlayer,
+      localStorage.setItem(
+        PlayerLocalStorage.currentPlayer,
         JSON.stringify({
           id: data.id,
           name: data.name,
         })
       );
+      setPlayerName(data.name);
+      setPlayerId(data.id);
       return true;
     }
     setError(data?.error ?? "Kļūda veidojot spēlētāju");

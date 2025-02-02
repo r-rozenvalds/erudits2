@@ -35,14 +35,14 @@ export const AdminGames = () => {
     const response = await fetch(`${constants.baseApiUrl}/auth/logout`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
       },
     });
 
     if (response.ok) {
-      sessionStorage.removeItem(constants.sessionStorage.TOKEN);
+      localStorage.removeItem(constants.localStorage.TOKEN);
       navigate("/");
     }
     setIsLoading(false);
@@ -55,8 +55,8 @@ export const AdminGames = () => {
       const response = await fetch(`${constants.baseApiUrl}/create-game`, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
       });
@@ -86,8 +86,8 @@ export const AdminGames = () => {
     const response = await fetch(`${constants.baseApiUrl}/games`, {
       method: "get",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
       },
     });

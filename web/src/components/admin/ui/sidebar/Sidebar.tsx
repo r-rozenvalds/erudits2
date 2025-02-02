@@ -28,8 +28,8 @@ export const Sidebar = () => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
       }

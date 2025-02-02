@@ -139,8 +139,8 @@ export const GameEditorQuestionRound = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
         body: JSON.stringify({
@@ -165,6 +165,7 @@ export const GameEditorQuestionRound = () => {
       setBreadCrumbs("", formValues.title);
 
       showToast(true, localizeSuccess(data.message));
+      setIsLoading(false);
     } else {
       setIsLoading(false);
       const data = await response.json();

@@ -34,8 +34,8 @@ export const SidebarRound = ({ round }: { round: IRound }) => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
-            constants.sessionStorage.TOKEN
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
           )}`,
         },
       }
@@ -106,8 +106,8 @@ export const SidebarRound = ({ round }: { round: IRound }) => {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem(
-              constants.sessionStorage.TOKEN
+            Authorization: `Bearer ${localStorage.getItem(
+              constants.localStorage.TOKEN
             )}`,
           },
         }
@@ -134,8 +134,8 @@ export const SidebarRound = ({ round }: { round: IRound }) => {
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem(
-              constants.sessionStorage.TOKEN
+            Authorization: `Bearer ${localStorage.getItem(
+              constants.localStorage.TOKEN
             )}`,
           },
         }

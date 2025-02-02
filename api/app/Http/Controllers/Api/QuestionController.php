@@ -57,6 +57,8 @@ class QuestionController extends Controller
     {
         $validated = $request->validated();
 
+        $questionCount = Question::where('round_id', $request->round_id)->count();
+        $validated['order'] = $questionCount + 1;
 
         $question = Question::create($validated);
         $answers = $validated['answers'];

@@ -83,8 +83,8 @@ export const AdminGameEditor = () => {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
       },
       body: JSON.stringify({

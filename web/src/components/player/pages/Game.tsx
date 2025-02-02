@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 export const Game = () => {
-  const [intro, setIntro] = useState(false);
+  const [intro, setIntro] = useState(true);
   const [countdown, setCountdown] = useState(3);
   const [selectedAnswer, setSelectedAnswer] = useState(0);
   const [viewImage, setViewImage] = useState(false);
@@ -103,11 +103,9 @@ export const Game = () => {
     );
   };
 
-  const [message, setMessage] = useState<string>("Waiting for response...");
-
   return (
     <div className="text-center select-none p-12 w-screen flex flex-col gap-4 h-screen">
-      {viewImage && <div>{message}</div>}
+      {viewImage && <div>"image"</div>}
       {!viewImage && (
         <>
           <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">

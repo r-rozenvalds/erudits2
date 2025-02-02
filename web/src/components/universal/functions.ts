@@ -1,15 +1,15 @@
 import { constants } from "../../constants";
 
 export const getCurrentUser = async () => {
-  if (!sessionStorage.getItem(constants.sessionStorage.TOKEN)) {
+  if (!localStorage.getItem(constants.localStorage.TOKEN)) {
     return false;
   }
   try {
     const response = await fetch(`${constants.baseApiUrl}/user`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${sessionStorage.getItem(
-          constants.sessionStorage.TOKEN
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
         )}`,
       },
     });
@@ -19,7 +19,6 @@ export const getCurrentUser = async () => {
     }
 
     const data = await response.json();
-    console.log(data);
     return data;
   } catch (error) {
     console.error("Error fetching current user:", error);

@@ -23,7 +23,7 @@ export const GroupMinimap = () => {
   //     method: "GET",
   //     headers: {
   //       Authorization: `Bearer ${sessionStorage.getItem(
-  //         constants.sessionStorage.TOKEN
+  //         constants.localStorage.TOKEN
   //       )}`,
   //     },
   //   })

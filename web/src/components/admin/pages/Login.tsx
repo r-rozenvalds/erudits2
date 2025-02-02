@@ -29,7 +29,7 @@ const AdminLogin = () => {
         if (response.ok) {
           showToast!(true, localizeSuccess(data.message));
 
-          sessionStorage.setItem(constants.sessionStorage.TOKEN, data.token);
+          localStorage.setItem(constants.localStorage.TOKEN, data.token);
           navigate("/admin/games");
         } else {
           Object.keys(data).map((key) =>

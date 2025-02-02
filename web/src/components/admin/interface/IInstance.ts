@@ -1,0 +1,8 @@
+export interface IInstance {
+  id: string;
+  private: boolean;
+  code: string;
+  end_date: string;
+  game_id: string;
+  current_round: string;
+}

@@ -5,4 +5,6 @@ export interface IInstance {
   end_date: string;
   game_id: string;
   current_round: string;
+  current_question: string;
+  started: boolean;
 }

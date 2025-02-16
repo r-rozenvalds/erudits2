@@ -21,6 +21,7 @@ export const GameCreatorQuestionRound = () => {
   const [isAdditional, setIsAdditional] = useState(
     CreateRoundModel.is_additional
   );
+  const [isTest, setIsTest] = useState(CreateRoundModel.is_test);
   const [isLoading, setIsLoading] = useState(false); // for spinner
 
   const [isLoaded, setIsLoaded] = useState(false); // for debounce
@@ -34,6 +35,7 @@ export const GameCreatorQuestionRound = () => {
   const debounceAnswerTime = useDebounce(answerTime, 300);
   const debouncePoints = useDebounce(points, 300);
   const debounceIsAdditional = useDebounce(isAdditional, 300);
+  const debounceIsTest = useDebounce(isTest, 300);
 
   const showToast = useToast();
 
@@ -51,6 +53,7 @@ export const GameCreatorQuestionRound = () => {
       answer_time: formValues.answer_time,
       points: formValues.points,
       is_additional: formValues.is_additional,
+      is_test: formValues.is_test,
     };
     sessionStorage.setItem(
       AdminSessionStorage.roundCreator,
@@ -99,6 +102,13 @@ export const GameCreatorQuestionRound = () => {
     }
   }, [debounceIsAdditional]);
 
+  useEffect(() => {
+    if (isLoaded) {
+      formValues.is_test = debounceIsTest;
+      saveToSessionStorage();
+    }
+  }, [debounceIsTest]);
+
   const { setBreadCrumbs, removeLastBreadCrumb } = useBreadCrumbs();
 
   useEffect(() => {
@@ -108,6 +118,7 @@ export const GameCreatorQuestionRound = () => {
     setAnswerTime(formValues.answer_time);
     setPoints(formValues.points);
     setIsAdditional(formValues.is_additional);
+    setIsTest(formValues.is_test);
 
     setIsLoaded(true);
   }, []);
@@ -137,6 +148,7 @@ export const GameCreatorQuestionRound = () => {
         points: values.points,
         is_additional: values.is_additional,
         game_id: values.game_id,
+        is_test: values.is_test,
       }),
     });
     if (response.ok) {
@@ -271,8 +283,23 @@ export const GameCreatorQuestionRound = () => {
               <input
                 onChange={() => setIsAdditional(!isAdditional)}
                 type="checkbox"
-                className="w-10 h-10 p-2 rounded-md text-center accent-[#E63946]"
+                className={`w-10 h-10 p-2 rounded-md text-center accent-[#E63946] ${
+                  isTest ? "cursor-not-allowed" : ""
+                }`}
                 checked={isAdditional}
+                disabled={isTest}
+              />
+            </div>
+            <div className="flex flex-col gap-2 place-items-center justify-between">
+              <label className="text-lg font-semibold">Testa veida</label>
+              <input
+                onChange={() => setIsTest(!isTest)}
+                type="checkbox"
+                disabled={isAdditional}
+                className={`w-10 h-10 p-2 rounded-md text-center accent-[#E63946] ${
+                  isAdditional ? "cursor-not-allowed" : ""
+                }`}
+                checked={isTest}
               />
             </div>
           </div>

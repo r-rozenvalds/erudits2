@@ -6,4 +6,5 @@ export default {
   points: 0,
   is_additional: false,
   game_id: "",
+  is_test: false,
 };

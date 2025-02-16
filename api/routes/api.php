@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AnswerController;
 use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\GameInstanceController;
 use App\Http\Controllers\Api\BroadcastController;
+use App\Http\Controllers\Api\PlayerAnswerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,9 @@ Route::post('/auth/login', [UserController::class, 'loginUser']);
 
 Route::post('/join', [GameInstanceController::class, 'join']);
 Route::post('/create-player', [PlayerController::class, 'createPlayer']);
+Route::get('/round-questions/{instance_id}', [GameInstanceController::class, 'roundQuestions']);
+Route::post('/player-answers', [PlayerAnswerController::class, 'store']);
+
 
 Route::get('/ping', [BroadcastController::class, 'ping']);
 Route::post('/game-control', [BroadcastController::class, 'gameControl']);
@@ -62,7 +66,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     //game-instances
     Route::post('/activate', [GameInstanceController::class, 'activate']);
     Route::get('/status/{game_id}', [GameInstanceController::class, 'status']);
-    Route::get('/instance-game/{game_id}', [GameInstanceController::class, 'instanceGame']);
+    Route::get('/instance-game/{instance_id}', [GameInstanceController::class, 'instanceGame']);
+    Route::get('/question-info/{instance_id}', [GameInstanceController::class, 'questionInfo']);
 
     //players
     Route::get('/players/{instance_id}', [PlayerController::class, 'index']);
@@ -70,6 +75,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/requalify-player', [PlayerController::class, 'requalify']);
     Route::delete('/players/{id}', [PlayerController::class, 'destroy']);
     Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
+
+    //player-answers
+    Route::get('/player-answers/{gameInstanceId}', [PlayerAnswerController::class, 'getInstanceAnswers']);
+    Route::put('/player-answers', [PlayerAnswerController::class, 'update']);
 });
 
 

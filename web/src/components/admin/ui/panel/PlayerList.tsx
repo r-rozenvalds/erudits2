@@ -8,34 +8,19 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { constants } from "../../../../constants";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
-import echo from "../../../../useEcho";
 import { IPlayer } from "../../interface/IPlayer";
 import { SpinnerCircularFixed } from "spinners-react";
+import { useAdminPanel } from "../../../universal/AdminPanelContext";
 
-export const PlayerList = ({ gameId }: { gameId: string }) => {
+export const PlayerList = () => {
   const [sorting, setSorting] = useState([
     { id: "is_disqualified", desc: false },
   ]);
 
-  const [players, setPlayers] = useState<IPlayer[]>([]);
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const [pointsDisabled, setPointsDisabled] = useState(false);
 
-  const fetchPlayers = async () => {
-    const response = await fetch(`${constants.baseApiUrl}/players/${gameId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(
-          constants.localStorage.TOKEN
-        )}`,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setPlayers(data.players);
-    }
-  };
+  const { fetchPlayers, players, setPlayers } = useAdminPanel();
 
   useEffect(() => {
     fetchPlayers();
@@ -138,25 +123,16 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
         }),
       });
       const data = await response.json();
-      setPlayers((prevPlayers) =>
-        prevPlayers.map((p) =>
+      if (response.ok) {
+        const updatedPlayers = players.map((p) =>
           p.id === player.id ? { ...p, points: data.points } : p
-        )
-      );
+        );
+        setPlayers(updatedPlayers);
 
-      setPointsDisabled(false);
+        setPointsDisabled(false);
+      }
     }
   };
-
-  useEffect(() => {
-    echo.channel("player-channel").listen(".player-event", fetchPlayers);
-
-    return () => {
-      echo
-        .channel("player-channel")
-        .stopListening(".player-event", fetchPlayers);
-    };
-  }, []);
 
   const columnHelper = createColumnHelper<IPlayer>();
 
@@ -303,40 +279,42 @@ export const PlayerList = ({ gameId }: { gameId: string }) => {
           )}
         </button>
       </div>
-      <table>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr className="text-center bg-slate-200" key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th className="p-2 px-4" key={header.id}>
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              className={` ${
-                row.original.is_disqualified
-                  ? "bg-red-100 odd:bg-red-200"
-                  : "bg-slate-50 odd:bg-slate-100"
-              }`}
-              key={row.id}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <td className="p-1 px-4 text-center" key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="min-h-[31rem] bg-slate-100">
+        <table>
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr className="text-center bg-slate-200" key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th className="p-4 px-4" key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                className={` ${
+                  row.original.is_disqualified
+                    ? "bg-red-100 odd:bg-red-200"
+                    : "bg-slate-50 odd:bg-slate-100"
+                }`}
+                key={row.id}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td className="p-1 px-4 text-center" key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

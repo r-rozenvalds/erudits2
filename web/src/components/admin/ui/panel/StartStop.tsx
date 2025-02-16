@@ -1,47 +1,50 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { constants } from "../../../../constants";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 import { useToast } from "../../../universal/Toast";
-import { IGame } from "../../interface/IGame";
 import echo from "../../../../useEcho";
+import { IGame } from "../../interface/IGame";
 import { IInstance } from "../../interface/IInstance";
 
 export const StartStop = ({
-  instanceId,
   game,
   instance,
+  instanceId,
 }: {
-  instanceId: string;
   game: IGame;
   instance: IInstance;
+  instanceId: string;
 }) => {
   const confirm = useConfirmation();
   const showToast = useToast();
+
   const [isPinging, setIsPinging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isStarted, setIsStarted] = useState(instance.current_round !== null);
 
   const startGame = async () => {
     setIsLoading(true);
-    if (await confirm(`Sākt spēli ${game.title}?`)) {
-      try {
-        await fetch(`${constants.baseApiUrl}/game-control`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            command: "start",
-            instance_id: instanceId,
-          }),
-        });
-        setIsStarted(true);
-        showToast(true, "Spēle sākta");
-      } catch (error) {
-        showToast(false, "Kļūda:" + error);
-      } finally {
-        setIsLoading(false);
-      }
+    const confirmed = await confirm(`Sākt spēli ${game.title}?`);
+    if (!confirmed) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${constants.baseApiUrl}/game-control`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          command: "start",
+          instance_id: instanceId,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Game start failed");
+      showToast(true, "Spēle sākta");
+    } catch (error) {
+      showToast(false, "Kļūda: " + error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,15 +74,18 @@ export const StartStop = ({
     }
   };
 
-  useEffect(() => {
-    const handlePingResponse = (data: any) => {
+  const handlePingResponse = useCallback(
+    (data: any) => {
       const serverTimestamp = new Date(data.receivedAt).getTime();
       const pingTimestamp = data.pingTime;
       const timeTaken = serverTimestamp - pingTimestamp;
       showToast(true, "Ping: " + timeTaken + "ms");
       setIsPinging(false);
-    };
+    },
+    [showToast, setIsPinging]
+  );
 
+  useEffect(() => {
     echo.channel("ping-channel").listen(".ping-event", handlePingResponse);
 
     return () => {
@@ -87,15 +93,22 @@ export const StartStop = ({
         .channel("ping-channel")
         .stopListening(".ping-event", handlePingResponse);
     };
-  }, []); // Only run this effect once, on component mount
+  }, [handlePingResponse]);
 
   const ping = async () => {
     setIsPinging(true);
     const pingTimestamp = Date.now();
 
-    await fetch(`${constants.baseApiUrl}/ping?ping_time=${pingTimestamp}`);
-
-    setIsPinging(false);
+    try {
+      const response = await fetch(
+        `${constants.baseApiUrl}/ping?ping_time=${pingTimestamp}`
+      );
+      if (!response.ok) throw new Error("Ping request failed");
+    } catch (error) {
+      showToast(false, "Ping failed: " + error);
+    } finally {
+      setIsPinging(false);
+    }
   };
 
   return (
@@ -120,10 +133,10 @@ export const StartStop = ({
         Slēgt spēli
       </button>
       <button
-        disabled={isLoading || isStarted}
+        disabled={isLoading || instance.started}
         onClick={startGame}
         className={`h-10 w-32 rounded-md ${
-          isLoading || isStarted
+          isLoading || instance.started
             ? "bg-slate-400"
             : "bg-emerald-500 hover:bg-emerald-600"
         }  text-white font-bold  transition-all`}

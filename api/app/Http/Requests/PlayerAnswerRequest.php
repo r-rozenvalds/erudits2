@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RoundRequest extends FormRequest
+class PlayerAnswerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,14 +22,10 @@ class RoundRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => 'required|string',
-            'title' => 'required|string',
-            'disqualify_amount' => 'required|integer',
-            'answer_time' => 'required|integer',
-            'points' => 'required|integer',
-            'is_additional' => 'boolean|nullable',
-            'game_id' => 'required|string',
-            'is_test' => 'boolean|nullable',
+            'player_id' => 'required|uuid',
+            'answer' => 'required',
+            'question_id' => 'required|uuid',
+            'is_text_answer_correct' => 'nullable'
         ];
     }
 }

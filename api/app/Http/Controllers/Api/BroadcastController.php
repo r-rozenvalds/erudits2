@@ -8,6 +8,7 @@ use App\Events\GameControlEvent;
 use App\Events\PingEvent;
 use App\Models\GameInstance;
 use App\Models\Round;
+use App\Models\Question;
 
 
 class BroadcastController extends Controller
@@ -23,14 +24,13 @@ class BroadcastController extends Controller
     public function gameControl(Request $request) {
         $command = $request->input('command');
         $instanceId = $request->input('instance_id'); 
-
         if($command == 'start') {
             $gameId = GameInstance::where('id', $instanceId)->value('game_id');
             $roundId = Round::where('game_id', $gameId)->where('order', 1)->value('id');
 
-            GameInstance::where('id', $instanceId)->update(['current_round' => $roundId]);
+            GameInstance::where('id', $instanceId)->update(['current_round' => $roundId, 'started' => true]);
         } else {
-            GameInstance::where('id', $instanceId)->update(['end_date' => now()]);
+            GameInstance::where('id', $instanceId)->update(['end_date' => now(), 'started' => false]);
         } 
 
         broadcast(new GameControlEvent($command, $instanceId));

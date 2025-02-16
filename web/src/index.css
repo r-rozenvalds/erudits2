@@ -133,13 +133,23 @@
     }
   }
 
-  .rose-filter {
+  .rose {
     filter: invert(31%) sepia(85%) saturate(463%) hue-rotate(293deg)
       brightness(93%) contrast(88%);
   }
 
-  .sunflower-filter {
+  .sunflower {
     filter: brightness(0) saturate(100%) invert(86%) sepia(99%) saturate(393%)
       hue-rotate(323deg) brightness(98%) contrast(89%);
+  }
+
+  .gerbera {
+    filter: brightness(0) saturate(100%) invert(44%) sepia(38%) saturate(1685%)
+      hue-rotate(169deg) brightness(87%) contrast(89%);
+  }
+
+  .orchid {
+    filter: brightness(0) saturate(100%) invert(67%) sepia(73%) saturate(441%)
+      hue-rotate(37deg) brightness(91%) contrast(97%);
   }
 }

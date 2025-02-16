@@ -22,7 +22,6 @@ import { Panel } from "./components/admin/pages/panel/Panel.tsx";
 import { PlayerLayout } from "./components/player/pages/layouts/PlayerLayout.tsx";
 import { PanelLayout } from "./components/admin/pages/layouts/PanelLayout.tsx";
 import { GameEnd } from "./components/player/pages/GameEnd.tsx";
-import { PlayerProvider } from "./components/universal/PlayerContext.tsx";
 import { Disqualified } from "./components/player/pages/Disqualified.tsx";
 
 const router = createBrowserRouter([
@@ -106,7 +105,7 @@ const router = createBrowserRouter([
     element: <PanelLayout />,
     children: [
       {
-        path: ":gameId",
+        path: ":instanceId",
         element: <Panel />,
       },
     ],
@@ -118,9 +117,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ToastProvider>
       <ConfirmationProvider>
         <BreadCrumbProvider>
-          <PlayerProvider>
-            <RouterProvider router={router} />
-          </PlayerProvider>
+          <RouterProvider router={router} />
         </BreadCrumbProvider>
       </ConfirmationProvider>
     </ToastProvider>

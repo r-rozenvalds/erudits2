@@ -9,4 +9,5 @@ export interface IRound {
   is_additional: boolean;
   game_id?: string;
   questions?: IQuestion[];
+  is_test: boolean;
 }

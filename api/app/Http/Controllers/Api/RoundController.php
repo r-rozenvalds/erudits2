@@ -32,6 +32,7 @@ class RoundController extends Controller
             'points' => 0, 
             'is_additional' => false, 
             'game_id' => $gameId,
+            'is_test' => false,
         ];
                 
         return response()->json(['message' => 'Round is ready for creation.', 'round' => $round], 201);

@@ -267,7 +267,12 @@ export const GameEditorQuestionRound = () => {
               />
             </div>
             <div className="flex flex-col gap-2 place-items-center justify-between">
-              <label className="text-lg font-semibold">Testa veida</label>
+              <label
+                onClick={() => console.log(isTest)}
+                className="text-lg font-semibold"
+              >
+                Testa veida
+              </label>
               <input
                 onChange={() => setIsTest(!isTest)}
                 type="checkbox"

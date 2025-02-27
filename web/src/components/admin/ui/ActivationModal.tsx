@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { constants } from "../../../constants";
 import { IGame } from "../interface/IGame";
 import { useToast } from "../../universal/Toast";
@@ -9,7 +9,7 @@ export const ActivationModal = ({
   onClose,
 }: {
   game: IGame;
-  onClose: () => void;
+  onClose: (succeess?: boolean) => void;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [code, setCode] = useState("");
@@ -58,9 +58,7 @@ export const ActivationModal = ({
     if (response.ok) {
       const data = await response.json();
       showToast(true, data.message);
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      onClose(true);
     } else {
       const data = await response.json();
       showToast(false, data.message);
@@ -90,7 +88,7 @@ export const ActivationModal = ({
             <i className="fa-solid fa-circle-exclamation text-xl"></i>
             <h2 className="font-bold">Spēles aktivizēšana</h2>
           </div>
-          <button onClick={handleCancel}>
+          <button disabled={isLoading} onClick={handleCancel}>
             <i className="fa-xmark fa-solid text-xl"></i>
           </button>
         </div>
@@ -150,6 +148,7 @@ export const ActivationModal = ({
             <button
               className="px-6 py-1 w-36 bg-slate-200 font-bold hover:bg-opacity-70 rounded-md shadow-sm transition-all text-lg"
               onClick={handleCancel}
+              disabled={isLoading}
             >
               Atcelt
             </button>

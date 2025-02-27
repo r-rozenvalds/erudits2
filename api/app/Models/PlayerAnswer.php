@@ -18,7 +18,7 @@ class PlayerAnswer extends Model
         'instance_id',
         'answer_id',
         'answer_text',
-        'is_text_answer_correct'
+        'is_answer_correct'
     ];
 
     public function player()

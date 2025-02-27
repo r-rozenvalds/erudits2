@@ -25,7 +25,6 @@ class PlayerAnswerRequest extends FormRequest
             'player_id' => 'required|uuid',
             'answer' => 'required',
             'question_id' => 'required|uuid',
-            'is_text_answer_correct' => 'nullable'
         ];
     }
 }

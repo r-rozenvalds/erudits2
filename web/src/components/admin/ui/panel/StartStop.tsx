@@ -5,6 +5,7 @@ import { useToast } from "../../../universal/Toast";
 import echo from "../../../../useEcho";
 import { IGame } from "../../interface/IGame";
 import { IInstance } from "../../interface/IInstance";
+import { useNavigate } from "react-router-dom";
 
 export const StartStop = ({
   game,
@@ -17,9 +18,11 @@ export const StartStop = ({
 }) => {
   const confirm = useConfirmation();
   const showToast = useToast();
+  const navigate = useNavigate();
 
   const [isPinging, setIsPinging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [gameStarted, setGameStarted] = useState(!!instance.round_started_at);
 
   const startGame = async () => {
     setIsLoading(true);
@@ -32,7 +35,12 @@ export const StartStop = ({
     try {
       const response = await fetch(`${constants.baseApiUrl}/game-control`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
+          )}`,
+        },
         body: JSON.stringify({
           command: "start",
           instance_id: instanceId,
@@ -41,6 +49,7 @@ export const StartStop = ({
 
       if (!response.ok) throw new Error("Game start failed");
       showToast(true, "Spēle sākta");
+      setGameStarted(true);
     } catch (error) {
       showToast(false, "Kļūda: " + error);
     } finally {
@@ -56,6 +65,9 @@ export const StartStop = ({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(
+              constants.localStorage.TOKEN
+            )}`,
           },
           body: JSON.stringify({
             command: "end",
@@ -63,9 +75,7 @@ export const StartStop = ({
           }),
         });
         showToast(true, "Spēle slēgta");
-        setTimeout(() => {
-          window.location.assign("/admin/games");
-        }, 2000);
+        navigate("/admin/games");
       } catch (error) {
         showToast(false, "Kļūda:" + error);
       } finally {
@@ -133,10 +143,10 @@ export const StartStop = ({
         Slēgt spēli
       </button>
       <button
-        disabled={isLoading || instance.started}
+        disabled={isLoading || gameStarted}
         onClick={startGame}
         className={`h-10 w-32 rounded-md ${
-          isLoading || instance.started
+          isLoading || gameStarted
             ? "bg-slate-400"
             : "bg-emerald-500 hover:bg-emerald-600"
         }  text-white font-bold  transition-all`}

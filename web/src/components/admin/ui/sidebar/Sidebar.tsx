@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SidebarRound } from "./SidebarRound";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
 import { formatText } from "../../../universal/functions";
@@ -52,6 +52,7 @@ export const Sidebar = () => {
           answer_time: data.round.answer_time,
           is_additional: data.round.is_additional,
           game_id: data.round.game_id,
+          is_test: data.round.is_test,
         })
       );
       navigate(`/admin/games/creator/round/${data.round.id}`);
@@ -64,7 +65,7 @@ export const Sidebar = () => {
   return (
     <>
       {game && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 max-h-full overflow-y-scroll">
           <p className="text-lg font-semibold">
             Navigācija - {formatText(game?.title, 18)}
           </p>

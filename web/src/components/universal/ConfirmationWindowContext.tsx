@@ -3,6 +3,7 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -41,6 +42,19 @@ export const ConfirmationProvider = ({ children }: { children: ReactNode }) => {
     setIsOpen(false);
     if (resolvePromise) resolvePromise(false);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        handleCancel();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, handleCancel]);
 
   const ConfirmationDialog = () =>
     isOpen && (

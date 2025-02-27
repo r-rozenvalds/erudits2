@@ -11,4 +11,5 @@ export interface IGame {
   roundCount?: number;
   activeGameInstance?: string;
   questionCount?: number;
+  last_activation?: string;
 }

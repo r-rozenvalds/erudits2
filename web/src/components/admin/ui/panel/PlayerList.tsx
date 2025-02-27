@@ -268,7 +268,7 @@ export const PlayerList = () => {
     getSortedRowModel: getSortedRowModel(),
   });
   return (
-    <div className="text-center">
+    <div className="text-center h-full">
       <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
         <p className="font-semibold">Spēlētāji</p>
         <button disabled={fetchDisabled} onClick={refresh}>
@@ -279,13 +279,13 @@ export const PlayerList = () => {
           )}
         </button>
       </div>
-      <div className="min-h-[31rem] bg-slate-100">
+      <div className="min-h-[32rem] bg-slate-100 grow">
         <table>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr className="text-center bg-slate-200" key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th className="p-4 px-4" key={header.id}>
+                  <th className="p-4" key={header.id}>
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()

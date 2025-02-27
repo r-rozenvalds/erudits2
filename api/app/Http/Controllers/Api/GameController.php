@@ -88,7 +88,8 @@ class GameController extends Controller
             'id' => Str::uuid()->toString(), 
             'title' => 'Erudīcijas spēle nr. ' . ($gamesCount+1), 
             'description' => 'Spēles apraksts', 
-            'user_id' => $user->id
+            'user_id' => $user->id,
+            'last_activation' => null,
         ];
         
         return response()->json(['message' => 'Game is ready for creation.', 'game' => $game], 200);    }

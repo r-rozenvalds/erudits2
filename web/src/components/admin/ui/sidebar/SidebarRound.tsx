@@ -78,6 +78,7 @@ export const SidebarRound = ({ round }: { round: IRound }) => {
         answer_time: round.answer_time,
         is_additional: round.is_additional,
         game_id: round.game_id,
+        is_test: round.is_test,
       })
     );
     navigate(`/admin/games/editor/round/${round.id}`);

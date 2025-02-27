@@ -19,7 +19,6 @@ return new class extends Migration
             $table->integer("points")->default(1);
             $table->boolean("is_additional")->default(false);
             $table->boolean('is_test')->default(false);
-            $table->boolean('is_jeopardy')->default(false);
             $table->foreignUuid("game_id")->constrained('games')->onDelete('cascade');
             $table->integer("order")->nullable();
             $table->timestamps();

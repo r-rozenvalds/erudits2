@@ -18,6 +18,7 @@ class Game extends Model
         'title',
         'description',
         'user_id',
+        'last_activation',
     ];
 
     public function user(): BelongsTo {

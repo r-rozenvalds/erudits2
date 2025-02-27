@@ -49,6 +49,12 @@
     }
   }
 
+  .toast-hide {
+    animation-name: translateX(100%);
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+  }
+
   .toast-slide {
     animation-name: slide;
     animation-duration: 5s;

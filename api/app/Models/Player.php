@@ -16,7 +16,8 @@ class Player extends Model
         'player_name',
         'points',
         'is_disqualified',
-        'instance_id'
+        'instance_id',
+        'round_finished'
     ];
 
     public function game_instance()

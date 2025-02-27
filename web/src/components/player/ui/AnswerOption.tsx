@@ -7,6 +7,46 @@ interface AnswerOptionProps {
   answerId: string;
 }
 
+const childData: Record<
+  number,
+  {
+    colorClass: string;
+    borderClass: string;
+    flowerClass: string;
+    img: string;
+    alignment: string;
+  }
+> = {
+  1: {
+    colorClass: "text-[#d88098]",
+    borderClass: "border-[#d88098]",
+    flowerClass: "rose",
+    img: "rose.png",
+    alignment: "place-self-end",
+  },
+  2: {
+    colorClass: "text-[#f3d75b]",
+    borderClass: "border-[#f3d75b]",
+    flowerClass: "sunflower",
+    img: "sunflower.png",
+    alignment: "place-self-start",
+  },
+  3: {
+    colorClass: "text-[#1982c4]",
+    borderClass: "border-[#1982c4]",
+    flowerClass: "gerbera",
+    img: "gerbera.png",
+    alignment: "place-self-end",
+  },
+  4: {
+    colorClass: "text-[#8ac926]",
+    borderClass: "border-[#8ac926]",
+    flowerClass: "orchid",
+    img: "orchid.png",
+    alignment: "place-self-start",
+  },
+};
+
 export const AnswerOption = ({
   setSelectedAnswer,
   selectedAnswer,
@@ -15,153 +55,58 @@ export const AnswerOption = ({
   isTest,
   answerId,
 }: AnswerOptionProps) => {
-  if (childNr === 1) {
-    return (
-      <div
-        onClick={() => setSelectedAnswer(answerId)}
-        className={`bg-slate-200 group h-full rounded-md hover:bg-white shadow-lg transition-all place-self-end flex place-items-center ${
-          !isTest && selectedAnswer ? "w-80 px-0 " : "w-full px-8"
-        }`}
-      >
-        <div
-          className={` border-8 min-w-48 min-h-48 max-w-48 max-h-48 rounded-full shadow-lg  group-hover:shadow-none p-4 ${
-            selectedAnswer === answerId
-              ? `mx-auto border-[#d88098]`
-              : `mx-0 group-hover:border-[#d88098] border-white`
-          }`}
-        >
-          <img
-            src="/rose.png"
-            className={`${
-              selectedAnswer === answerId ? "rose" : `group-hover:rose`
-            } rounded-full`}
-          ></img>
-        </div>
-        {(isTest ? true : !selectedAnswer) && (
-          <p
-            className={`text-4xl text-slate-700 font-bold grow ${
-              selectedAnswer === answerId
-                ? "text-[#d88098]"
-                : "group-hover:text-[#d88098]"
-            }  drop-shadow-lg`}
-          >
-            {content}
-          </p>
-        )}
-      </div>
-    );
-  }
+  const child = childData[childNr];
 
-  if (childNr === 2) {
-    return (
-      <div
-        onClick={() => setSelectedAnswer(answerId)}
-        className={`bg-slate-200 group h-full rounded-md hover:bg-white shadow-lg transition-all place-self-start flex place-items-center ${
-          !isTest && selectedAnswer ? "w-80 px-0 " : "w-full px-8"
-        }`}
-      >
-        {(isTest ? true : !selectedAnswer) && (
-          <p
-            className={`text-4xl text-slate-700 font-bold ${
-              selectedAnswer === answerId
-                ? "text-[#f3d75b]"
-                : "group-hover:text-[#f3d75b]"
-            } drop-shadow-lg grow`}
-          >
-            {content}
-          </p>
-        )}
-        <div
-          className={` border-8 min-w-48 min-h-48 max-w-48 max-h-48 rounded-full shadow-lg  group-hover:shadow-none p-4 ${
-            selectedAnswer === answerId
-              ? `mx-auto border-[#f3d75b]`
-              : `mx-0 group-hover:border-[#f3d75b] border-white`
-          }`}
-        >
-          <img
-            src="/sunflower.png"
-            className={`${
-              selectedAnswer === answerId
-                ? "sunflower"
-                : `group-hover:sunflower`
-            } rounded-full`}
-          ></img>
-        </div>
-      </div>
-    );
-  }
+  if (!child) return null; // Handle unexpected values gracefully
 
-  if (childNr === 3) {
-    return (
-      <div
-        onClick={() => setSelectedAnswer(answerId)}
-        className={`bg-slate-200 group h-full rounded-md hover:bg-white shadow-lg transition-all place-self-end flex place-items-center ${
-          !isTest && selectedAnswer ? "w-80 px-0 " : "w-full px-8"
-        }`}
-      >
-        <div
-          className={` border-8 min-w-48 min-h-48 max-w-48 max-h-48 rounded-full shadow-lg  group-hover:shadow-none p-4 ${
+  return (
+    <div
+      onClick={() => setSelectedAnswer(answerId)}
+      className={`bg-slate-200 group h-full rounded-md hover:bg-white shadow-lg transition-all flex place-items-center ${
+        child.alignment
+      } ${!isTest && selectedAnswer ? "w-80 px-0" : "w-full px-8"}`}
+    >
+      {[2, 4].includes(childNr) && (isTest || !selectedAnswer) && (
+        <p
+          className={`text-4xl text-slate-700 font-bold grow drop-shadow-lg ${
             selectedAnswer === answerId
-              ? `mx-auto border-[#1982c4]`
-              : `mx-0 group-hover:border-[#1982c4] border-white`
+              ? child.flowerClass
+              : `group-hover:${child.flowerClass}`
           }`}
         >
-          <img
-            src="/gerbera.png"
-            className={`${
-              selectedAnswer === answerId ? "gerbera" : `group-hover:gerbera`
-            } rounded-full`}
-          ></img>
-        </div>
-        {(isTest ? true : !selectedAnswer) && (
-          <p
-            className={`text-4xl text-slate-700 font-bold grow ${
-              selectedAnswer === answerId
-                ? "text-[#1982c4]"
-                : "group-hover:text-[#1982c4]"
-            } drop-shadow-lg`}
-          >
-            {content}
-          </p>
-        )}
-      </div>
-    );
-  }
+          {content}
+        </p>
+      )}
 
-  if (childNr === 4) {
-    return (
       <div
-        onClick={() => setSelectedAnswer(answerId)}
-        className={`bg-slate-200 group h-full rounded-md hover:bg-white shadow-lg transition-all place-self-start flex place-items-center ${
-          !isTest && selectedAnswer ? "w-80 px-0 " : "w-full px-8"
+        className={`border-8 min-w-48 min-h-48 max-w-48 max-h-48 rounded-full shadow-lg group-hover:shadow-none p-4 ${
+          selectedAnswer === answerId
+            ? `mx-auto ${child.borderClass}`
+            : `mx-0 group-hover:${child.borderClass} border-white`
         }`}
       >
-        {(isTest ? true : selectedAnswer) && (
-          <p
-            className={`text-4xl text-slate-700 font-bold grow ${
-              selectedAnswer === answerId
-                ? "text-[#8ac926]"
-                : "group-hover:text-[#8ac926]"
-            } drop-shadow-lg`}
-          >
-            {content}
-          </p>
-        )}
-        <div
-          className={` border-8 min-w-48 min-h-48 max-w-48 max-h-48 rounded-full shadow-lg  group-hover:shadow-none p-4 ${
+        <img
+          src={`/${child.img}`}
+          className={`rounded-full ${
             selectedAnswer === answerId
-              ? `mx-auto border-[#8ac926]`
-              : `mx-0 group-hover:border-[#8ac926] border-white`
+              ? child.flowerClass
+              : `group-hover:${child.flowerClass}`
+          }`}
+        />
+      </div>
+
+      {/* Text on right for childNr 1 & 3 */}
+      {[1, 3].includes(childNr) && (isTest || !selectedAnswer) && (
+        <p
+          className={`text-4xl text-slate-700 font-bold grow drop-shadow-lg ${
+            selectedAnswer === answerId
+              ? child.flowerClass
+              : `group-hover:${child.flowerClass}`
           }`}
         >
-          <img
-            src="/gerbera.png" // change to orchid
-            className={`${
-              selectedAnswer === answerId ? "orchid" : `group-hover:orchid`
-            } rounded-full`}
-          ></img>
-        </div>
-      </div>
-    );
-  }
+          {content}
+        </p>
+      )}
+    </div>
+  );
 };

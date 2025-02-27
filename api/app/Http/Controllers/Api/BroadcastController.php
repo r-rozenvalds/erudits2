@@ -21,20 +21,4 @@ class BroadcastController extends Controller
         return response()->json(['status' => 'Ping sent']);
     }
 
-    public function gameControl(Request $request) {
-        $command = $request->input('command');
-        $instanceId = $request->input('instance_id'); 
-        if($command == 'start') {
-            $gameId = GameInstance::where('id', $instanceId)->value('game_id');
-            $roundId = Round::where('game_id', $gameId)->where('order', 1)->value('id');
-
-            GameInstance::where('id', $instanceId)->update(['current_round' => $roundId, 'started' => true]);
-        } else {
-            GameInstance::where('id', $instanceId)->update(['end_date' => now(), 'started' => false]);
-        } 
-
-        broadcast(new GameControlEvent($command, $instanceId));
-
-        return response()->json(['status' => 'Command broadcasted']);
-    }
 }

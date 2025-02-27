@@ -7,17 +7,24 @@ import { SpinnerCircularFixed } from "spinners-react";
 import { PlayerLocalStorage } from "./components/player/enum/PlayerLocalStorage";
 import { IGameSessionStorage } from "./components/player/interface/IGameSessionStorage";
 
+interface IGameInstance {
+  title: string;
+  description: string;
+  code: string;
+}
+
 function App() {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const showToast = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [hasExistingGame, setHasExistingGame] = useState(false);
+  const [existingGameCode, setExistingGameCode] = useState("");
+  const [gameInstances, setGameInstances] = useState<IGameInstance[]>([]);
 
   const handleJoin = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setIsLoading(true);
-    if (code.length < 3) {
+    if (code.length < 3 && !existingGameCode) {
       showToast(false, "Kods nedrīkst būt īsāks par 3 rakstzīmēm");
       setIsLoading(false);
       return;
@@ -27,13 +34,28 @@ function App() {
     localStorage.removeItem(PlayerLocalStorage.currentPlayer);
     localStorage.removeItem(PlayerLocalStorage.answers);
 
+    await postJoin(code);
+
+    setIsLoading(false);
+  };
+
+  const handleJoinExisting = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    await postJoin(existingGameCode);
+
+    setIsLoading(false);
+  };
+
+  const postJoin = async (gameCode: string) => {
     const response = await fetch(`${constants.baseApiUrl}/join`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        code,
+        code: gameCode,
       }),
     });
     const data = await response.json();
@@ -53,8 +75,6 @@ function App() {
     }
 
     showToast(false, data?.error ?? "Kļūda meklējot spēli");
-
-    setIsLoading(false);
   };
 
   const setCodeValue = (e: {
@@ -71,27 +91,48 @@ function App() {
   };
 
   useEffect(() => {
-    const existingGame = JSON.parse(
+    getInstancesAndPlayerStatus();
+  }, []);
+
+  const getInstancesAndPlayerStatus = async () => {
+    const currentInstance = JSON.parse(
       localStorage.getItem(PlayerLocalStorage.currentGame) ?? "{}"
     ) as IGameSessionStorage;
-    if (
-      existingGame?.id &&
-      (!existingGame?.end_date || new Date(existingGame.end_date) > new Date())
-    ) {
-      setHasExistingGame(true);
+
+    const currentPlayer = JSON.parse(
+      localStorage.getItem(PlayerLocalStorage.currentPlayer) ?? "{}"
+    ); // probs add type lol
+
+    const response = await fetch(`${constants.baseApiUrl}/instance-index`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        instance_id: currentInstance?.id,
+        player_id: currentPlayer?.id,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setGameInstances(data.game_instances);
+      setExistingGameCode(data.started_game_code);
+      return;
     }
-  }, []);
+    showToast(false, "Kļūda atlasot pieejamās spēles");
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#31587A] to-[#3C3266]">
-      {hasExistingGame && (
+      {!!existingGameCode && (
         <div className="bg-white slide-down flex flex-col gap-3 w-1/6 place-items-center justify-center shadow-lg rounded-b-md fixed top-0 left-0 right-0 mx-auto pt-4 z-50">
           <div className="flex gap-2 mx-8">
             <i className="fa-solid fa-circle-info text-xl text-[#E63946]"></i>
-            <p className="font-semibold text-lg">Jums ir iesākta spēle!</p>
+            <p className="font-semibold text-lg">Jums ir iesākta spēle</p>
           </div>
           <button
-            onClick={() => navigate("/play/lobby")}
+            onClick={handleJoinExisting}
             className="font-[Manrope] w-full px-2 py-1 bg-[#E63946] rounded-b-md shadow-lg text-white text-md font-bold hover:bg-opacity-80 transition-all hover:cursor-pointer"
           >
             Pievienoties
@@ -137,28 +178,43 @@ function App() {
           </div>
         </div>
 
-        <div className="text-center animate-bounce">
-          <p className="text-white font-semibold text-2xl">Lokālās spēles</p>
-          <i className="fa-solid fa-chevron-down text-3xl text-white"></i>
-        </div>
+        {gameInstances.length > 0 && (
+          <div className="text-center animate-bounce">
+            <p className="text-white font-semibold text-2xl">
+              Pieejamās spēles
+            </p>
+            <i className="fa-solid fa-chevron-down text-3xl text-white"></i>
+          </div>
+        )}
       </form>
       <div className="bg-black bg-opacity-25 h-auto p-12">
         <div className="grid lg:grid-cols-3 grid-cols-1 w-full gap-12">
-          <InstanceCard />
+          {gameInstances?.map((instance, index) => (
+            <InstanceCard
+              key={index}
+              title={instance.title}
+              description={instance.description}
+              code={instance.code}
+              postJoin={postJoin}
+            />
+          ))}
         </div>
-        <div className="w-full text-center">
-          <h1 className="text-white text-2xl font-[Manrope]">
-            Pašlaik nav lokālas spēles. :(
-          </h1>
-        </div>
+        {gameInstances.length < 1 && (
+          <div className="w-full text-center">
+            <h1 className="text-white text-2xl font-[Manrope]">
+              Pašlaik nav pieejamas spēles :(
+            </h1>
+          </div>
+        )}
       </div>
       <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-between">
         <p className="text-white font-semibold">Veidoja: Roberts R.; 2024</p>
         <button
-          onClick={() => navigate("/admin/login")}
-          className="w-24 py-1 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"
+          onClick={() => navigate("/admin/games")}
+          className="px-4 py-2 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"
         >
-          <span className="text-center h-8">Admin</span>
+          <i className="fa-solid fa-right-to-bracket me-2"></i>
+          <span className="text-center h-8">Administratora panelis</span>
         </button>
       </div>
     </div>

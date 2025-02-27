@@ -26,6 +26,10 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     }, 5000);
   };
 
+  const removeToast = (id: string) => {
+    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
+  };
+
   return (
     <ToastContext.Provider value={showToast}>
       {children}
@@ -33,9 +37,12 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="toast-slide bg-white border-x border-t flex flex-col min-w-[300px] max-w-[300px] border-gray-400 shadow-md h-[70px] "
+            className="toast-slide bg-white border-x border-t flex flex-col min-w-[300px] max-w-[300px] border-gray-400 shadow-md h-[70px] hover:cursor-pointer"
           >
-            <div className="gap-4 flex place-items-center px-6 h-[62px]">
+            <div
+              onClick={() => removeToast(toast.id)}
+              className="gap-4 flex place-items-center px-6 h-[62px]"
+            >
               {toast.success ? (
                 <div className="rounded-full text-green-600 min-w-8 h-8 text-center border-green-600 border-2">
                   <i className="fa-solid fa-check text-lg"></i>

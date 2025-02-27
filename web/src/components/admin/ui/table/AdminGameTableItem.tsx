@@ -6,7 +6,7 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import { useToast } from "../../../universal/Toast";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 import { SpinnerCircularFixed } from "spinners-react";
-import { ActivationModal } from "../ActivationModal";
+import { useNavigate } from "react-router-dom";
 
 export const AdminGameTableItem = ({
   game,
@@ -16,13 +16,16 @@ export const AdminGameTableItem = ({
   onActivationModalOpen: (game: IGame) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const { setGame, setRounds, setQuestions } = useSidebar();
   const showToast = useToast();
   const confirm = useConfirmation();
+  const navigate = useNavigate();
 
   const openEditor = async () => {
+    if (!!game.activeGameInstance) {
+      return;
+    }
     const response = await fetch(
       `${constants.baseApiUrl}/full-game/${game.id}`,
       {
@@ -37,7 +40,6 @@ export const AdminGameTableItem = ({
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
       setGame(data.game);
       setRounds(data.rounds);
       setQuestions(data.questions);
@@ -46,19 +48,22 @@ export const AdminGameTableItem = ({
         AdminSessionStorage.gameCreator,
         JSON.stringify(data.game)
       );
-      window.location.assign("/admin/games/editor/game/" + game.id);
+      navigate("/admin/games/editor/game/" + game.id);
     }
   };
 
   const gameAction = async () => {
     if (game.activeGameInstance) {
-      window.location.assign("/admin/panel/" + game.activeGameInstance);
+      navigate("/admin/panel/" + game.activeGameInstance);
       return;
     }
     onActivationModalOpen(game);
   };
 
   const deleteGame = async () => {
+    if (!!game.activeGameInstance) {
+      return;
+    }
     if (await confirm(`Dzēst spēli ${game.title}?`)) {
       const response = await fetch(`${constants.baseApiUrl}/games/${game.id}`, {
         method: "DELETE",
@@ -94,12 +99,7 @@ export const AdminGameTableItem = ({
           onClick={gameAction}
           className="w-32 text-lg bg-[#E63946] text-white font-semibold hover:bg-opacity-50 transition-all hover:cursor-pointer"
         >
-          {!isLoading && (!!game.activeGameInstance ? "Panelis" : "Spēlēt")}
-          {isLoading && (
-            <div className="mx-auto w-8">
-              <SpinnerCircularFixed color="#fff" thickness={180} size={32} />
-            </div>
-          )}
+          {!!game.activeGameInstance ? "Panelis" : "Spēlēt"}
         </button>
         <div
           onClick={() => (expanded ? setExpanded(false) : setExpanded(true))}
@@ -125,7 +125,9 @@ export const AdminGameTableItem = ({
               </thead>
               <tbody>
                 <tr>
-                  <td className="pe-4">{game.updated_at.slice(0, 10)}</td>
+                  <td className="pe-4">
+                    {game.last_activation?.slice(0, 10) ?? "nav spēlēta"}
+                  </td>
                   <td className="pe-4">{game.roundCount}</td>
                   <td className="pe-4">{game.questionCount}</td>
                 </tr>
@@ -135,15 +137,29 @@ export const AdminGameTableItem = ({
           <div className="flex place-items-end gap-4">
             <button
               onClick={openEditor}
-              className="hover:cursor-pointer group w-8 h-8"
+              disabled={!!game.activeGameInstance}
+              className={`group w-8 h-8 ${
+                !!game.activeGameInstance && "opacity-50 cursor-not-allowed"
+              }`}
             >
-              <i className="fa-solid fa-gear text-2xl text-gray-400 group-hover:text-black"></i>
+              <i
+                className={`fa-solid fa-gear text-2xl text-gray-400 ${
+                  !!!game.activeGameInstance && "group-hover:text-black"
+                }`}
+              ></i>
             </button>
             <button
-              className="hover:cursor-pointer group w-8 h-8"
+              className={`group w-8 h-8 ${
+                !!game.activeGameInstance && "opacity-50 cursor-not-allowed"
+              }`}
+              disabled={!!game.activeGameInstance}
               onClick={deleteGame}
             >
-              <i className="fa-solid fa-trash text-2xl text-gray-400 group-hover:text-black"></i>
+              <i
+                className={`fa-solid fa-trash text-2xl text-gray-400 ${
+                  !!!game.activeGameInstance && "group-hover:text-black"
+                }`}
+              ></i>
             </button>
           </div>
         </div>

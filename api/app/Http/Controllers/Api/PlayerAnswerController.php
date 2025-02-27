@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use App\Models\Player;
 use App\Models\Answer;
 use App\Events\PlayerEvent;
+use App\Models\Round;
 
 
 class PlayerAnswerController extends Controller
@@ -37,9 +38,11 @@ class PlayerAnswerController extends Controller
     {
         $validated = $request->validated();
 
-        $instanceId = Player::find($validated['player_id'])->instance_id;
+        $player = Player::find($validated['player_id']);
 
-        $validated['is_text_answer_correct'] = false;
+        $instanceId = $player->instance_id;
+
+        $isAnswerCorrect = false;
 
         if (!Str::isUuid($validated['answer'])) {
             // Normalize the user input answer
@@ -53,10 +56,29 @@ class PlayerAnswerController extends Controller
         
             // Check if the normalized user answer exists in the valid answers
             if (in_array($normalizedAnswer, $normalizedValidAnswers)) {
-                $validated['is_text_answer_correct'] = true;
+                $isAnswerCorrect = true;
             } else {
-                $validated['is_text_answer_correct'] = false;
+                $isAnswerCorrect = false;
             }
+        }
+        if(Str::isUuid($validated['answer'])) {
+            $answer = Answer::find($validated['answer']);
+            $isAnswerCorrect = $answer->is_correct;
+        }
+
+        if ($isAnswerCorrect) {
+            $pointsForCorrectAnswer = Round::find($request->round_id)->points;
+            $player->points += $pointsForCorrectAnswer;
+            $player->save();
+        }
+
+        $existingPlayerAnswer = PlayerAnswer::where('player_id', $validated['player_id'])
+            ->where('question_id', $validated['question_id'])
+            ->where('instance_id', $instanceId)
+            ->first();
+
+        if ($existingPlayerAnswer) {
+            $existingPlayerAnswer->delete();
         }
 
         $playerAnswer = [
@@ -66,17 +88,16 @@ class PlayerAnswerController extends Controller
             'instance_id' => $instanceId,
             'answer_id' => Str::isUuid($validated['answer']) ? $validated['answer'] : null,
             'answer_text' => Str::isUuid($validated['answer']) ? null : $validated['answer'],
-            'is_text_answer_correct' => $validated['is_text_answer_correct'],
+            'is_answer_correct' => $isAnswerCorrect,
         ];
         PlayerAnswer::create($playerAnswer);
-
-        broadcast(new PlayerEvent('answered'));
 
         return response()->json(200);
     }
 
     public function getInstanceAnswers(string $gameInstanceId)
 {   
+    $instancePlayers = Player::where('instance_id', $gameInstanceId)->get();
     $answers = PlayerAnswer::with(['player', 'question'])
         ->where('instance_id', $gameInstanceId)
         ->get()
@@ -84,8 +105,9 @@ class PlayerAnswerController extends Controller
 
     $results = [];
 
-    foreach ($answers as $playerId => $playerAnswers) {
-        $playerName = optional($playerAnswers->first()->player)->player_name;
+    foreach ($instancePlayers as $player) {
+        $playerId = $player->id;
+        $playerAnswers = $answers[$playerId] ?? [];
         $questions = [];
 
         foreach ($playerAnswers as $answer) {
@@ -94,19 +116,22 @@ class PlayerAnswerController extends Controller
             $questions[] = [
                 'id' => $answer->question->id,
                 'title' => $answer->question->title,
-                'answer' => $answerModel?->text ? $answerModel->text : $answer->answer_text,
-                'is_correct' => $answerModel?->is_correct ? $answerModel->is_correct : $answer->is_text_answer_correct,
+                'answer' => $answerModel?->text ?? $answer->answer_text,
+                'is_correct' => $answerModel?->is_correct ?? $answer->is_answer_correct,
             ];
         }
 
+
         $results[] = [
-            'player_name' => $playerName ?? 'Unknown Player',
+            'player_name' => $player->player_name ?? 'Unknown Player',
             'questions' => $questions,
+            'round_finished' => $player->round_finished,
         ];
     }
 
     return response()->json($results);
 }
+
 
     /**
      * Display the specified resource.

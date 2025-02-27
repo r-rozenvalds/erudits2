@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title')->index();
             $table->text('description')->nullable();
             $table->foreignUuid("user_id")->constrained('users')->onDelete('cascade');
+            $table->date('last_activation')->nullable();
             $table->timestamps();
         });
     }

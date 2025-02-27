@@ -151,6 +151,7 @@ export const AdminGameCreator = () => {
           answer_time: data.round.answer_time,
           is_additional: data.round.is_additional,
           game_id: data.round.game_id,
+          is_test: data.round.is_test,
         })
       );
       navigate(`/admin/games/creator/round/${data.round.id}`);

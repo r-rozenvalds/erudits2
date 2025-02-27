@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string("player_name")->nullable();
             $table->integer("points")->default(0);
             $table->integer("is_disqualified")->default(false);
+            $table->boolean("round_finished")->default(false);
             $table->foreignUuid("instance_id")->constrained('game_instances')->onDelete('cascade');
             $table->timestamps();
         });

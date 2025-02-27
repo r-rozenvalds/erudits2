@@ -34,9 +34,11 @@ Route::post('/create-player', [PlayerController::class, 'createPlayer']);
 Route::get('/round-questions/{instance_id}', [GameInstanceController::class, 'roundQuestions']);
 Route::post('/player-answers', [PlayerAnswerController::class, 'store']);
 
+Route::post('/instance-index', [GameInstanceController::class, 'indexWithPlayerInfo']);
+
+Route::post('/player-finish-round', [PlayerController::class, 'finishRound']);
 
 Route::get('/ping', [BroadcastController::class, 'ping']);
-Route::post('/game-control', [BroadcastController::class, 'gameControl']);
 
 Route::get('/player/{id}', [PlayerController::class, 'show']);
 
@@ -67,7 +69,14 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/activate', [GameInstanceController::class, 'activate']);
     Route::get('/status/{game_id}', [GameInstanceController::class, 'status']);
     Route::get('/instance-game/{instance_id}', [GameInstanceController::class, 'instanceGame']);
-    Route::get('/question-info/{instance_id}', [GameInstanceController::class, 'questionInfo']);
+    Route::get('/game-controller-info/{instance_id}', [GameInstanceController::class, 'questionInfo']);
+
+    Route::post('/next-round', [GameInstanceController::class, 'nextRound']);
+    Route::post('/previous-round', [GameInstanceController::class, 'previousRound']);
+    Route::post('/next-question', [GameInstanceController::class, 'nextQuestion']);
+    Route::post('/previous-question', [GameInstanceController::class, 'previousQuestion']);
+
+    Route::post('/game-control', [GameInstanceController::class, 'gameControl']);
 
     //players
     Route::get('/players/{instance_id}', [PlayerController::class, 'index']);

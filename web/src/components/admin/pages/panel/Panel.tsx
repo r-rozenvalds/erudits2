@@ -29,7 +29,7 @@ export const Panel = () => {
           <StartStop instance={instance} game={game} instanceId={instanceId} />
         )}
       </div>
-      <div className="flex gap-6 mt-2 mx-4">
+      <div className="flex justify-around my-4">
         <PlayerList />
 
         <RoundControl />

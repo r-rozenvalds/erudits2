@@ -12,6 +12,7 @@ export const AdminGames = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<IGame | null>(null);
+  const [authorized, setAuthorized] = useState(false);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -94,11 +95,29 @@ export const AdminGames = () => {
 
     if (response.ok) {
       const data = await response.json();
+      setAuthorized(true);
       setGames(data.games);
       return;
     }
 
     navigate("/admin/login");
+  };
+
+  if (!authorized) {
+    return (
+      <div>
+        <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-[#31587A] to-[#3C3266] place-items-center justify-center">
+          <SpinnerCircularFixed color="#fff" size="48" thickness={210} />
+        </div>
+      </div>
+    );
+  }
+
+  const onModalClose = async (success?: boolean) => {
+    setIsActivationModalOpen(false);
+    if (success) {
+      await fetchGames();
+    }
   };
 
   const onActivationModalOpen = (game: IGame) => {
@@ -166,10 +185,7 @@ export const AdminGames = () => {
         </div>
       </div>
       {isActivationModalOpen && selectedGame && (
-        <ActivationModal
-          game={selectedGame}
-          onClose={() => setIsActivationModalOpen(false)}
-        />
+        <ActivationModal game={selectedGame} onClose={onModalClose} />
       )}
     </>
   );

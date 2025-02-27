@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { AnswerOption } from "./AnswerOption";
 import { usePlayer } from "../../universal/PlayerContext";
 import { SpinnerCircularFixed } from "spinners-react";
 import Countdown from "react-countdown";
 import { OpenAnswer } from "./OpenAnswer";
 import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
+import { useConfirmation } from "../../universal/ConfirmationWindowContext";
+import { constants } from "../../../constants";
 
 export const TestGameView = () => {
   const [viewImage, setViewImage] = useState(false);
-  const [completed, setCompleted] = useState(false);
-  const startDate = useRef(Date.now());
   const [changedAnswer, setChangedAnswer] = useState(false);
 
   const {
@@ -20,7 +20,12 @@ export const TestGameView = () => {
     selectedAnswers,
     setSelectedAnswers,
     postAnswers,
+    playerId,
+    roundFinished,
+    setRoundFinished,
   } = usePlayer();
+
+  const confirm = useConfirmation();
 
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
@@ -47,7 +52,7 @@ export const TestGameView = () => {
     completed: boolean;
   }) => {
     if (completed) {
-      setCompleted(true);
+      setRoundFinished(true);
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"
@@ -65,20 +70,41 @@ export const TestGameView = () => {
         className="text-white font-semibold text-2xl w-28 rounded-md py-1"
         style={{
           backgroundColor: `rgba(255, 0, 0, ${
-            seconds < 11 ? 0.05 * (11 - seconds) : 0
+            minutes === 0 && seconds < 11 ? 0.05 * (11 - seconds) : 0
           })`,
         }}
       >
-        <i className="fa-regular fa-clock text-2xl drop-shadow-lg me-3"></i>0
-        {minutes}:{seconds > 9 ? seconds : "0" + seconds}
+        <i className="fa-regular fa-clock text-2xl drop-shadow-lg me-3"></i>
+        {minutes > 9 ? minutes : "0" + minutes}:
+        {seconds > 9 ? seconds : "0" + seconds}
       </div>
     );
+  };
+
+  const finishRound = async () => {
+    if (await confirm("Iesniegt atbildes?")) {
+      setRoundFinished(true);
+      await fetch(`${constants.baseApiUrl}/player-finish-round`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          player_id: playerId,
+        }),
+      });
+    }
   };
 
   const nextQuestion = () => {
     if (changedAnswer) {
       setChangedAnswer(false);
       postAnswers(questions[currentQuestion].id);
+    }
+
+    if (currentQuestion + 1 === questions.length) {
+      finishRound();
+      return;
     }
 
     if (currentQuestion + 1 < questions.length) {
@@ -112,12 +138,49 @@ export const TestGameView = () => {
     });
   };
 
+  const handleViewImage = () => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setViewImage(false);
+      }
+    };
+
+    if (!viewImage) {
+      document.addEventListener("keydown", handleKeyDown);
+      setViewImage(!viewImage);
+      return;
+    }
+
+    document.removeEventListener("keydown", handleKeyDown);
+    setViewImage(!viewImage);
+  };
+
+  if (roundFinished) {
+    return (
+      <div className="flex place-items-center justify-center flex-col gap-4">
+        <p className="text-white text-2xl font-semibold">
+          Lūdzu, gaidiet nākamo kārtu!
+        </p>
+        <SpinnerCircularFixed size={45} thickness={180} color="#fff" />
+      </div>
+    );
+  }
+
+  const getCountdownDate = () => {
+    if (!round?.round_started_at || !round?.answer_time) return 0;
+
+    const dateStartedAt = new Date(round.round_started_at);
+    const localTimeOffset = dateStartedAt.getTimezoneOffset() * 60 * 1000;
+
+    return dateStartedAt.getTime() - localTimeOffset + round.answer_time * 1000;
+  };
+
   return (
     <div className="text-center select-none p-12 w-screen flex flex-col gap-4 h-screen">
       {viewImage && (
         <div
-          onClick={() => setViewImage(false)}
-          onDrag={() => setViewImage(false)}
+          onClick={handleViewImage}
+          onDrag={handleViewImage}
           className="absolute z-30 w-full h-full bg-black bg-opacity-90 flex place-items-center justify-center top-0 left-0"
         >
           <img
@@ -132,14 +195,8 @@ export const TestGameView = () => {
 
       <>
         <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
-          <Countdown
-            renderer={renderer}
-            date={startDate.current + round?.answer_time! * 1000}
-          />
-          <p
-            onClick={() => console.log(selectedAnswers)}
-            className="font-semibold text-3xl drop-shadow-md"
-          >
+          <Countdown renderer={renderer} date={getCountdownDate()} />
+          <p className="font-semibold text-3xl drop-shadow-md">
             {questions[currentQuestion].title}
           </p>
           <div className="text-white font-semibold text-2xl w-28">
@@ -163,86 +220,24 @@ export const TestGameView = () => {
           </button>
           {!questions[currentQuestion].is_text_answer && (
             <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
-              <AnswerOption
-                setSelectedAnswer={setSelectedAnswer}
-                selectedAnswer={
-                  selectedAnswers?.get(questions[currentQuestion].id) ?? ""
-                }
-                answerId={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[0]?.id
-                }
-                childNr={1}
-                content={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[0]?.text ?? ""
-                }
-                isTest={true}
-              />
-              <AnswerOption
-                setSelectedAnswer={setSelectedAnswer}
-                selectedAnswer={
-                  selectedAnswers?.get(questions[currentQuestion].id) ?? ""
-                }
-                childNr={2}
-                answerId={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[1]?.id
-                }
-                content={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[1]?.text ?? ""
-                }
-                isTest={true}
-              />
-              <AnswerOption
-                setSelectedAnswer={setSelectedAnswer}
-                selectedAnswer={
-                  selectedAnswers?.get(questions[currentQuestion].id) ?? ""
-                }
-                childNr={3}
-                answerId={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[2]?.id
-                }
-                content={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[2]?.text ?? ""
-                }
-                isTest={true}
-              />
-              <AnswerOption
-                answerId={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[3]?.id
-                }
-                setSelectedAnswer={setSelectedAnswer}
-                selectedAnswer={
-                  selectedAnswers?.get(questions[currentQuestion].id) ?? ""
-                }
-                childNr={4}
-                content={
-                  answers.filter(
-                    (answer) =>
-                      answer.question_id === questions[currentQuestion].id
-                  )[3]?.text ?? ""
-                }
-                isTest={true}
-              />
+              {answers
+                .filter(
+                  (answer) =>
+                    answer.question_id === questions[currentQuestion].id
+                )
+                .map((answer, index) => (
+                  <AnswerOption
+                    key={answer.id}
+                    setSelectedAnswer={setSelectedAnswer}
+                    selectedAnswer={
+                      selectedAnswers?.get(questions[currentQuestion].id) ?? ""
+                    }
+                    answerId={answer.id}
+                    childNr={index + 1}
+                    content={answer.text ?? ""}
+                    isTest={true}
+                  />
+                ))}
             </div>
           )}
           {!!questions[currentQuestion].is_text_answer && (
@@ -264,7 +259,7 @@ export const TestGameView = () => {
       </>
 
       <button
-        onClick={() => setViewImage(!viewImage)}
+        onClick={handleViewImage}
         className="bg-black bg-opacity-40 hover:bg-opacity-30 transition-all rounded-md fade-in text-white place-items-center justify-center h-20"
       >
         <div className="font-bold text-2xl">

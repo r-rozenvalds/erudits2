@@ -12,12 +12,13 @@ import { constants } from "../../constants";
 import { IGame } from "../admin/interface/IGame";
 import { IInstance } from "../admin/interface/IInstance";
 import { IRound } from "../admin/interface/IRound";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ITitleId } from "../admin/interface/ITitleId";
 
 export interface IPlayerAnswer {
   player_name: string;
   questions: IInstanceQuestion[];
+  round_finished: boolean;
 }
 
 interface IInstanceQuestion {
@@ -27,14 +28,20 @@ interface IInstanceQuestion {
   is_correct: number;
 }
 
-interface IInfo {
+interface IInstanceInfo {
   players: number;
   answered_players: number;
   current_question: string;
   answer_time: number;
   current_round: string;
-  started: boolean;
+  round_started_at: string;
   round_questions: IQuestion[];
+  is_test: boolean;
+}
+
+export interface IGameController {
+  instance_info: IInstanceInfo;
+  player_answers: IPlayerAnswer[];
 }
 
 type AdminPanelContextType = {
@@ -43,15 +50,12 @@ type AdminPanelContextType = {
   currentQuestion: ITitleId | undefined;
   setCurrentQuestion: (question: ITitleId) => void;
   players: IPlayer[];
-  info: IInfo | undefined;
-  answers: IPlayerAnswer[];
+  gameController: IGameController | undefined;
   instanceId: string | undefined;
   fetchPlayers: () => void;
-  fetchPlayerAnswers: () => void;
   fetchQuestionInfo: () => void;
   setPlayers: (players: IPlayer[]) => void;
-  setAnswers: (answers: IPlayerAnswer[]) => void;
-  setInfo: (info: IInfo) => void;
+  setGameController: (gameController: IGameController) => void;
   game: IGame | undefined;
   instance: IInstance | undefined;
   rounds: IRound[];
@@ -78,8 +82,7 @@ export const useAdminPanel = () => {
 
 export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
   const [players, setPlayers] = useState<IPlayer[]>([]);
-  const [answers, setAnswers] = useState<IPlayerAnswer[]>([]);
-  const [info, setInfo] = useState<IInfo>();
+  const [gameController, setGameController] = useState<IGameController>();
   const [currentRound, setCurrentRound] = useState<ITitleId>();
   const [currentQuestion, setCurrentQuestion] = useState<ITitleId>();
   const [game, setGame] = useState<IGame>();
@@ -89,13 +92,14 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
 
   const { instanceId } = useParams();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     fetchGame();
   }, []);
 
   useEffect(() => {
     if (!instanceId) return;
-    fetchPlayerAnswers();
     fetchQuestionInfo();
   }, [instanceId]);
 
@@ -106,7 +110,6 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
     gameChannel.listen(".game-control-event", (data: any) => {
       if (data.instanceId === instanceId) {
         fetchQuestionInfo();
-        fetchPlayerAnswers();
       }
     });
 
@@ -114,9 +117,6 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
       switch (data.command) {
         case "ready":
           fetchPlayers();
-          break;
-        case "answered":
-          fetchPlayerAnswers();
           break;
       }
     });
@@ -127,28 +127,9 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [instanceId]);
 
-  const fetchPlayerAnswers = async () => {
-    const response = await fetch(
-      `${constants.baseApiUrl}/player-answers/${instanceId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            constants.localStorage.TOKEN
-          )}`,
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      setAnswers(data);
-    }
-  };
-
   const fetchQuestionInfo = async () => {
     const response = await fetch(
-      `${constants.baseApiUrl}/question-info/${instanceId}`,
+      `${constants.baseApiUrl}/game-controller-info/${instanceId}`,
       {
         method: "GET",
         headers: {
@@ -161,7 +142,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
 
     if (response.ok) {
       const data = await response.json();
-      setInfo(data);
+      setGameController(data);
     }
   };
 
@@ -203,22 +184,22 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
       setGame(data.game.game);
       setRounds(data.game.rounds);
       setQuestions(data.game.questions);
+      return;
     }
+
+    navigate("/");
   };
 
   return (
     <AdminPanelContext.Provider
       value={{
         players,
-        info,
-        answers,
+        gameController,
         instanceId,
         fetchPlayers,
-        fetchPlayerAnswers,
         fetchQuestionInfo,
         setPlayers,
-        setAnswers,
-        setInfo,
+        setGameController,
         currentRound,
         setCurrentRound,
         currentQuestion,

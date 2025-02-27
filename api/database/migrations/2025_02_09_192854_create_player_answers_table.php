@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignUuid("question_id")->constrained('questions')->onDelete('cascade');
             $table->foreignUuid("answer_id")->nullable();
             $table->string("answer_text")->nullable();
-            $table->boolean("is_text_answer_correct")->nullable();
+            $table->boolean("is_answer_correct")->nullable();
             $table->timestamps();
         });
     }

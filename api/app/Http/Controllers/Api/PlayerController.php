@@ -10,6 +10,7 @@ use App\Http\Requests\PlayerRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Events\PlayerEvent;
 
+
 class PlayerController extends Controller
 {
 
@@ -68,6 +69,16 @@ class PlayerController extends Controller
             $player->save();
 
             return response()->json(['points' => $player->points], 200);
+        }
+        return response()->json(['error' => 'Player not found.'], 404);
+    }
+
+    public function finishRound(Request $request) {
+        $player = Player::find($request->player_id);
+        if($player) {
+            $player->round_finished = true;
+            $player->save();
+            return response()->json(['message' => 'Player round finished.'], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);
     }

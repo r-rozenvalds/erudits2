@@ -30,6 +30,8 @@ type PlayerContextType = {
   selectedAnswers: Map<string, string> | undefined;
   setSelectedAnswers: (answers: Map<string, string>) => void;
   postAnswers: (questionId: string) => void;
+  roundFinished: boolean;
+  setRoundFinished: (roundFinished: boolean) => void;
 };
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -53,6 +55,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [isDisqualified, setIsDisqualified] = useState<boolean>(false);
   const [playerName, setPlayerName] = useState<string>("");
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [roundFinished, setRoundFinished] = useState<boolean>(false);
   const [instanceId, setInstanceId] = useState<string>("");
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [answers, setAnswers] = useState<IAnswerDto[]>([]);
@@ -87,6 +90,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       setPlayerId(data.player.id);
       setPlayerName(data.player.player_name);
       setIsDisqualified(data.player.is_disqualified);
+      setRoundFinished(data.player.round_finished);
       setIsReady(true);
     }
   };
@@ -160,6 +164,13 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             if (!isReady && data.instanceId === instanceId)
               navigate("/play/end");
             break;
+          case "next-round":
+            if (data.instanceId === instanceId) {
+              setRoundFinished(false);
+              fetchQuestions();
+              navigate("/play/game");
+            }
+            break;
         }
       });
     echo.channel("player-channel").listen(".player-event", (data: any) => {
@@ -191,6 +202,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         player_id: playerId,
         question_id: questionId,
         answer: answer,
+        round_id: round?.id,
       }),
     });
   };
@@ -213,6 +225,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         selectedAnswers,
         setSelectedAnswers,
         postAnswers,
+        roundFinished,
+        setRoundFinished,
       }}
     >
       {children}

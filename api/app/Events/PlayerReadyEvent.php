@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PlayerEvent implements ShouldBroadcast
+class PlayerReadyEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,13 +18,13 @@ class PlayerEvent implements ShouldBroadcast
      * Create a new event instance.
      */
 
-     public $command;
-     public $playerId;
+     public $instanceId;
+     public $player;
 
-    public function __construct($playerId, $command)
+    public function __construct($instanceId, $player)
     {
-        $this->command = $command;
-        $this->player = $playerId;
+        $this->instanceId = $instanceId;
+        $this->player = $player;
     }
 
     /**
@@ -34,18 +34,18 @@ class PlayerEvent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [new Channel("player.{$this->playerId}")];
+        return [new Channel("player-ready.{$this->instanceId}")];
     }
 
     public function broadcastAs()
     {
-        return 'player-event';
+        return 'player-ready-event';
     }
 
     public function broadcastWith()
     {
         return [
-            'command' => $this->command,
+            'player' => $this->player,
         ];
     }
 }

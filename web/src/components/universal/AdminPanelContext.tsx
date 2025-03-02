@@ -104,26 +104,20 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
   }, [instanceId]);
 
   useEffect(() => {
-    const gameChannel = echo.channel("game-control-channel");
-    const playerChannel = echo.channel("player-channel");
+    const gameChannel = echo.channel(`game.${instanceId}`);
+    const playerChannel = echo.channel(`player-ready.${instanceId}`);
 
     gameChannel.listen(".game-control-event", (data: any) => {
-      if (data.instanceId === instanceId) {
-        fetchQuestionInfo();
-      }
+      fetchQuestionInfo();
     });
 
-    playerChannel.listen(".player-event", (data: any) => {
-      switch (data.command) {
-        case "ready":
-          fetchPlayers();
-          break;
-      }
+    playerChannel.listen(".player-ready-event", (data: any) => {
+      setPlayers([...players, data.player]);
     });
 
     return () => {
       gameChannel.stopListening(".game-control-event");
-      playerChannel.stopListening(".player-event");
+      playerChannel.stopListening(".player-ready-event");
     };
   }, [instanceId]);
 

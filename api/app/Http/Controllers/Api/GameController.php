@@ -28,11 +28,13 @@ class GameController extends Controller
         $games = Game::where('user_id', $request->user()->id)->get();
         foreach ($games as $game) {
             $rounds = $game->rounds()->get();
+            $rounds = collect($rounds)->sortBy('order');
             $game['roundCount'] = $rounds->count();
             $game['questions'] = collect();
             foreach ($rounds as $round) {
                 $game['questions'] = $game['questions']->merge($round->questions()->get());
             }
+            $game['questions'] = $game['questions']->sortBy('order')->values();
             $activeGameInstance = GameInstance::where('game_id', $game->id)
                 ->where(function ($query) {
                     $query->whereNull('end_date')
@@ -49,8 +51,8 @@ class GameController extends Controller
         $game = Game::where('id', $id)->where('user_id', $request->user()->id)->first();
 
         if($game) {
-            $rounds = $game->rounds()->get();
-            $questions = collect();
+            $rounds = $game->rounds()->get()->sortBy('order');
+            $questions = collect()->sortBy('order');
 
             foreach ($rounds as $round) {
                 $questions = $questions->merge($round->questions()->get());

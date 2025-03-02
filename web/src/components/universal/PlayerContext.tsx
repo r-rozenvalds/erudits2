@@ -24,7 +24,6 @@ type PlayerContextType = {
   isReady: boolean;
   setIsReady: (isReady: boolean) => void;
   questions: IQuestion[];
-  fetchQuestions: () => void;
   round: IRound | undefined;
   answers: IAnswerDto[];
   selectedAnswers: Map<string, string> | undefined;
@@ -32,6 +31,9 @@ type PlayerContextType = {
   postAnswers: (questionId: string) => void;
   roundFinished: boolean;
   setRoundFinished: (roundFinished: boolean) => void;
+  currentQuestion: IQuestion | undefined;
+  setCurrentQuestion: (currentQuestion: IQuestion) => void;
+  setChangedAnswer: (changedAnswer: boolean) => void;
 };
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -60,6 +62,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [answers, setAnswers] = useState<IAnswerDto[]>([]);
   const [round, setRound] = useState<IRound>();
+  const [changedAnswer, setChangedAnswer] = useState<boolean>(false);
+  const [currentQuestion, setCurrentQuestion] = useState<IQuestion>();
   const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(
     new Map()
   );
@@ -87,11 +91,20 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const response = await fetch(`${constants.baseApiUrl}/player/${id}`);
     if (response.ok) {
       const data = await response.json();
+
+      if (data.player.is_disqualified) {
+        window.location.assign("/play/disqualified");
+        return;
+      }
+
       setPlayerId(data.player.id);
       setPlayerName(data.player.player_name);
       setIsDisqualified(data.player.is_disqualified);
       setRoundFinished(data.player.round_finished);
       setIsReady(true);
+      if (data.instance.round_started_at) {
+        navigate("/play/game");
+      }
     }
   };
 
@@ -114,10 +127,16 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (isDisqualified) {
-      window.location.assign("/play/disqualified");
+    if (instanceId) {
+      fetchInfo();
     }
-  }, []);
+    if (!round?.is_test) {
+      fetchCurrentQuestion();
+    }
+    if (round?.is_test) {
+      fetchRoundQuestions();
+    }
+  }, [instanceId]);
 
   const navigate = useNavigate();
 
@@ -135,45 +154,69 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchQuestions = async () => {
+  const fetchInfo = async () => {
+    if (!instanceId) return;
+    const response = await fetch(
+      `${constants.baseApiUrl}/round-info/${instanceId}`
+    );
+    if (response.ok) {
+      const data = await response.json();
+      setAnswers(data.answers);
+      setRound(data.round);
+    }
+  };
+
+  const fetchRoundQuestions = async () => {
+    if (!instanceId) return;
     const response = await fetch(
       `${constants.baseApiUrl}/round-questions/${instanceId}`
     );
     if (response.ok) {
       const data = await response.json();
       setQuestions(data.questions);
-      setAnswers(data.answers);
-      setRound(data.round);
-      setAnswers(data.answers);
+    }
+  };
+
+  const fetchCurrentQuestion = async () => {
+    if (!instanceId) return;
+    const response = await fetch(
+      `${constants.baseApiUrl}/current-question/${instanceId}`
+    );
+    if (response.ok) {
+      const data = await response.json();
+      setCurrentQuestion(data.question);
     }
   };
 
   useEffect(() => {
-    echo
-      .channel("game-control-channel")
-      .listen(".game-control-event", (data: any) => {
-        switch (data.command) {
-          case "end":
-            if (data.instanceId === instanceId) navigate("/play/end");
-            break;
-          case "start":
-            if (isReady && data.instanceId === instanceId) {
-              fetchQuestions();
-              navigate("/play/game");
-            } //maybe send signal that player is loaded?
-            if (!isReady && data.instanceId === instanceId)
-              navigate("/play/end");
-            break;
-          case "next-round":
-            if (data.instanceId === instanceId) {
-              setRoundFinished(false);
-              fetchQuestions();
-              navigate("/play/game");
-            }
-            break;
-        }
-      });
-    echo.channel("player-channel").listen(".player-event", (data: any) => {
+    const gameChannel = echo.channel(`game.${instanceId}`);
+    const playerChannel = echo.channel(`player.${playerId}`);
+
+    gameChannel.listen(".game-control-event", (data: any) => {
+      switch (data.command) {
+        case "end":
+          navigate("/play/end");
+          break;
+        case "start":
+          if (isReady) {
+            fetchInfo();
+            navigate("/play/game");
+          }
+          if (!isReady) navigate("/play/end");
+          break;
+        case "next-round":
+        case "previous-round":
+          setRoundFinished(false);
+          fetchRoundQuestions();
+          break;
+        case "previous-question":
+        case "next-question":
+          setRoundFinished(false);
+          fetchCurrentQuestion();
+          break;
+      }
+    });
+    playerChannel.listen(".player-event", (data: any) => {
       switch (data.command) {
         case "disqualified":
           disqualifyPlayer(data.player);
@@ -185,22 +228,32 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => {
-      echo.leaveChannel("game-control-channel");
-      echo.leaveChannel("player-channel");
+      echo.leaveChannel(`game.${instanceId}`);
+      echo.leaveChannel(`player.${playerId}`);
     };
   }, [playerId]);
 
-  const postAnswers = async (questionId: string) => {
-    const answer = selectedAnswers.get(questionId);
+  useEffect(() => {
+    if (changedAnswer) {
+      setChangedAnswer(false);
+      postAnswers();
+    }
+  }, [selectedAnswers]);
 
-    fetch(`${constants.baseApiUrl}/player-answers`, {
+  const postAnswers = async () => {
+    if (!currentQuestion) {
+      return;
+    }
+    const answer = selectedAnswers.get(currentQuestion.id);
+
+    await fetch(`${constants.baseApiUrl}/player-answers`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         player_id: playerId,
-        question_id: questionId,
+        question_id: currentQuestion.id,
         answer: answer,
         round_id: round?.id,
       }),
@@ -219,7 +272,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         isReady,
         setIsReady,
         questions,
-        fetchQuestions,
         round,
         answers,
         selectedAnswers,
@@ -227,6 +279,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         postAnswers,
         roundFinished,
         setRoundFinished,
+        currentQuestion,
+        setCurrentQuestion,
+        setChangedAnswer,
       }}
     >
       {children}

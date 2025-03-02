@@ -10,30 +10,23 @@ import { constants } from "../../../constants";
 
 export const TestGameView = () => {
   const [viewImage, setViewImage] = useState(false);
-  const [changedAnswer, setChangedAnswer] = useState(false);
+  const [questionIndex, setQuestionIndex] = useState(0);
 
   const {
     questions,
-    fetchQuestions,
     answers,
     round,
     selectedAnswers,
     setSelectedAnswers,
-    postAnswers,
     playerId,
     roundFinished,
     setRoundFinished,
+    setChangedAnswer,
   } = usePlayer();
 
   const confirm = useConfirmation();
 
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-
-  if (!questions[currentQuestion]) {
-    setTimeout(() => {
-      fetchQuestions();
-    }, 2000);
-
+  if (!questions[questionIndex]) {
     return (
       <div className="flex flex-col gap-4 place-items-center">
         <p className="text-white text-xl font-semibold">Lūdzu, uzgaidiet!</p>
@@ -97,29 +90,19 @@ export const TestGameView = () => {
   };
 
   const nextQuestion = () => {
-    if (changedAnswer) {
-      setChangedAnswer(false);
-      postAnswers(questions[currentQuestion].id);
-    }
-
-    if (currentQuestion + 1 === questions.length) {
+    if (questionIndex + 1 === questions.length) {
       finishRound();
       return;
     }
 
-    if (currentQuestion + 1 < questions.length) {
-      setCurrentQuestion((prev) => prev + 1);
+    if (questionIndex + 1 < questions.length) {
+      setQuestionIndex(questionIndex + 1);
     }
   };
 
   const prevQuestion = () => {
-    if (changedAnswer) {
-      setChangedAnswer(false);
-      postAnswers(questions[currentQuestion].id);
-    }
-
-    if (currentQuestion - 1 >= 0) {
-      setCurrentQuestion((prev) => prev - 1);
+    if (questionIndex - 1 >= 0) {
+      setQuestionIndex(questionIndex - 1);
     }
   };
 
@@ -128,7 +111,7 @@ export const TestGameView = () => {
     // @ts-ignore
     setSelectedAnswers((prev) => {
       const newAnswers = new Map(prev);
-      const questionId = questions[currentQuestion].id;
+      const questionId = questions[questionIndex].id;
       newAnswers.set(questionId, answerId);
       localStorage.setItem(
         PlayerLocalStorage.answers,
@@ -195,13 +178,17 @@ export const TestGameView = () => {
 
       <>
         <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
-          <Countdown renderer={renderer} date={getCountdownDate()} />
+          <Countdown
+            key={round?.round_started_at}
+            renderer={renderer}
+            date={getCountdownDate()}
+          />
           <p className="font-semibold text-3xl drop-shadow-md">
-            {questions[currentQuestion].title}
+            {questions[questionIndex].title}
           </p>
           <div className="text-white font-semibold text-2xl w-28">
             <span>
-              {currentQuestion + 1}/{questions.length}
+              {questionIndex + 1}/{questions.length}
             </span>
             <i className="fa-regular fa-circle-question text-2xl drop-shadow-lg ms-3"></i>
           </div>
@@ -209,28 +196,25 @@ export const TestGameView = () => {
         <div className="bg-black bg-opacity-40 rounded-md fade-in text-white grow place-items-center p-8 flex gap-4 justify-between">
           <button
             onClick={prevQuestion}
-            disabled={currentQuestion === 0}
+            disabled={questionIndex === 0}
             className={`w-24 h-full justify-center bg-black bg-opacity-30 rounded-md transition-all  ${
-              currentQuestion === 0
-                ? "cursor-not-allowed"
-                : "hover:bg-opacity-60"
+              questionIndex === 0 ? "cursor-not-allowed" : "hover:bg-opacity-60"
             }`}
           >
             <i className="fa-solid fa-angle-left text-6xl drop-shadow-lg"></i>
           </button>
-          {!questions[currentQuestion].is_text_answer && (
+          {!questions[questionIndex].is_text_answer && (
             <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
               {answers
                 .filter(
-                  (answer) =>
-                    answer.question_id === questions[currentQuestion].id
+                  (answer) => answer.question_id === questions[questionIndex].id
                 )
                 .map((answer, index) => (
                   <AnswerOption
                     key={answer.id}
                     setSelectedAnswer={setSelectedAnswer}
                     selectedAnswer={
-                      selectedAnswers?.get(questions[currentQuestion].id) ?? ""
+                      selectedAnswers?.get(questions[questionIndex].id) ?? ""
                     }
                     answerId={answer.id}
                     childNr={index + 1}
@@ -240,11 +224,11 @@ export const TestGameView = () => {
                 ))}
             </div>
           )}
-          {!!questions[currentQuestion].is_text_answer && (
+          {!!questions[questionIndex].is_text_answer && (
             <OpenAnswer
-              guidelines={questions[currentQuestion].guidelines}
+              guidelines={questions[questionIndex].guidelines}
               selectedAnswer={
-                selectedAnswers?.get(questions[currentQuestion].id) ?? ""
+                selectedAnswers?.get(questions[questionIndex].id) ?? ""
               }
               setSelectedAnswer={setSelectedAnswer}
             />

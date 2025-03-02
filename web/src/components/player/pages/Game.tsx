@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TestGameView } from "../ui/TestGameView";
+import { GameView } from "../ui/GameView";
 
 export const Game = () => {
   // const [intro, setIntro] = useState(true);
@@ -38,5 +39,5 @@ export const Game = () => {
   //   );
   // }
 
-  return <TestGameView />;
+  return <GameView />;
 };

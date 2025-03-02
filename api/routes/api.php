@@ -31,8 +31,14 @@ Route::post('/auth/login', [UserController::class, 'loginUser']);
 
 Route::post('/join', [GameInstanceController::class, 'join']);
 Route::post('/create-player', [PlayerController::class, 'createPlayer']);
+
+Route::get('/round-info/{instance_id}', [GameInstanceController::class, 'roundInfo']);
 Route::get('/round-questions/{instance_id}', [GameInstanceController::class, 'roundQuestions']);
+Route::get('/current-question/{instance_id}', [GameInstanceController::class, 'currentQuestion']);
+
+
 Route::post('/player-answers', [PlayerAnswerController::class, 'store']);
+
 
 Route::post('/instance-index', [GameInstanceController::class, 'indexWithPlayerInfo']);
 

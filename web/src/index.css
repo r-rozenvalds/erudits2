@@ -103,6 +103,21 @@
     animation-timing-function: ease-in;
   }
 
+  .fade-in-short {
+    animation-name: fade-in-short;
+    animation-duration: 0.5s;
+    animation-timing-function: ease-in;
+  }
+
+  @keyframes fade-in-short {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
   @keyframes slide-down {
     0% {
       transform: translateY(-100%);

@@ -40,6 +40,8 @@ class PlayerAnswerController extends Controller
 
         $player = Player::find($validated['player_id']);
 
+        $round = Round::find($request->round_id);
+
         $instanceId = $player->instance_id;
 
         $isAnswerCorrect = false;
@@ -67,7 +69,7 @@ class PlayerAnswerController extends Controller
         }
 
         if ($isAnswerCorrect) {
-            $pointsForCorrectAnswer = Round::find($request->round_id)->points;
+            $pointsForCorrectAnswer = $round->points;
             $player->points += $pointsForCorrectAnswer;
             $player->save();
         }
@@ -91,6 +93,11 @@ class PlayerAnswerController extends Controller
             'is_answer_correct' => $isAnswerCorrect,
         ];
         PlayerAnswer::create($playerAnswer);
+
+        if(!$round->is_test) {
+            $player->round_finished = true;
+            $player->save();
+        }
 
         return response()->json(200);
     }

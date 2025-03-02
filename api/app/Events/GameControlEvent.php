@@ -15,9 +15,9 @@ class GameControlEvent implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $command;
-    public $instanceId;  
+    public $instanceId;
 
-    public function __construct($command, $instanceId)
+    public function __construct($instanceId, $command)
     {
         $this->command = $command; // "start" or "stop" command
         $this->instanceId = $instanceId; // Game Instance ID
@@ -25,7 +25,7 @@ class GameControlEvent implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return new Channel('game-control-channel');
+        return [new Channel("game.{$this->instanceId}")];
     }
 
     public function broadcastAs()
@@ -37,7 +37,6 @@ class GameControlEvent implements ShouldBroadcast
     {
         return [
             'command' => $this->command,
-            'instanceId' => $this->instanceId,
         ];
     }
 }

@@ -11,4 +11,5 @@ export interface IRound {
   questions?: IQuestion[];
   is_test: boolean;
   round_started_at: string;
+  total_questions: number;
 }

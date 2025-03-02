@@ -159,7 +159,7 @@ class GameInstanceController extends PlayerAnswerController
                     ->where('question_id', $gameInstance->current_question)
                     ->count();
     
-            $roundQuestions = Question::where('round_id', $round->id)->get();
+            $roundQuestions = Question::where('round_id', $round->id)->get()->sortBy('order')->values();
         } else {
             $answeredPlayers = 0;
             $roundQuestions = [];
@@ -170,10 +170,10 @@ class GameInstanceController extends PlayerAnswerController
         return response()->json([
             'instance_info' => [
                 'players' => $playersCount,
-                'current_round' => optional($round)->title ?? 'N/A',
+                'current_round' => optional($round)->title,
                 'answered_players' => $answeredPlayers,
-                'answer_time' => optional($round)->answer_time ?? 'N/A',
-                'current_question' => optional($round)->is_test ? 'TESTS' : $question ?? 'N/A',
+                'answer_time' => optional($round)->answer_time,
+                'current_question' => optional($round)->is_test ? 'TESTS' : $question,
                 'round_started_at' => $gameInstance->round_started_at,
                 'round_questions' => $roundQuestions,
                 'is_test' => optional($round)->is_test,
@@ -197,13 +197,26 @@ class GameInstanceController extends PlayerAnswerController
     public function roundQuestions(string $instanceId)
     {
         $gameInstance = GameInstance::findOrFail($instanceId);
+        $round = Round::findOrFail($gameInstance->current_round);
+        $questions = Question::where('round_id', $round->id)
+            ->get(['id', 'title', 'is_text_answer', 'guidelines', 'image_url', 'order'])->sortBy('order')->values();
+            
+        return response()->json([
+            'questions' => $questions,
+        ], 200);
+    }
+
+    public function roundInfo(string $instanceId){
+        $gameInstance = GameInstance::findOrFail($instanceId);
         $round = Round::findOrFail($gameInstance->current_round, [
             'id', 'title', 'answer_time', 'disqualify_amount', 'is_additional', 'is_test', 'order'
         ]);
         $round['round_started_at'] = $gameInstance->round_started_at;
-        
+        $round['current_question'] = $gameInstance->current_question;
+        $round['total_questions'] = Question::where('round_id', $round->id)->count();
+
         $questions = Question::where('round_id', $round->id)
-            ->get(['id', 'title', 'is_text_answer', 'guidelines', 'image_url', 'order']);
+        ->get(['id', 'title', 'is_text_answer', 'guidelines', 'image_url', 'order'])->sortBy('order')->values();
 
         $questionsWithTextAnswers = $questions->where('is_text_answer', true)->pluck('id')->toArray();
 
@@ -216,12 +229,23 @@ class GameInstanceController extends PlayerAnswerController
                 return $answer;
             });
             
-            
         return response()->json([
             'round' => $round,
-            'questions' => $questions,
             'answers' => $answers
         ], 200);
+    }
+
+    public function currentQuestion(string $instanceId)
+    {
+        $gameInstance = GameInstance::findOrFail($instanceId);
+        $question = Question::find($gameInstance->current_question);
+        return response()->json(['question' => $question], 200);
+    }
+
+    private function clearFinishedPlayers(string $instanceId) {
+        Player::where('instance_id', $instanceId)
+            ->where('round_finished', 1)
+            ->update(['round_finished' => 0]);
     }
 
     public function nextRound(Request $request) {
@@ -232,14 +256,21 @@ class GameInstanceController extends PlayerAnswerController
         $nextRound = $game->rounds()->where('order', '>', $currentRound?->order)
             ->orderBy('order')
             ->first();
-    
+            
         if ($nextRound) {
             $gameInstance->current_round = $nextRound->id;
             $gameInstance->current_question = null;
             $gameInstance->round_started_at = null;
+            if($nextRound->is_test) {
+                $gameInstance->round_started_at = now();
+            }
             $gameInstance->save();
     
-            broadcast(new GameControlEvent('next-round', $gameInstance->id));
+            $this->clearFinishedPlayers($gameInstance->id);
+
+            if($nextRound->is_test){
+                broadcast(new GameControlEvent($gameInstance->id, 'next-round'));
+            }
     
             return response()->json(['message' => 'Next round started.'], 200);
         }
@@ -257,8 +288,15 @@ class GameInstanceController extends PlayerAnswerController
         if ($previousRound) {
             $gameInstance->current_round = $previousRound->id;
             $gameInstance->current_question = null;
+            if($previousRound->is_test) {
+                $gameInstance->round_started_at = now();
+            }
             $gameInstance->save();
-            broadcast(new GameControlEvent('previous-round', $gameInstance->id));
+            
+            if($previousRound->is_test){
+                broadcast(new GameControlEvent($gameInstance->id, 'previous-round'));
+            }
+            $this->clearFinishedPlayers($gameInstance->id);
 
             return response()->json(['message' => 'Previous round started.'], 200);
         }
@@ -280,7 +318,9 @@ class GameInstanceController extends PlayerAnswerController
         if ($nextQuestion) {
             $gameInstance->current_question = $nextQuestion->id;
             $gameInstance->save();
-            broadcast(new GameControlEvent('next-question', $gameInstance->id));
+            broadcast(new GameControlEvent($gameInstance->id, 'next-question'));
+
+            $this->clearFinishedPlayers($gameInstance->id);
 
             return response()->json(['message' => 'Next question started.'], 200);
         }
@@ -296,7 +336,9 @@ class GameInstanceController extends PlayerAnswerController
         if ($previousQuestion) {
             $gameInstance->current_question = $previousQuestion->id;
             $gameInstance->save();
-            broadcast(new GameControlEvent('previous-question', $gameInstance->id));
+            broadcast(new GameControlEvent($gameInstance->id, 'previous-question'));
+
+            $this->clearFinishedPlayers($gameInstance->id);
 
             return response()->json(['message' => 'Previous question started.'], 200);
         }
@@ -310,12 +352,12 @@ class GameInstanceController extends PlayerAnswerController
             $gameId = GameInstance::where('id', $instanceId)->value('game_id');
             $roundId = Round::where('game_id', $gameId)->where('order', 1)->value('id');
 
-            GameInstance::where('id', $instanceId)->update(['current_round' => $roundId, 'round_started_at' => null]);
+            GameInstance::where('id', $instanceId)->update(['current_round' => $roundId, 'round_started_at' => now()]);
         } else {
             GameInstance::where('id', $instanceId)->update(['end_date' => now(), 'round_started_at' => null]);
         } 
 
-        broadcast(new GameControlEvent($command, $instanceId));
+        broadcast(new GameControlEvent($instanceId, $command));
 
         return response()->json(['status' => 'Command broadcasted']);
     }

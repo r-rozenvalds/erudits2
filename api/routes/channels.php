@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
+Broadcast::channel('game.{instanceId}', function ($user, $instanceId) {
+    return $user->isInGame($instanceId);
+});
+
+Broadcast::channel('player.{playerId}', function ($user, $playerId) {
+    return (int) $user->id === (int) $playerId;
 });

@@ -9,4 +9,5 @@ export interface IQuestion {
   answers: AnswerType[];
   open_answers: string;
   round_id: string;
+  order?: number;
 }

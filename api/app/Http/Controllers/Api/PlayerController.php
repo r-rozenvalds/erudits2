@@ -9,7 +9,9 @@ use Illuminate\Support\Str;
 use App\Http\Requests\PlayerRequest;
 use Illuminate\Support\Facades\Validator;
 use App\Events\PlayerEvent;
-
+use App\Models\GameInstance;
+use App\Http\Resources\PlayerResource;
+use App\Events\PlayerReadyEvent;
 
 class PlayerController extends Controller
 {
@@ -27,7 +29,7 @@ class PlayerController extends Controller
             'instance_id' => $validated['instance_id'],
         ]);
 
-        broadcast(new PlayerEvent('ready'));
+        broadcast(new PlayerReadyEvent($request->instance_id, $player));
 
         return response()->json(['message' => 'Player created successfully.', 'id' => $player['id']], 201);
     }
@@ -45,7 +47,7 @@ class PlayerController extends Controller
         if($player) {
             $player->is_disqualified = true;
             $player->save();
-            broadcast(new PlayerEvent('disqualified', $player->id));
+            event(new PlayerEvent($request->player_id, 'disqualified'));
             return response()->json(['message' => 'Player disqualified.'], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);
@@ -56,7 +58,7 @@ class PlayerController extends Controller
         if($player && $player->is_disqualified) {
             $player->is_disqualified = false;
             $player->save();
-            broadcast(new PlayerEvent('requalified', $player->id));
+            event(new PlayerEvent($request->player_id, 'requalified'));
             return response()->json(['message' => 'Player requalified.'], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);
@@ -106,7 +108,8 @@ class PlayerController extends Controller
     {
         $player = Player::findOrFail($id);
         if($player) {
-            return response()->json(['player' => $player], 200);
+            $instance = GameInstance::where('id', $player->instance_id)->first(['round_started_at']);
+            return response()->json(['player' => new PlayerResource($player), 'instance' => $instance], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);
     }

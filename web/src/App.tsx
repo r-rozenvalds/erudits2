@@ -30,10 +30,6 @@ function App() {
       return;
     }
 
-    localStorage.removeItem(PlayerLocalStorage.currentGame);
-    localStorage.removeItem(PlayerLocalStorage.currentPlayer);
-    localStorage.removeItem(PlayerLocalStorage.answers);
-
     await postJoin(code);
 
     setIsLoading(false);
@@ -49,6 +45,10 @@ function App() {
   };
 
   const postJoin = async (gameCode: string) => {
+    const currentPlayer = JSON.parse(
+      localStorage.getItem(PlayerLocalStorage.currentPlayer) ?? "{}"
+    );
+
     const response = await fetch(`${constants.baseApiUrl}/join`, {
       method: "POST",
       headers: {
@@ -56,8 +56,14 @@ function App() {
       },
       body: JSON.stringify({
         code: gameCode,
+        player_id: currentPlayer?.id,
       }),
     });
+
+    localStorage.removeItem(PlayerLocalStorage.currentGame);
+    localStorage.removeItem(PlayerLocalStorage.currentPlayer);
+    localStorage.removeItem(PlayerLocalStorage.answers);
+
     const data = await response.json();
     if (response.ok) {
       localStorage.setItem(
@@ -101,7 +107,7 @@ function App() {
 
     const currentPlayer = JSON.parse(
       localStorage.getItem(PlayerLocalStorage.currentPlayer) ?? "{}"
-    ); // probs add type lol
+    );
 
     const response = await fetch(`${constants.baseApiUrl}/instance-index`, {
       method: "POST",

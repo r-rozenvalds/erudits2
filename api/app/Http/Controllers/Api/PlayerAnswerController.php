@@ -11,7 +11,9 @@ use App\Models\Player;
 use App\Models\Answer;
 use App\Events\PlayerEvent;
 use App\Models\Round;
-
+use Illuminate\Support\Facades\Log;
+use Exception;
+use App\Events\RefreshPlayersEvent;
 
 class PlayerAnswerController extends Controller
 {
@@ -36,108 +38,123 @@ class PlayerAnswerController extends Controller
      */
     public function store(PlayerAnswerRequest $request)
     {
-        $validated = $request->validated();
+        Log::info('Storing player answer for player ' . $request->player_id . ' and question ' . $request->question_id);
+        try{
+            $validated = $request->validated();
 
-        $player = Player::find($validated['player_id']);
+            $player = Player::find($validated['player_id']);
 
-        $round = Round::find($request->round_id);
+            $round = Round::find($request->round_id);
 
-        $instanceId = $player->instance_id;
+            $instanceId = $player->instance_id;
 
-        $isAnswerCorrect = false;
+            $isAnswerCorrect = false;
 
-        if (!Str::isUuid($validated['answer'])) {
-            // Normalize the user input answer
-            $normalizedAnswer = strtolower(preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($validated['answer']))));
+            if (!Str::isUuid($request->answer)) {
+                // Normalize the user input answer
+                $normalizedAnswer = strtolower(preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($request->answer))));
+                
+                // Fetch valid answers and normalize them
+                $validAnswers = Answer::where('question_id', $validated['question_id'])->get()->pluck('text')->toArray();
+                $normalizedValidAnswers = array_map(function ($answer) {
+                    return strtolower(preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($answer))));
+                }, $validAnswers);
             
-            // Fetch valid answers and normalize them
-            $validAnswers = Answer::where('question_id', $validated['question_id'])->get()->pluck('text')->toArray();
-            $normalizedValidAnswers = array_map(function ($answer) {
-                return strtolower(preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($answer))));
-            }, $validAnswers);
-        
-            // Check if the normalized user answer exists in the valid answers
-            if (in_array($normalizedAnswer, $normalizedValidAnswers)) {
-                $isAnswerCorrect = true;
-            } else {
-                $isAnswerCorrect = false;
+                // Check if the normalized user answer exists in the valid answers
+                if (in_array($normalizedAnswer, $normalizedValidAnswers)) {
+                    $isAnswerCorrect = true;
+                } else {
+                    $isAnswerCorrect = false;
+                }
             }
+            if(Str::isUuid($request->answer)) {
+                $answer = Answer::find($request->answer);
+                $isAnswerCorrect = $answer->is_correct;
+            }
+
+            if ($isAnswerCorrect) {
+                $pointsForCorrectAnswer = $round->points;
+                $player->points += $pointsForCorrectAnswer;
+                $player->save();
+            }
+
+            $existingPlayerAnswer = PlayerAnswer::where('player_id', $validated['player_id'])
+                ->where('question_id', $validated['question_id'])
+                ->where('instance_id', $instanceId)
+                ->first();
+
+            if ($existingPlayerAnswer) {
+                $existingPlayerAnswer->delete();
+            }
+
+            $playerAnswer = [
+                'id' => Str::uuid()->toString(),
+                'player_id' => $validated['player_id'],
+                'question_id' => $validated['question_id'],
+                'instance_id' => $instanceId,
+                'answer_id' => Str::isUuid($request->answer) ? $request->answer : null,
+                'answer_text' => Str::isUuid($request->answer) ? null : $request->answer,
+                'is_answer_correct' => $isAnswerCorrect,
+            ];
+            PlayerAnswer::create($playerAnswer);
+            broadcast(new RefreshPlayersEvent($instanceId, $player));
+
+            if(!$round->is_test) {
+                $player->round_finished = true;
+                $player->save();
+            }
+
+            return response()->json(200);
         }
-        if(Str::isUuid($validated['answer'])) {
-            $answer = Answer::find($validated['answer']);
-            $isAnswerCorrect = $answer->is_correct;
+        catch(\Exception $e) {
+            Log::error('Error storing player answer: ' . $e->getMessage());
+            return response()->json(['error' => 'Error storing player answer.'], 500);
         }
-
-        if ($isAnswerCorrect) {
-            $pointsForCorrectAnswer = $round->points;
-            $player->points += $pointsForCorrectAnswer;
-            $player->save();
-        }
-
-        $existingPlayerAnswer = PlayerAnswer::where('player_id', $validated['player_id'])
-            ->where('question_id', $validated['question_id'])
-            ->where('instance_id', $instanceId)
-            ->first();
-
-        if ($existingPlayerAnswer) {
-            $existingPlayerAnswer->delete();
-        }
-
-        $playerAnswer = [
-            'id' => Str::uuid()->toString(),
-            'player_id' => $validated['player_id'],
-            'question_id' => $validated['question_id'],
-            'instance_id' => $instanceId,
-            'answer_id' => Str::isUuid($validated['answer']) ? $validated['answer'] : null,
-            'answer_text' => Str::isUuid($validated['answer']) ? null : $validated['answer'],
-            'is_answer_correct' => $isAnswerCorrect,
-        ];
-        PlayerAnswer::create($playerAnswer);
-
-        if(!$round->is_test) {
-            $player->round_finished = true;
-            $player->save();
-        }
-
-        return response()->json(200);
     }
 
     public function getInstanceAnswers(string $gameInstanceId)
-{   
-    $instancePlayers = Player::where('instance_id', $gameInstanceId)->get();
-    $answers = PlayerAnswer::with(['player', 'question'])
-        ->where('instance_id', $gameInstanceId)
-        ->get()
-        ->groupBy('player_id');
+    {   
+        Log::info('Getting answers for game instance ' . $gameInstanceId);
+        try{
+            $instancePlayers = Player::where('instance_id', $gameInstanceId)->get();
+            $answers = PlayerAnswer::with(['player', 'question'])
+                ->where('instance_id', $gameInstanceId)
+                ->get()
+                ->groupBy('player_id');
 
-    $results = [];
+            $results = [];
 
-    foreach ($instancePlayers as $player) {
-        $playerId = $player->id;
-        $playerAnswers = $answers[$playerId] ?? [];
-        $questions = [];
+            foreach ($instancePlayers as $player) {
+                $playerId = $player->id;
+                $playerAnswers = $answers[$playerId] ?? [];
+                $questions = [];
 
-        foreach ($playerAnswers as $answer) {
-            $answerModel = Answer::find($answer->answer_id);
+                foreach ($playerAnswers as $answer) {
+                    $answerModel = Answer::find($answer->answer_id);
 
-            $questions[] = [
-                'id' => $answer->question->id,
-                'title' => $answer->question->title,
-                'answer' => $answerModel?->text ?? $answer->answer_text,
-                'is_correct' => $answerModel?->is_correct ?? $answer->is_answer_correct,
-            ];
+                    $questions[] = [
+                        'id' => $answer->question->id,
+                        'title' => $answer->question->title,
+                        'answer' => $answerModel?->text ?? $answer->answer_text,
+                        'is_correct' => $answerModel?->is_correct ?? $answer->is_answer_correct,
+                    ];
+                }
+
+
+                $results[] = [
+                    'player_name' => $player->player_name ?? 'Unknown Player',
+                    'questions' => $questions,
+                    'round_finished' => $player->round_finished,
+                ];
+            }
+
+            return response()->json($results);
         }
-
-
-        $results[] = [
-            'player_name' => $player->player_name ?? 'Unknown Player',
-            'questions' => $questions,
-            'round_finished' => $player->round_finished,
-        ];
+        catch(\Exception $e) {
+            Log::error('Error getting answers for game instance ' . $gameInstanceId . ': ' . $e->getMessage());
+            return response()->json(['error' => 'Error getting answers for game instance.'], 500);
+        }
     }
-
-    return response()->json($results);
-}
 
 
     /**

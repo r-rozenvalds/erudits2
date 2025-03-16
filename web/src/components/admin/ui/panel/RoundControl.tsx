@@ -7,7 +7,8 @@ import { useToast } from "../../../universal/Toast";
 import { RoundCountdown } from "./RoundCountdown";
 
 export const RoundControl = () => {
-  const { gameController, fetchQuestionInfo, instanceId } = useAdminPanel();
+  const { gameController, fetchQuestionInfo, instanceId, instance } =
+    useAdminPanel();
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const showToast = useToast();
 
@@ -43,6 +44,9 @@ export const RoundControl = () => {
       const data = await response.json();
       fetchQuestionInfo();
       showToast(true, data.message);
+    } else {
+      const data = await response.json();
+      showToast(false, data.message);
     }
   };
 
@@ -64,6 +68,9 @@ export const RoundControl = () => {
       const data = await response.json();
       fetchQuestionInfo();
       showToast(true, data.message);
+    } else {
+      const data = await response.json();
+      showToast(false, data.message);
     }
   };
 
@@ -85,6 +92,9 @@ export const RoundControl = () => {
       const data = await response.json();
       fetchQuestionInfo();
       showToast(true, data.message);
+    } else {
+      const data = await response.json();
+      showToast(false, data.message);
     }
   };
 
@@ -106,6 +116,9 @@ export const RoundControl = () => {
       const data = await response.json();
       fetchQuestionInfo();
       showToast(true, data.message);
+    } else {
+      const data = await response.json();
+      showToast(false, data.message);
     }
   };
 
@@ -116,7 +129,7 @@ export const RoundControl = () => {
       <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
         <p className="font-semibold">Kārtas</p>
         <button
-          disabled={fetchDisabled || !instance_info.current_round}
+          disabled={fetchDisabled || !instance_info.game_started}
           onClick={refresh}
         >
           {fetchDisabled ? (
@@ -126,7 +139,7 @@ export const RoundControl = () => {
           )}
         </button>
       </div>
-      {!instance_info.current_round && (
+      {!instance_info.game_started && (
         <div className="bg-slate-100 py-2 w-full grow">
           <div className="justify-center gap-2 flex place-items-center">
             <i className="fa-solid fa-triangle-exclamation"></i>
@@ -134,15 +147,15 @@ export const RoundControl = () => {
           </div>
         </div>
       )}
-      {instance_info.current_round && (
+      {!!instance_info.game_started && (
         <div className="bg-slate-100 flex flex-col justify-between grow">
           <div className="w-full h-84 bg-slate-200 py-2">
             <div className="flex justify-between px-4 gap-4">
               <button
-                disabled={!instance_info.current_round}
+                disabled={!instance_info.game_started}
                 onClick={previousRound}
                 className={`${
-                  !instance_info.current_round
+                  !instance_info.game_started
                     ? "bg-slate-400"
                     : "bg-blue-500 hover:bg-blue-600"
                 }  text-white font-bold px-4 rounded-md py-2 transition-all`}
@@ -152,14 +165,19 @@ export const RoundControl = () => {
               </button>
               <div className="bg-slate-300 flex-col flex place-items-center px-4 rounded-md">
                 <p className="text-xs">Atbildējuši</p>
-                <p className="font-semibold">
-                  {instance_info.answered_players}/{instance_info.players}
-                </p>
+                {instance?.current_round && (
+                  <p className="font-semibold">
+                    {instance_info.answered_players}/{instance_info.players}
+                  </p>
+                )}
+                {!instance?.current_round && <p className="font-semibold">-</p>}
               </div>
 
               <div className="flex flex-col place-items-center grow">
                 <p className="text-xs">Pašreizējā kārta</p>
-                <p className="font-semibold">{instance_info.current_round}</p>
+                <p className="font-semibold">
+                  {instance_info.current_round ?? "-"}
+                </p>
               </div>
               <div className="bg-slate-300 flex-col flex place-items-center px-2 rounded-md">
                 <p className="text-xs">Atlikušais laiks</p>
@@ -168,10 +186,10 @@ export const RoundControl = () => {
                 </p>
               </div>
               <button
-                disabled={!instance_info.current_round}
+                disabled={!instance_info.game_started}
                 onClick={nextRound}
                 className={`${
-                  !instance_info.current_round
+                  !instance_info.game_started
                     ? "bg-slate-400"
                     : "bg-blue-500 hover:bg-blue-600"
                 }  text-white font-bold px-4 rounded-md py-2 transition-all`}
@@ -181,13 +199,20 @@ export const RoundControl = () => {
               </button>
             </div>
           </div>
-          <RoundTable gameController={gameController} />
+          {instance?.current_round && (
+            <RoundTable gameController={gameController} />
+          )}
+          {!instance?.current_round && (
+            <div className="max-w-[64rem] min-w-[64rem] overflow-x-scroll w-full h-full text-center">
+              <span>Nav iesākta kārta</span>
+            </div>
+          )}
           <div className="w-full h-84 bg-slate-200 py-2 flex justify-between px-4">
             <button
-              disabled={instance_info.is_test}
+              disabled={instance_info.is_test || !instance_info.current_round}
               onClick={previousQuestion}
               className={`${
-                instance_info.is_test
+                instance_info.is_test || !instance_info.current_round
                   ? "bg-slate-400"
                   : "bg-blue-700 hover:bg-blue-800"
               }  text-white font-bold px-4 rounded-md py-2 transition-all`}
@@ -202,10 +227,10 @@ export const RoundControl = () => {
               </p>
             </div>
             <button
-              disabled={instance_info.is_test}
+              disabled={instance_info.is_test || !instance_info.current_round}
               onClick={nextQuestion}
               className={`${
-                instance_info.is_test
+                instance_info.is_test || !instance_info.current_round
                   ? "bg-slate-400"
                   : "bg-blue-700 hover:bg-blue-800"
               }  text-white font-bold px-4 rounded-md py-2 transition-all`}

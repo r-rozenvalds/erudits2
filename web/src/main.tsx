@@ -65,7 +65,7 @@ const router = createBrowserRouter([
     element: <CreatorLayout />,
     children: [
       {
-        path: "game/:roundId",
+        path: "game/:gameId",
         element: <AdminGameEditor />,
       },
       {

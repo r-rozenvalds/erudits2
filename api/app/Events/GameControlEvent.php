@@ -16,11 +16,15 @@ class GameControlEvent implements ShouldBroadcast
 
     public $command;
     public $instanceId;
+    public $currentRound;
+    public $currentQuestion;
 
-    public function __construct($instanceId, $command)
+    public function __construct($instanceId, $command, $currentRound = null, $currentQuestion = null)
     {
         $this->command = $command; // "start" or "stop" command
         $this->instanceId = $instanceId; // Game Instance ID
+        $this->currentRound = $currentRound;
+        $this->currentQuestion = $currentQuestion;
     }
 
     public function broadcastOn()
@@ -37,6 +41,8 @@ class GameControlEvent implements ShouldBroadcast
     {
         return [
             'command' => $this->command,
+            'currentRound' => $this->currentRound,
+            'currentQuestion' => $this->currentQuestion
         ];
     }
 }

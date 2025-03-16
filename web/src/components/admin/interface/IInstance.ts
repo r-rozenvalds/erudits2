@@ -6,5 +6,6 @@ export interface IInstance {
   game_id: string;
   current_round: string;
   current_question: string;
-  round_started_at: string;
+  started_at: string;
+  game_started: boolean;
 }

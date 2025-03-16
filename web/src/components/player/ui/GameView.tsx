@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnswerOption } from "./AnswerOption";
 import { usePlayer } from "../../universal/PlayerContext";
 import { SpinnerCircularFixed } from "spinners-react";
@@ -19,6 +19,9 @@ export const GameView = () => {
     currentQuestion,
     setRoundFinished,
     setChangedAnswer,
+    countdownTime,
+    isTiebreaking,
+    setIsTiebreaking,
   } = usePlayer();
 
   if (!currentQuestion || !round) {
@@ -40,7 +43,8 @@ export const GameView = () => {
     completed: boolean;
   }) => {
     if (completed) {
-      //setRoundFinished(true);
+      setRoundFinished(true);
+      setChangedAnswer(true);
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"
@@ -71,7 +75,6 @@ export const GameView = () => {
 
   const setSelectedAnswer = (answerId: string) => {
     setChangedAnswer(true);
-
     setSelectedAnswers(new Map([[currentQuestion.id, answerId]]));
     localStorage.setItem(
       PlayerLocalStorage.answers,
@@ -112,12 +115,18 @@ export const GameView = () => {
   }
 
   const getCountdownDate = () => {
-    if (!round?.round_started_at || !round?.answer_time) return 0;
+    if (!countdownTime || !round?.answer_time) return 0;
 
-    const dateStartedAt = new Date(round.round_started_at);
-    const localTimeOffset = dateStartedAt.getTimezoneOffset() * 60 * 1000;
+    const dateStartedAt = new Date(countdownTime);
+    if (isTiebreaking) {
+      console.log("return", dateStartedAt.getTime() + round.answer_time * 1000);
+      return dateStartedAt.getTime() + round.answer_time * 1000;
+    }
 
-    return dateStartedAt.getTime() - localTimeOffset + round.answer_time * 1000;
+    // const localTimeOffset = dateStartedAt.getTimezoneOffset() * 60 * 1000;
+    console.log("return", dateStartedAt.getTime() + round.answer_time * 1000);
+
+    return dateStartedAt.getTime() + round.answer_time * 1000;
   };
 
   const handleInputChange = (input: string) => {
@@ -139,6 +148,13 @@ export const GameView = () => {
     <div
       className={`text-center select-none p-12 w-screen flex flex-col gap-4 h-screen`}
     >
+      {isTiebreaking && (
+        <div className="flex absolute left-0 top-0 px-12 h-12 bg-yellow-300 animate-pulse w-full shadow-lg place-items-center justify-between text-2xl">
+          <i className="fa-solid fa-scale-balanced"></i>
+          <p className="font-bold">Neizšķirts - papildu jautājums</p>
+          <i className="fa-solid fa-scale-balanced"></i>
+        </div>
+      )}
       {viewImage && (
         <div
           onClick={handleViewImage}
@@ -158,7 +174,7 @@ export const GameView = () => {
       <>
         <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
           <Countdown
-            key={round?.round_started_at}
+            key={countdownTime}
             renderer={renderer}
             date={getCountdownDate()}
           />
@@ -166,9 +182,11 @@ export const GameView = () => {
             {currentQuestion.title}
           </p>
           <div className="text-white font-semibold text-2xl w-28">
-            <span>
-              {currentQuestion.order}/{round?.total_questions}
-            </span>
+            {!isTiebreaking && (
+              <span>
+                {currentQuestion.order}/{round?.total_questions}
+              </span>
+            )}
             <i className="fa-regular fa-circle-question text-2xl drop-shadow-lg ms-3"></i>
           </div>
         </div>

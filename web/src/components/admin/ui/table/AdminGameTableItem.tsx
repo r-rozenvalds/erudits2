@@ -17,7 +17,6 @@ export const AdminGameTableItem = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
 
-  const { setGame, setRounds, setQuestions } = useSidebar();
   const showToast = useToast();
   const confirm = useConfirmation();
   const navigate = useNavigate();
@@ -26,30 +25,8 @@ export const AdminGameTableItem = ({
     if (!!game.activeGameInstance) {
       return;
     }
-    const response = await fetch(
-      `${constants.baseApiUrl}/full-game/${game.id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            constants.localStorage.TOKEN
-          )}`,
-        },
-      }
-    );
 
-    if (response.ok) {
-      const data = await response.json();
-      setGame(data.game);
-      setRounds(data.rounds);
-      setQuestions(data.questions);
-
-      sessionStorage.setItem(
-        AdminSessionStorage.gameCreator,
-        JSON.stringify(data.game)
-      );
-      navigate("/admin/games/editor/game/" + game.id);
-    }
+    navigate("/admin/games/editor/game/" + game.id);
   };
 
   const gameAction = async () => {

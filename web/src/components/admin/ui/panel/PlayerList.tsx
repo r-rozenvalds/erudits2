@@ -11,6 +11,7 @@ import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 import { IPlayer } from "../../interface/IPlayer";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useAdminPanel } from "../../../universal/AdminPanelContext";
+import { useToast } from "../../../universal/Toast";
 
 export const PlayerList = () => {
   const [sorting, setSorting] = useState([
@@ -20,7 +21,36 @@ export const PlayerList = () => {
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const [pointsDisabled, setPointsDisabled] = useState(false);
 
-  const { fetchPlayers, players, setPlayers } = useAdminPanel();
+  const {
+    fetchPlayers,
+    players,
+    setPlayers,
+    instanceId,
+    instance,
+    gameController,
+  } = useAdminPanel();
+
+  const showToast = useToast();
+
+  const tiedPlayers = useMemo(() => {
+    const scores = players
+      .filter((p) => !p.is_disqualified)
+      .map((p) => p.points);
+    const sortedScores = scores.sort((a, b) => b - a);
+
+    const repeatingScores: number[] = [];
+    sortedScores.forEach((score, idx) => {
+      if (score === sortedScores[idx + 1]) {
+        repeatingScores.push(score);
+      }
+    });
+
+    const uniqueRepeatingScores = new Set(repeatingScores);
+
+    return players.filter(
+      (p) => uniqueRepeatingScores.has(p.points) && !p.is_disqualified
+    );
+  }, [players]);
 
   useEffect(() => {
     fetchPlayers();
@@ -132,6 +162,38 @@ export const PlayerList = () => {
         setPointsDisabled(false);
       }
     }
+  };
+
+  const handleTiebreak = async () => {
+    if (tiedPlayers.length < 2) {
+      return;
+    }
+
+    const tiedPlayersIds = tiedPlayers.map((p) => p.id);
+    const response = await fetch(`${constants.baseApiUrl}/tiebreak`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
+        )}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        player_ids: tiedPlayersIds,
+        instance_id: instanceId,
+      }),
+    });
+
+    if (response.ok) {
+      showToast(true, "Spēlētājiem uzdoti papildus jautājumi");
+    }
+  };
+
+  const getCanTiebreak = () => {
+    const allRoundsFinished = gameController?.player_answers.every(
+      (player) => player.round_finished
+    );
+    return allRoundsFinished && tiedPlayers.length > 1;
   };
 
   const columnHelper = createColumnHelper<IPlayer>();
@@ -268,7 +330,7 @@ export const PlayerList = () => {
     getSortedRowModel: getSortedRowModel(),
   });
   return (
-    <div className="text-center h-full">
+    <div className="text-center">
       <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
         <p className="font-semibold">Spēlētāji</p>
         <button disabled={fetchDisabled} onClick={refresh}>
@@ -301,7 +363,11 @@ export const PlayerList = () => {
                 className={` ${
                   row.original.is_disqualified
                     ? "bg-red-100 odd:bg-red-200"
-                    : "bg-slate-50 odd:bg-slate-100"
+                    : `${
+                        tiedPlayers.find((p) => p === row.original)
+                          ? "bg-yellow-100"
+                          : "bg-slate-50 odd:bg-slate-100"
+                      }`
                 }`}
                 key={row.id}
               >
@@ -315,6 +381,24 @@ export const PlayerList = () => {
           </tbody>
         </table>
       </div>
+      {tiedPlayers.length > 0 && (
+        <div className="w-full h-12 flex justify-between place-items-center px-4 bg-yellow-200 font-semibold">
+          <div>
+            <i className="fa-solid fa-triangle-exclamation pe-2"></i> Neizšķirts
+          </div>
+          <button
+            disabled={!getCanTiebreak()}
+            onClick={handleTiebreak}
+            className={`px-4 py-1 ${
+              getCanTiebreak()
+                ? "bg-yellow-400 hover:bg-yellow-500"
+                : "bg-slate-300 cursor-not-allowed"
+            } rounded-md `}
+          >
+            <i className="fa-solid fa-scale-balanced pe-2 "></i>Lauzt
+          </button>
+        </div>
+      )}
     </div>
   );
 };

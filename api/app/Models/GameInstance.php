@@ -17,6 +17,9 @@ class GameInstance extends Model
         'end_date',
         'game_id',
         'current_round',
+        'current_question',
+        'started_at',
+        'game_started',
     ];
 
     public function game() {

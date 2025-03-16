@@ -36,9 +36,9 @@ export const RoundTable = ({
             <span
               className={answer.is_correct ? "text-green-800" : "text-red-800"}
             >
-              {answer.answer.length > 15
+              {answer.answer?.length > 15
                 ? answer.answer.slice(0, 15) + "..."
-                : answer.answer}
+                : answer.answer ?? "-"}
             </span>
           );
         },

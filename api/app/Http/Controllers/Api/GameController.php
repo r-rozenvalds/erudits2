@@ -14,9 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Http\Requests\GameRequest;
 use Illuminate\Support\Collection;
-
-
-
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class GameController extends Controller
 {
@@ -25,26 +24,33 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
+        Log::info('Indexing games for user ' . $request->user()->id);
+        try{
         $games = Game::where('user_id', $request->user()->id)->get();
-        foreach ($games as $game) {
-            $rounds = $game->rounds()->get();
-            $rounds = collect($rounds)->sortBy('order');
-            $game['roundCount'] = $rounds->count();
-            $game['questions'] = collect();
-            foreach ($rounds as $round) {
-                $game['questions'] = $game['questions']->merge($round->questions()->get());
+            foreach ($games as $game) {
+                $rounds = $game->rounds()->get();
+                $rounds = collect($rounds)->sortBy('order');
+                $game['roundCount'] = $rounds->count();
+                $game['questions'] = collect();
+                foreach ($rounds as $round) {
+                    $game['questions'] = $game['questions']->merge($round->questions()->get());
+                }
+                $game['questions'] = $game['questions']->sortBy('order')->values();
+                $activeGameInstance = GameInstance::where('game_id', $game->id)
+                    ->where(function ($query) {
+                        $query->whereNull('end_date')
+                            ->orWhere('end_date', '>', now());
+                    })->first();
+                $game['activeGameInstance'] = $activeGameInstance ? $activeGameInstance->id : null;
+                $game['questionCount'] = $game['questions']->count();
             }
-            $game['questions'] = $game['questions']->sortBy('order')->values();
-            $activeGameInstance = GameInstance::where('game_id', $game->id)
-                ->where(function ($query) {
-                    $query->whereNull('end_date')
-                          ->orWhere('end_date', '>', now());
-                })->first();
-            $game['activeGameInstance'] = $activeGameInstance ? $activeGameInstance->id : null;
-            $game['questionCount'] = $game['questions']->count();
-        }
 
-        return response()->json(['games' => $games], 200);
+            return response()->json(['games' => $games], 200);
+        }
+        catch (Exception $e) {
+            Log::error('Error while indexing games for user ' . $request->user()->id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Error while indexing games.'], 500);
+        }
     }
 
     public function fullIndex(Request $request, string $id) {

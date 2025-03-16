@@ -34,7 +34,8 @@ interface IInstanceInfo {
   current_question: string;
   answer_time: number;
   current_round: string;
-  round_started_at: string;
+  started_at: string;
+  game_started: boolean;
   round_questions: IQuestion[];
   is_test: boolean;
 }
@@ -64,6 +65,8 @@ type AdminPanelContextType = {
   setInstance: (instance: IInstance) => void;
   setRounds: (rounds: IRound[]) => void;
   setQuestions: (questions: IQuestion[]) => void;
+  setGameInProgress: (gameInProgress: boolean) => void;
+  gameInProgress: boolean;
 };
 
 const AdminPanelContext = createContext<AdminPanelContextType | undefined>(
@@ -89,6 +92,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
   const [instance, setInstance] = useState<IInstance>();
   const [rounds, setRounds] = useState<IRound[]>([]);
   const [questions, setQuestions] = useState<IQuestion[]>([]);
+  const [gameInProgress, setGameInProgress] = useState(false);
 
   const { instanceId } = useParams();
 
@@ -105,19 +109,19 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const gameChannel = echo.channel(`game.${instanceId}`);
-    const playerChannel = echo.channel(`player-ready.${instanceId}`);
+    const playerChannel = echo.channel(`refresh-players.${instanceId}`);
 
-    gameChannel.listen(".game-control-event", (data: any) => {
+    gameChannel.listen(".game-control-event", () => {
       fetchQuestionInfo();
     });
 
-    playerChannel.listen(".player-ready-event", (data: any) => {
-      setPlayers([...players, data.player]);
+    playerChannel.listen(".refresh-players-event", (data: any) => {
+      fetchPlayers();
     });
 
     return () => {
       gameChannel.stopListening(".game-control-event");
-      playerChannel.stopListening(".player-ready-event");
+      playerChannel.stopListening(".refresh-players-event");
     };
   }, [instanceId]);
 
@@ -206,6 +210,8 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
         setInstance,
         setRounds,
         setQuestions,
+        setGameInProgress,
+        gameInProgress,
       }}
     >
       {children}

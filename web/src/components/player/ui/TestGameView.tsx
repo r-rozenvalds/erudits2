@@ -10,7 +10,6 @@ import { constants } from "../../../constants";
 
 export const TestGameView = () => {
   const [viewImage, setViewImage] = useState(false);
-  const [questionIndex, setQuestionIndex] = useState(0);
 
   const {
     questions,
@@ -22,11 +21,14 @@ export const TestGameView = () => {
     roundFinished,
     setRoundFinished,
     setChangedAnswer,
+    countdownTime,
+    selectedQuestionIndex,
+    setSelectedQuestionIndex,
   } = usePlayer();
 
   const confirm = useConfirmation();
 
-  if (!questions[questionIndex]) {
+  if (!questions[selectedQuestionIndex]) {
     return (
       <div className="flex flex-col gap-4 place-items-center">
         <p className="text-white text-xl font-semibold">Lūdzu, uzgaidiet!</p>
@@ -45,7 +47,7 @@ export const TestGameView = () => {
     completed: boolean;
   }) => {
     if (completed) {
-      setRoundFinished(true);
+      //setRoundFinished(true);
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"
@@ -90,19 +92,19 @@ export const TestGameView = () => {
   };
 
   const nextQuestion = () => {
-    if (questionIndex + 1 === questions.length) {
+    if (selectedQuestionIndex + 1 === questions.length) {
       finishRound();
       return;
     }
 
-    if (questionIndex + 1 < questions.length) {
-      setQuestionIndex(questionIndex + 1);
+    if (selectedQuestionIndex + 1 < questions.length) {
+      setSelectedQuestionIndex(selectedQuestionIndex + 1);
     }
   };
 
   const prevQuestion = () => {
-    if (questionIndex - 1 >= 0) {
-      setQuestionIndex(questionIndex - 1);
+    if (selectedQuestionIndex - 1 >= 0) {
+      setSelectedQuestionIndex(selectedQuestionIndex - 1);
     }
   };
 
@@ -111,7 +113,7 @@ export const TestGameView = () => {
     // @ts-ignore
     setSelectedAnswers((prev) => {
       const newAnswers = new Map(prev);
-      const questionId = questions[questionIndex].id;
+      const questionId = questions[selectedQuestionIndex].id;
       newAnswers.set(questionId, answerId);
       localStorage.setItem(
         PlayerLocalStorage.answers,
@@ -150,9 +152,9 @@ export const TestGameView = () => {
   }
 
   const getCountdownDate = () => {
-    if (!round?.round_started_at || !round?.answer_time) return 0;
+    if (!countdownTime || !round?.answer_time) return 0;
 
-    const dateStartedAt = new Date(round.round_started_at);
+    const dateStartedAt = new Date(countdownTime);
     const localTimeOffset = dateStartedAt.getTimezoneOffset() * 60 * 1000;
 
     return dateStartedAt.getTime() - localTimeOffset + round.answer_time * 1000;
@@ -179,16 +181,16 @@ export const TestGameView = () => {
       <>
         <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
           <Countdown
-            key={round?.round_started_at}
+            key={countdownTime}
             renderer={renderer}
             date={getCountdownDate()}
           />
           <p className="font-semibold text-3xl drop-shadow-md">
-            {questions[questionIndex].title}
+            {questions[selectedQuestionIndex].title}
           </p>
           <div className="text-white font-semibold text-2xl w-28">
             <span>
-              {questionIndex + 1}/{questions.length}
+              {selectedQuestionIndex + 1}/{questions.length}
             </span>
             <i className="fa-regular fa-circle-question text-2xl drop-shadow-lg ms-3"></i>
           </div>
@@ -196,25 +198,30 @@ export const TestGameView = () => {
         <div className="bg-black bg-opacity-40 rounded-md fade-in text-white grow place-items-center p-8 flex gap-4 justify-between">
           <button
             onClick={prevQuestion}
-            disabled={questionIndex === 0}
+            disabled={selectedQuestionIndex === 0}
             className={`w-24 h-full justify-center bg-black bg-opacity-30 rounded-md transition-all  ${
-              questionIndex === 0 ? "cursor-not-allowed" : "hover:bg-opacity-60"
+              selectedQuestionIndex === 0
+                ? "cursor-not-allowed"
+                : "hover:bg-opacity-60"
             }`}
           >
             <i className="fa-solid fa-angle-left text-6xl drop-shadow-lg"></i>
           </button>
-          {!questions[questionIndex].is_text_answer && (
+          {!questions[selectedQuestionIndex].is_text_answer && (
             <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
               {answers
                 .filter(
-                  (answer) => answer.question_id === questions[questionIndex].id
+                  (answer) =>
+                    answer.question_id === questions[selectedQuestionIndex].id
                 )
                 .map((answer, index) => (
                   <AnswerOption
                     key={answer.id}
                     setSelectedAnswer={setSelectedAnswer}
                     selectedAnswer={
-                      selectedAnswers?.get(questions[questionIndex].id) ?? ""
+                      selectedAnswers?.get(
+                        questions[selectedQuestionIndex].id
+                      ) ?? ""
                     }
                     answerId={answer.id}
                     childNr={index + 1}
@@ -224,11 +231,11 @@ export const TestGameView = () => {
                 ))}
             </div>
           )}
-          {!!questions[questionIndex].is_text_answer && (
+          {!!questions[selectedQuestionIndex].is_text_answer && (
             <OpenAnswer
-              guidelines={questions[questionIndex].guidelines}
+              guidelines={questions[selectedQuestionIndex].guidelines}
               selectedAnswer={
-                selectedAnswers?.get(questions[questionIndex].id) ?? ""
+                selectedAnswers?.get(questions[selectedQuestionIndex].id) ?? ""
               }
               setSelectedAnswer={setSelectedAnswer}
             />

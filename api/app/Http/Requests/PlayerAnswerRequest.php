@@ -23,8 +23,8 @@ class PlayerAnswerRequest extends FormRequest
     {
         return [
             'player_id' => 'required|uuid',
-            'answer' => 'required',
             'question_id' => 'required|uuid',
+            'round_id' => 'required|uuid',
         ];
     }
 }

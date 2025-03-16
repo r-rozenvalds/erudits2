@@ -66,6 +66,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     //questions
     Route::apiResource('/questions', QuestionController::class);
     Route::get('/create-question/{round_id}', [QuestionController::class, 'create']);
+    Route::post('/question-image/{question_id}', [QuestionController::class, 'uploadImage']);
 
     //answers
     Route::delete('/answers/{answer_id}', [AnswerController::class, 'destroy']);
@@ -94,6 +95,8 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     //player-answers
     Route::get('/player-answers/{gameInstanceId}', [PlayerAnswerController::class, 'getInstanceAnswers']);
     Route::put('/player-answers', [PlayerAnswerController::class, 'update']);
+
+    Route::post('/tiebreak', [GameInstanceController::class, 'tiebreak']);
 });
 
 

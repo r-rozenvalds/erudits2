@@ -10,6 +10,7 @@ export const Lobby = () => {
   const [error, setError] = useState("");
   const [gameTitle, setGameTitle] = useState("");
   const [instanceId, setInstanceId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     playerName,
@@ -38,18 +39,23 @@ export const Lobby = () => {
   }, [isReady]);
 
   const readyPlayer = async () => {
+    setIsLoading(true);
     setError("");
     if (!agreed) {
       setError("Lūdzu, atzīmējiet, ka piekrītat noteikumiem!");
+      setIsLoading(false);
       return;
     }
     if (playerName === "") {
       setError("Lūdzu, ievadiet spēlētāja nosaukumu!");
+      setIsLoading(false);
       return;
     }
     if (await createPlayer()) {
       setIsReady(true);
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const createPlayer = async () => {
@@ -120,7 +126,7 @@ export const Lobby = () => {
             Es piekrītu neizmantot palīgierīces spēles laikā.
           </label>
         </div>
-        {!isReady && (
+        {!isReady && !isLoading && (
           <button
             onClick={readyPlayer}
             className={`text-white w-32 h-12 rounded-md text-2xl shadow-md hover:opacity-70 ${
@@ -128,6 +134,13 @@ export const Lobby = () => {
             }`}
           >
             <i className="fa-solid fa-check"></i>
+          </button>
+        )}
+        {isLoading && (
+          <button className="text-white w-32 h-12 rounded-md text-2xl shadow-md  bg-[#E63946] cursor-not-allowed">
+            <div className="mx-auto w-8">
+              <SpinnerCircularFixed color="#ffffff" size={32} thickness={180} />
+            </div>
           </button>
         )}
         {isReady && (

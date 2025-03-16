@@ -16,6 +16,7 @@ import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 
 export const GameCreatorQuestion = () => {
   const [question, setQuestion] = useState(CreateQuestionModel.title);
+  const [image, setImage] = useState<File>();
   const [isOpenAnswer, setIsOpenAnswer] = useState(
     CreateQuestionModel.is_text_answer
   );
@@ -49,7 +50,7 @@ export const GameCreatorQuestion = () => {
       title: formValues.title,
       is_text_answer: formValues.is_text_answer,
       guidelines: formValues.guidelines,
-      image_url: formValues.image_url,
+      image: formValues.image,
       answers: formValues.answers,
     };
     sessionStorage.setItem(
@@ -139,7 +140,6 @@ export const GameCreatorQuestion = () => {
         title: values.title,
         is_text_answer: values.is_text_answer,
         guidelines: values.guidelines,
-        image_url: values.image_url,
         round_id: values.round_id,
         answers: values.answers,
       }),
@@ -224,7 +224,16 @@ export const GameCreatorQuestion = () => {
                 >
                   <i className="fa-solid fa-image"></i>
                 </label>
-                <input id="imageUpload" className="hidden" type="file"></input>
+                <input
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      setImage(e.target.files[0]);
+                    }
+                  }}
+                  id="imageUpload"
+                  className="hidden"
+                  type="file"
+                ></input>
               </div>
             </div>
             <div className="flex flex-col gap-2 place-items-center justify-between">

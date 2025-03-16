@@ -1,43 +1,47 @@
-import { useEffect, useState } from "react";
-import { TestGameView } from "../ui/TestGameView";
+import { useState, useEffect } from "react";
+import { usePlayer } from "../../universal/PlayerContext";
 import { GameView } from "../ui/GameView";
+import { TestGameView } from "../ui/TestGameView";
 
 export const Game = () => {
-  // const [intro, setIntro] = useState(true);
-  // const [countdown, setCountdown] = useState(3);
+  const { round } = usePlayer();
+  const [showGame, setShowGame] = useState(false);
 
-  // useEffect(() => {
-  //   if (intro) {
-  //     const countdownInterval = setInterval(() => {
-  //       setCountdown((prevCountdown) => prevCountdown - 1);
-  //     }, 1000);
+  useEffect(() => {
+    if (round) {
+      const timeout = setTimeout(() => {
+        setShowGame(true);
+      }, 2000);
 
-  //     const introTimeout = setTimeout(() => {
-  //       setIntro(false);
-  //       clearInterval(countdownInterval);
-  //     }, 3500);
+      return () => clearTimeout(timeout); // Cleanup timeout on unmount
+    }
+  }, [round]);
 
-  //     return () => {
-  //       clearInterval(countdownInterval);
-  //       clearTimeout(introTimeout);
-  //     };
-  //   }
-  // }, [intro]);
+  if (!round) {
+    return (
+      <div className="flex w-screen h-screen">
+        <div className="bg-red-500 h-full w-1/2 glass-effect sliding-animation-left flex place-items-center justify-end">
+          <img className="w-40 h-64" src="/GvG-left.png" />
+        </div>
+        <div className="bg-red-500 h-full w-1/2 glass-effect sliding-animation-right flex place-items-center">
+          <img className="w-40 h-64" src="/GvG-right.png" />
+        </div>
+      </div>
+    );
+  }
 
-  // if (intro) {
-  //   return (
-  //     <div className="text-center select-none">
-  //       <p className="text-white font-semibold text-2xl drop-shadow-md mb-4">
-  //         Gatavojieties!
-  //       </p>
-  //       <div className="bg-black w-40 h-40 bg-opacity-50 rounded-full shadow-lg">
-  //         <p className="text-white font-semibold text-8xl drop-shadow-md pt-6">
-  //           {countdown}
-  //         </p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (showGame) {
+    return round.is_test ? <TestGameView /> : <GameView />;
+  }
 
-  return <GameView />;
+  return (
+    <div className="flex w-screen h-screen">
+      <div className="bg-red-500 h-full w-1/2 glass-effect sliding-animation-left-backwards flex place-items-center justify-end">
+        <img className="w-40 h-64" src="/GvG-left.png" />
+      </div>
+      <div className="bg-red-500 h-full w-1/2 glass-effect sliding-animation-right-backwards flex place-items-center">
+        <img className="w-40 h-64" src="/GvG-right.png" />
+      </div>
+    </div>
+  );
 };

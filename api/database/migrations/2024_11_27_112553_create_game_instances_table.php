@@ -19,7 +19,8 @@ return new class extends Migration
             $table->foreignUuid("game_id")->constrained('games')->onDelete('cascade');
             $table->uuid('current_round')->nullable()->constrained('rounds')->onDelete('cascade');
             $table->uuid('current_question')->nullable()->constrained('questions')->onDelete('cascade');
-            $table->timestamp('round_started_at')->nullable();
+            $table->timestamp('started_at')->nullable(); // last round/ question started at timestamp
+            $table->boolean("game_started")->default(false);
             $table->timestamps();
         });
     }

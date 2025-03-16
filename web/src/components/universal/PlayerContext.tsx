@@ -34,6 +34,11 @@ type PlayerContextType = {
   currentQuestion: IQuestion | undefined;
   setCurrentQuestion: (currentQuestion: IQuestion) => void;
   setChangedAnswer: (changedAnswer: boolean) => void;
+  countdownTime: string | undefined;
+  selectedQuestionIndex: number;
+  setSelectedQuestionIndex: (selectedQuestionIndex: number) => void;
+  isTiebreaking: boolean;
+  setIsTiebreaking: (isTiebreaking: boolean) => void;
 };
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -67,6 +72,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [selectedAnswers, setSelectedAnswers] = useState<Map<string, string>>(
     new Map()
   );
+  const [countdownTime, setCountdownTime] = useState<string>();
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number>(0);
+  const [isTiebreaking, setIsTiebreaking] = useState<boolean>(false);
 
   useEffect(() => {
     const player = JSON.parse(
@@ -102,7 +110,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       setIsDisqualified(data.player.is_disqualified);
       setRoundFinished(data.player.round_finished);
       setIsReady(true);
-      if (data.instance.round_started_at) {
+      if (data.instance.game_started) {
         navigate("/play/game");
       }
     }
@@ -130,13 +138,17 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     if (instanceId) {
       fetchInfo();
     }
-    if (!round?.is_test) {
+  }, [instanceId]);
+
+  useEffect(() => {
+    if (!round?.is_test && !isTiebreaking && !currentQuestion) {
+      //fucky wucky
       fetchCurrentQuestion();
     }
     if (round?.is_test) {
       fetchRoundQuestions();
     }
-  }, [instanceId]);
+  }, [round]);
 
   const navigate = useNavigate();
 
@@ -163,6 +175,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
       setAnswers(data.answers);
       setRound(data.round);
+      setCountdownTime(data.round?.started_at);
     }
   };
 
@@ -185,66 +198,95 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     if (response.ok) {
       const data = await response.json();
       setCurrentQuestion(data.question);
+      setCountdownTime(data.started_at);
     }
   };
 
   useEffect(() => {
-    const gameChannel = echo.channel(`game.${instanceId}`);
-    const playerChannel = echo.channel(`player.${playerId}`);
+    if (instanceId && playerId) {
+      const gameChannel = echo.channel(`game.${instanceId}`);
+      const playerChannel = echo.channel(`player.${playerId}`);
 
-    gameChannel.listen(".game-control-event", (data: any) => {
-      switch (data.command) {
-        case "end":
-          navigate("/play/end");
-          break;
-        case "start":
-          if (isReady) {
+      gameChannel.listen(".game-control-event", (data: any) => {
+        switch (data.command) {
+          case "end":
+            navigate("/play/end");
+            break;
+          case "start":
+            if (isReady) {
+              fetchInfo();
+              navigate("/play/game");
+            }
+            if (!isReady) navigate("/play/end");
+            break;
+          case "next-round":
+          case "previous-round":
+            setRoundFinished(false);
             fetchInfo();
-            navigate("/play/game");
-          }
-          if (!isReady) navigate("/play/end");
-          break;
-        case "next-round":
-        case "previous-round":
-          setRoundFinished(false);
-          fetchRoundQuestions();
-          break;
-        case "previous-question":
-        case "next-question":
-          setRoundFinished(false);
-          fetchCurrentQuestion();
-          break;
-      }
-    });
-    playerChannel.listen(".player-event", (data: any) => {
-      switch (data.command) {
-        case "disqualified":
-          disqualifyPlayer(data.player);
-          break;
-        case "requalified":
-          requalifyPlayer(data.player);
-          break;
-      }
-    });
-
+            setRound(data.currentRound);
+            break;
+          case "previous-question":
+          case "next-question":
+            setRoundFinished(false);
+            setRound(data.currentRound);
+            setCurrentQuestion(data.currentQuestion);
+            setCountdownTime(data.currentQuestion.started_at);
+            break;
+        }
+      });
+      playerChannel.listen(".player-event", (data: any) => {
+        switch (data.command) {
+          case "disqualified":
+            disqualifyPlayer(data.player);
+            break;
+          case "requalified":
+            requalifyPlayer(data.player);
+            break;
+        }
+      });
+      playerChannel.listen(".tiebreak-event", (data: any) => {
+        switch (data.command) {
+          case "tiebreak":
+            setIsTiebreaking(true);
+            setCountdownTime(new Date().toISOString());
+            setRound(data.round);
+            setRoundFinished(false);
+            setCurrentQuestion(data.question);
+            setAnswers(data.answers);
+            break;
+        }
+      });
+    }
     return () => {
       echo.leaveChannel(`game.${instanceId}`);
       echo.leaveChannel(`player.${playerId}`);
     };
-  }, [playerId]);
+  }, [instanceId, playerId]);
 
   useEffect(() => {
     if (changedAnswer) {
-      setChangedAnswer(false);
+      setIsTiebreaking(false);
       postAnswers();
+      setChangedAnswer(false);
     }
-  }, [selectedAnswers]);
+  }, [selectedQuestionIndex, roundFinished]);
+
+  const getCurrentQuestionId = () => {
+    if (isTiebreaking) {
+      return currentQuestion?.id;
+    }
+    if (!round?.is_test) {
+      return currentQuestion!.id;
+    }
+    return questions[selectedQuestionIndex].id;
+  };
 
   const postAnswers = async () => {
-    if (!currentQuestion) {
-      return;
-    }
-    const answer = selectedAnswers.get(currentQuestion.id);
+    const currentQuestionId = getCurrentQuestionId();
+
+    if (!currentQuestionId) return;
+
+    const answer = selectedAnswers.get(currentQuestionId);
 
     await fetch(`${constants.baseApiUrl}/player-answers`, {
       method: "POST",
@@ -253,11 +295,15 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       },
       body: JSON.stringify({
         player_id: playerId,
-        question_id: currentQuestion.id,
+        question_id: currentQuestionId,
         answer: answer,
         round_id: round?.id,
       }),
     });
+
+    if (isTiebreaking) {
+      fetchInfo();
+    }
   };
 
   return (
@@ -282,6 +328,11 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         currentQuestion,
         setCurrentQuestion,
         setChangedAnswer,
+        countdownTime,
+        selectedQuestionIndex,
+        setSelectedQuestionIndex,
+        isTiebreaking,
+        setIsTiebreaking,
       }}
     >
       {children}

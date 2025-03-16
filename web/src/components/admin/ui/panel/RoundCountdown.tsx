@@ -1,6 +1,5 @@
 import Countdown from "react-countdown";
 import { IGameController } from "../../../universal/AdminPanelContext";
-import { useEffect } from "react";
 
 export const RoundCountdown = ({
   gameController,
@@ -9,11 +8,12 @@ export const RoundCountdown = ({
 }) => {
   const { instance_info } = gameController;
 
-  const getCountdownDate = () => {
-    if (!instance_info?.round_started_at || !instance_info?.answer_time)
-      return 0;
+  if (!instance_info?.started_at || !instance_info?.answer_time) return "-";
 
-    const dateStartedAt = new Date(instance_info.round_started_at);
+  const getCountdownDate = () => {
+    if (!instance_info?.started_at || !instance_info?.answer_time) return 0;
+
+    const dateStartedAt = new Date(instance_info.started_at);
     const localTimeOffset = dateStartedAt.getTimezoneOffset() * 60 * 1000;
 
     return (
@@ -54,7 +54,7 @@ export const RoundCountdown = ({
 
   return (
     <Countdown
-      key={instance_info?.round_started_at}
+      key={instance_info?.started_at}
       renderer={renderer}
       date={getCountdownDate()}
     />

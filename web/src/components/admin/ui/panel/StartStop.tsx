@@ -22,7 +22,7 @@ export const StartStop = ({
 
   const [isPinging, setIsPinging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [gameStarted, setGameStarted] = useState(!!instance.round_started_at);
+  const [gameStarted, setGameStarted] = useState(!!instance.game_started);
 
   const startGame = async () => {
     setIsLoading(true);
@@ -123,7 +123,7 @@ export const StartStop = ({
 
   return (
     <div className="gap-4 flex">
-      <button
+      {/*<button
         onClick={ping}
         disabled={isPinging}
         className={`h-10 w-14 rounded-md ${
@@ -131,7 +131,7 @@ export const StartStop = ({
         } text-white font-bold  transition-all`}
       >
         <i className="fa-solid fa-table-tennis-paddle-ball"></i>
-      </button>
+      </button>*/}
       <button
         disabled={isLoading}
         onClick={closeGame}

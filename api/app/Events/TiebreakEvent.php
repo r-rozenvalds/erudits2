@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PlayerReadyEvent implements ShouldBroadcast
+class TiebreakEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -18,13 +18,19 @@ class PlayerReadyEvent implements ShouldBroadcast
      * Create a new event instance.
      */
 
-     public $instanceId;
-     public $player;
+     public $question;
+     public $round;
+     public $playerId;
+     public $command;
+     public $answers;
 
-    public function __construct($instanceId, $player)
+    public function __construct($command, $playerId, $round, $question, $answers)
     {
-        $this->instanceId = $instanceId;
-        $this->player = $player;
+        $this->command = $command;
+        $this->question = $question;
+        $this->playerId = $playerId;
+        $this->round = $round;
+        $this->answers = $answers;
     }
 
     /**
@@ -34,18 +40,21 @@ class PlayerReadyEvent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [new Channel("player-ready.{$this->instanceId}")];
+        return [new Channel("player.{$this->playerId}")];
     }
 
     public function broadcastAs()
     {
-        return 'player-ready-event';
+        return 'tiebreak-event';
     }
 
     public function broadcastWith()
     {
         return [
-            'player' => $this->player,
+            'command' => $this->command,
+            'question' => $this->question,
+            'round' => $this->round,
+            'answers' => $this->answers,
         ];
     }
 }

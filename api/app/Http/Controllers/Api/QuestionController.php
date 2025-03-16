@@ -42,7 +42,7 @@ class QuestionController extends Controller
             'title' => 'Spēles jautājums', 
             'is_text_answer' => false, 
             'guidelines' => null, 
-            'image_url' => null, 
+            'image' => null, 
             'round_id' => $roundId,
             'answers' => []
         ];
@@ -123,5 +123,25 @@ class QuestionController extends Controller
 
         $question->delete();
         return response()->json(null, 204);
+    }
+
+    public function uploadImage(Request $request) {
+        $question = Question::findOrFail($request->question_id);
+
+        $round = Round::findOrFail($question->round_id);
+
+        $this->authorize('manage', Game::findOrFail($round->game_id));
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $imageName = time().'.'.$request->image->extension();  
+        $request->image->move(public_path('images'), $imageName);
+
+        $question->image_url = $imageName;
+        $question->save();
+
+        return response()->json(['message' => 'Image uploaded successfully.'], 200);
     }
 }

@@ -10,6 +10,7 @@ export interface IRound {
   game_id?: string;
   questions?: IQuestion[];
   is_test: boolean;
-  round_started_at: string;
-  total_questions: number;
+  started_at?: string;
+  game_started?: boolean;
+  total_questions?: number;
 }

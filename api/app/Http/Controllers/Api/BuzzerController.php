@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\History;
+use App\Models\Buzzer;
 use Illuminate\Http\Request;
 
-class HistoryController extends Controller
+class BuzzerController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -35,7 +34,7 @@ class HistoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(History $history)
+    public function show(Buzzer $buzzer)
     {
         //
     }
@@ -43,7 +42,7 @@ class HistoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(History $history)
+    public function edit(Buzzer $buzzer)
     {
         //
     }
@@ -51,7 +50,7 @@ class HistoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, History $history)
+    public function update(Request $request, Buzzer $buzzer)
     {
         //
     }
@@ -59,7 +58,7 @@ class HistoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(History $history)
+    public function destroy(Buzzer $buzzer)
     {
         //
     }

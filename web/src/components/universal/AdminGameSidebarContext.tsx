@@ -9,6 +9,8 @@ import { IGame } from "../admin/interface/IGame";
 import { IRound } from "../admin/interface/IRound";
 import { IQuestion } from "../admin/interface/IQuestion";
 import { AdminSessionStorage } from "../admin/enum/AdminSessionStorage";
+import { constants } from "../../constants";
+import { useParams } from "react-router-dom";
 
 type AdminSidebarContextType = {
   game: IGame | undefined;
@@ -35,85 +37,51 @@ export const useSidebar = () => {
 };
 
 export const AdminSidebarProvider = ({ children }: { children: ReactNode }) => {
-  const [gameState, setGameState] = useState<IGame | undefined>(undefined);
-  const [roundsState, setRoundsState] = useState<IRound[] | undefined>(
-    undefined
-  );
-  const [questionsState, setQuestionsState] = useState<IQuestion[] | undefined>(
+  const [game, setGame] = useState<IGame | undefined>(undefined);
+  const [rounds, setRounds] = useState<IRound[] | undefined>(undefined);
+  const [questions, setQuestions] = useState<IQuestion[] | undefined>(
     undefined
   );
 
-  const setGame = (game: IGame) => {
-    setGameState(game);
-  };
-  const setRounds = (rounds: IRound[]) => {
-    setRoundsState(rounds);
-  };
-  const setQuestions = (questions: IQuestion[]) => {
-    setQuestionsState(questions);
+  const { gameId } = useParams();
+
+  const getGameData = async () => {
+    const response = await fetch(
+      `${constants.baseApiUrl}/full-game/${gameId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem(
+            constants.localStorage.TOKEN
+          )}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      setGame(data.game);
+      setRounds(data.rounds);
+      setQuestions(data.questions);
+    }
   };
 
   const clearSidebar = () => {
-    setGameState(undefined);
-    setRoundsState(undefined);
-    setQuestionsState(undefined);
+    setGame(undefined);
+    setRounds(undefined);
+    setQuestions(undefined);
   };
 
   useEffect(() => {
-    if (gameState) {
-      sessionStorage.setItem(
-        AdminSessionStorage.sidebarGame,
-        JSON.stringify(gameState)
-      );
-    }
-  }, [gameState]);
-
-  useEffect(() => {
-    if (questionsState) {
-      sessionStorage.setItem(
-        AdminSessionStorage.sidebarQuestions,
-        JSON.stringify(questionsState)
-      );
-    }
-  }, [questionsState]);
-
-  useEffect(() => {
-    if (roundsState) {
-      sessionStorage.setItem(
-        AdminSessionStorage.sidebarRounds,
-        JSON.stringify(roundsState)
-      );
-    }
-  }, [roundsState]);
-
-  useEffect(() => {
-    const game = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.sidebarGame) || "[]"
-    ) as IGame;
-    const rounds = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.sidebarRounds) || "[]"
-    ) as IRound[];
-    const questions = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.sidebarQuestions) || "[]"
-    ) as IQuestion[];
-
-    if (Object.keys(game).length > 0) {
-      setGameState(game);
-    }
-    if (rounds.length > 0) {
-      setRoundsState(rounds);
-    }
-    if (questions.length > 0) {
-      setQuestionsState(questions);
-    }
+    getGameData();
   }, []);
 
   return (
     <AdminGameSidebarContext.Provider
       value={{
-        game: gameState,
-        rounds: roundsState,
-        questions: questionsState,
+        game,
+        rounds,
+        questions,
         setGame,
         setRounds,
         setQuestions,

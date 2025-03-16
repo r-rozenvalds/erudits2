@@ -11,27 +11,36 @@ use Illuminate\Support\Facades\Validator;
 use App\Events\PlayerEvent;
 use App\Models\GameInstance;
 use App\Http\Resources\PlayerResource;
-use App\Events\PlayerReadyEvent;
+use App\Events\RefreshPlayersEvent;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class PlayerController extends Controller
 {
 
     public function createPlayer(PlayerRequest $request)
     {
-        if(Player::where('player_name', '=', $request->player_name)->where('instance_id', '=', $request->instance_id)->exists()) {
-            return response()->json(['error' => 'Player already exists.'], 400);
+        Log::info('Creating player ' . $request->player_name . ' for instance ' . $request->instance_id);
+        try{
+            if(Player::where('player_name', '=', $request->player_name)->where('instance_id', '=', $request->instance_id)->exists()) {
+                return response()->json(['error' => 'Player already exists.'], 400);
+            }
+            $validated = $request->validated();
+
+            $player = Player::create([
+                'id' => Str::uuid()->toString(),
+                'player_name' => $validated['player_name'],
+                'instance_id' => $validated['instance_id'],
+            ]);
+
+            broadcast(new RefreshPlayersEvent($request->instance_id, $player));
+
+            return response()->json(['message' => 'Player created successfully.', 'id' => $player['id']], 201);
         }
-        $validated = $request->validated();
-
-        $player = Player::create([
-            'id' => Str::uuid()->toString(),
-            'player_name' => $validated['player_name'],
-            'instance_id' => $validated['instance_id'],
-        ]);
-
-        broadcast(new PlayerReadyEvent($request->instance_id, $player));
-
-        return response()->json(['message' => 'Player created successfully.', 'id' => $player['id']], 201);
+        catch(Exception $e) {
+            Log::error('Error while creating player ' . $request->player_name . ' for instance ' . $request->instance_id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Error while creating player.'], 500);
+        }
     }
     /**
      * Display a listing of the resource.
@@ -43,25 +52,39 @@ class PlayerController extends Controller
     }
 
     public function disqualify(Request $request) {
-        $player = Player::where('id', $request->player_id)->first();
-        if($player) {
-            $player->is_disqualified = true;
-            $player->save();
-            event(new PlayerEvent($request->player_id, 'disqualified'));
-            return response()->json(['message' => 'Player disqualified.'], 200);
+        Log::info('Disqualifying player ' . $request->player_id);
+        try {
+            $player = Player::where('id', $request->player_id)->first();
+            if($player) {
+                $player->is_disqualified = true;
+                $player->save();
+                event(new PlayerEvent($request->player_id, 'disqualified'));
+                return response()->json(['message' => 'Player disqualified.'], 200);
+            }
+            return response()->json(['error' => 'Player not found.'], 404);
         }
-        return response()->json(['error' => 'Player not found.'], 404);
+        catch(Exception $e) {
+            Log::error('Error while disqualifying player ' . $request->player_id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Error while disqualifying player.'], 500);
+        }
     }
 
     public function requalify(Request $request) {
-        $player = Player::where('id', $request->player_id)->first();
-        if($player && $player->is_disqualified) {
-            $player->is_disqualified = false;
-            $player->save();
-            event(new PlayerEvent($request->player_id, 'requalified'));
-            return response()->json(['message' => 'Player requalified.'], 200);
+        Log::info('Requalifying player ' . $request->player_id);
+        try{
+            $player = Player::where('id', $request->player_id)->first();
+            if($player && $player->is_disqualified) {
+                $player->is_disqualified = false;
+                $player->save();
+                event(new PlayerEvent($request->player_id, 'requalified'));
+                return response()->json(['message' => 'Player requalified.'], 200);
+            }
+            return response()->json(['error' => 'Player not found.'], 404);
         }
-        return response()->json(['error' => 'Player not found.'], 404);
+        catch(Exception $e) {
+            Log::error('Error while requalifying player ' . $request->player_id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Error while requalifying player.'], 500);
+        }
     }
 
     public function adjustPoints(Request $request) {
@@ -108,7 +131,7 @@ class PlayerController extends Controller
     {
         $player = Player::findOrFail($id);
         if($player) {
-            $instance = GameInstance::where('id', $player->instance_id)->first(['round_started_at']);
+            $instance = GameInstance::where('id', $player->instance_id)->first(['started_at', 'game_started']);
             return response()->json(['player' => new PlayerResource($player), 'instance' => $instance], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);

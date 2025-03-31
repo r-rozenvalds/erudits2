@@ -8,9 +8,8 @@ import {
 import { IGame } from "../admin/interface/IGame";
 import { IRound } from "../admin/interface/IRound";
 import { IQuestion } from "../admin/interface/IQuestion";
-import { AdminSessionStorage } from "../admin/enum/AdminSessionStorage";
 import { constants } from "../../constants";
-import { useParams } from "react-router-dom";
+import { AdminSessionStorage } from "../admin/enum/AdminSessionStorage";
 
 type AdminSidebarContextType = {
   game: IGame | undefined;
@@ -20,6 +19,8 @@ type AdminSidebarContextType = {
   setRounds: (rounds: IRound[]) => void;
   setQuestions: (questions: IQuestion[]) => void;
   clearSidebar: () => void;
+  isChanged: boolean;
+  setIsChanged: (isChanged: boolean) => void;
 };
 
 const AdminGameSidebarContext = createContext<
@@ -42,12 +43,17 @@ export const AdminSidebarProvider = ({ children }: { children: ReactNode }) => {
   const [questions, setQuestions] = useState<IQuestion[] | undefined>(
     undefined
   );
-
-  const { gameId } = useParams();
+  const [isChanged, setIsChanged] = useState(false);
 
   const getGameData = async () => {
+    const game = JSON.parse(
+      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
+    ) as IGame;
+
+    if (!game.id) return;
+
     const response = await fetch(
-      `${constants.baseApiUrl}/full-game/${gameId}`,
+      `${constants.baseApiUrl}/full-game/${game.id}`,
       {
         method: "GET",
         headers: {
@@ -60,9 +66,27 @@ export const AdminSidebarProvider = ({ children }: { children: ReactNode }) => {
 
     if (response.ok) {
       const data = await response.json();
-      setGame(data.game);
-      setRounds(data.rounds);
-      setQuestions(data.questions);
+      if (data.game) {
+        sessionStorage.setItem(
+          AdminSessionStorage.gameCreator,
+          JSON.stringify(data.game)
+        );
+        setGame(data.game);
+      }
+      if (data.rounds) {
+        sessionStorage.setItem(
+          AdminSessionStorage.roundCreator,
+          JSON.stringify(data.rounds)
+        );
+        setRounds(data.rounds);
+      }
+      if (data.questions) {
+        sessionStorage.setItem(
+          AdminSessionStorage.questionCreator,
+          JSON.stringify(data.questions)
+        );
+        setQuestions(data.questions);
+      }
     }
   };
 
@@ -86,6 +110,8 @@ export const AdminSidebarProvider = ({ children }: { children: ReactNode }) => {
         setRounds,
         setQuestions,
         clearSidebar,
+        isChanged,
+        setIsChanged,
       }}
     >
       {children}

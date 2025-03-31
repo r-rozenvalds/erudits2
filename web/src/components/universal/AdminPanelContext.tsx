@@ -115,7 +115,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
       fetchQuestionInfo();
     });
 
-    playerChannel.listen(".refresh-players-event", (data: any) => {
+    playerChannel.listen(".refresh-players-event", () => {
       fetchPlayers();
     });
 

@@ -20,6 +20,7 @@ class GameInstance extends Model
         'current_question',
         'started_at',
         'game_started',
+        'buzzers_mode'
     ];
 
     public function game() {

@@ -12,6 +12,7 @@ import { IPlayer } from "../../interface/IPlayer";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useAdminPanel } from "../../../universal/AdminPanelContext";
 import { useToast } from "../../../universal/Toast";
+import { formatText } from "../../../universal/functions";
 
 export const PlayerList = () => {
   const [sorting, setSorting] = useState([
@@ -21,14 +22,7 @@ export const PlayerList = () => {
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const [pointsDisabled, setPointsDisabled] = useState(false);
 
-  const {
-    fetchPlayers,
-    players,
-    setPlayers,
-    instanceId,
-    instance,
-    gameController,
-  } = useAdminPanel();
+  const { fetchPlayers, players, setPlayers, instanceId } = useAdminPanel();
 
   const showToast = useToast();
 
@@ -61,7 +55,10 @@ export const PlayerList = () => {
   const disqualifyPlayer = async (player: IPlayer) => {
     if (
       await confirm(
-        `Vai tiešām vēlaties diskvalificēt spēlētāju ${player.player_name}?`
+        `Vai tiešām vēlaties diskvalificēt spēlētāju ${formatText(
+          player.player_name,
+          10
+        )}?`
       )
     ) {
       const response = await fetch(
@@ -189,13 +186,6 @@ export const PlayerList = () => {
     }
   };
 
-  const getCanTiebreak = () => {
-    const allRoundsFinished = gameController?.player_answers.every(
-      (player) => player.round_finished
-    );
-    return allRoundsFinished && tiedPlayers.length > 1;
-  };
-
   const columnHelper = createColumnHelper<IPlayer>();
 
   const columns = useMemo(
@@ -211,7 +201,9 @@ export const PlayerList = () => {
       }),
       columnHelper.accessor("player_name", {
         header: "Nosaukums",
-        cell: (info) => info.getValue(),
+        cell: (info) => (
+          <p title={info.getValue()}>{formatText(info.getValue(), 10)}</p>
+        ),
         enableSorting: false,
       }),
       columnHelper.accessor("points", {
@@ -330,7 +322,7 @@ export const PlayerList = () => {
     getSortedRowModel: getSortedRowModel(),
   });
   return (
-    <div className="text-center">
+    <div className="text-center flex flex-col">
       <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
         <p className="font-semibold">Spēlētāji</p>
         <button disabled={fetchDisabled} onClick={refresh}>
@@ -341,7 +333,7 @@ export const PlayerList = () => {
           )}
         </button>
       </div>
-      <div className="min-h-[32rem] bg-slate-100 grow">
+      <div className="bg-slate-100 grow">
         <table>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -382,18 +374,13 @@ export const PlayerList = () => {
         </table>
       </div>
       {tiedPlayers.length > 0 && (
-        <div className="w-full h-12 flex justify-between place-items-center px-4 bg-yellow-200 font-semibold">
+        <div className="w-full h-12 flex justify-between place-items-center px-4 bg-yellow-200 font-semibold place-self-end">
           <div>
             <i className="fa-solid fa-triangle-exclamation pe-2"></i> Neizšķirts
           </div>
           <button
-            disabled={!getCanTiebreak()}
             onClick={handleTiebreak}
-            className={`px-4 py-1 ${
-              getCanTiebreak()
-                ? "bg-yellow-400 hover:bg-yellow-500"
-                : "bg-slate-300 cursor-not-allowed"
-            } rounded-md `}
+            className={`px-4 py-1 bg-yellow-400 hover:bg-yellow-500 rounded-sm`}
           >
             <i className="fa-solid fa-scale-balanced pe-2 "></i>Lauzt
           </button>

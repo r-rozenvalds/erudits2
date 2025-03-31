@@ -25,10 +25,15 @@ export const RoundTable = ({
       },
       ...tableQuestions.map((question) => ({
         accessorKey: question.id,
-        header:
-          question.title.length > 15
-            ? question.title.slice(0, 15) + "..."
-            : question.title,
+        header: () => {
+          return (
+            <div className="p-2" title={question.title}>
+              {question.title.length > 15
+                ? question.title.slice(0, 15) + "..."
+                : question.title}
+            </div>
+          );
+        },
         cell: ({ getValue }: { getValue: any }) => {
           const answer = getValue();
           if (!answer) return "";
@@ -67,8 +72,8 @@ export const RoundTable = ({
   });
 
   return (
-    <div className="max-w-[64rem] min-w-[64rem] overflow-x-scroll w-full h-full">
-      <table className="table-auto text-center text-sm">
+    <div className="overflow-x-scroll w-full h-full">
+      <table className="table-auto text-center text-sm w-full">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr className="bg-slate-300" key={headerGroup.id}>

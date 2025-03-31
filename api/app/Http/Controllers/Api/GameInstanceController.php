@@ -370,6 +370,8 @@ class GameInstanceController extends PlayerAnswerController
 
             $nextQuestion = $questions->where('order', '>', $currentQuestion?->order)->sortBy('order')->first();
             if ($nextQuestion) {
+                $nextQuestionAnswers = Answer::where('question_id', $nextQuestion->id)->get();
+
                 $gameInstance->current_question = $nextQuestion->id;
                 $gameInstance->save();
 
@@ -381,6 +383,19 @@ class GameInstanceController extends PlayerAnswerController
                     'total_questions' => $questions->count(),
                 ];
 
+                $answerDto = [];
+
+                if(!$nextQuestion->is_text_answer) {
+                    foreach($nextQuestionAnswers as $answer) {
+                            $answerDto[] = [
+                                'id' => $answer->id,
+                                'text' => $answer->text,
+                                'question_id' => $answer->question_id,
+                            ];
+                        
+                    }; 
+                }               
+
                 $questionDto = [
                     'id' => $nextQuestion->id,
                     'title' => $nextQuestion->title,
@@ -389,6 +404,7 @@ class GameInstanceController extends PlayerAnswerController
                     'image_url' => $nextQuestion->image_url,
                     'order' => $nextQuestion->order,
                     'started_at' => $gameInstance->started_at,
+                    'answers' => $answerDto,
                 ];
 
                 broadcast(new GameControlEvent($gameInstance->id, 'next-question', $roundDto, $questionDto));
@@ -420,6 +436,7 @@ class GameInstanceController extends PlayerAnswerController
             }
 
             if ($previousQuestion) {
+                $previousQuestionAnswers = Answer::where('question_id', $previousQuestion->id)->get();
                 $gameInstance->current_question = $previousQuestion->id;
                 $gameInstance->save();
 
@@ -431,6 +448,19 @@ class GameInstanceController extends PlayerAnswerController
                     'total_questions' => $questions->count(),
                 ];
 
+                $answerDto = [];
+
+                if(!$previousQuestion->is_text_answer) {
+                    foreach($previousQuestionAnswers as $answer) {
+                            $answerDto[] = [
+                                'id' => $answer->id,
+                                'text' => $answer->text,
+                                'question_id' => $answer->question_id,
+                            ];
+                        
+                    }; 
+                }      
+                
                 $questionDto = [
                     'id' => $previousQuestion->id,
                     'title' => $previousQuestion->title,
@@ -439,6 +469,7 @@ class GameInstanceController extends PlayerAnswerController
                     'image_url' => $previousQuestion->image_url,
                     'order' => $previousQuestion->order,
                     'started_at' => $gameInstance->started_at,
+                    'answers' => $answerDto,
                 ];
 
                 broadcast(new GameControlEvent($gameInstance->id, 'previous-question', $roundDto, $questionDto));
@@ -461,6 +492,9 @@ class GameInstanceController extends PlayerAnswerController
             $command = $request->input('command');
             $instanceId = $request->input('instance_id'); 
             if($command == 'start') {
+                if(Player::where('instance_id', $instanceId)->count() < 2) {
+                    return response()->json(['error' => 'Not enough players to start game'], 400);
+                }
                 $gameId = GameInstance::where('id', $instanceId)->value('game_id');
                 $roundId = Round::where('game_id', $gameId)->where('order', 1)->value('id');
 

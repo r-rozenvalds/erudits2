@@ -2,7 +2,7 @@ export default {
   id: "",
   title: "",
   is_text_answer: false,
-  image: new File([], ""),
+  image_url: "",
   guidelines: "",
   answers: [{ id: "", text: "", is_correct: false }],
   open_answers: "",

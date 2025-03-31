@@ -26,9 +26,10 @@ export const AdminGameCreator = () => {
   const debounceDescription = useDebounce(description, 300);
 
   const showToast = useToast();
-  const { setGame, clearSidebar } = useSidebar();
+  const { setGame, clearSidebar, setIsChanged } = useSidebar();
 
   const saveToSessionStorage = () => {
+    setIsChanged(true);
     var values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
     );
@@ -77,7 +78,6 @@ export const AdminGameCreator = () => {
     const values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
     );
-    console.log("values", values);
 
     if (!values) {
       return;
@@ -99,7 +99,6 @@ export const AdminGameCreator = () => {
     });
 
     if (response.ok) {
-      console.log("values", values);
       setGame(values);
       clearBreadCrumbs();
       setBreadCrumbs("/admin/games", "Spēļu saraksts");

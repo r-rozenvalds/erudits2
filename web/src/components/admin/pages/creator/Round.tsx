@@ -28,7 +28,7 @@ export const GameCreatorQuestionRound = () => {
 
   let formValues: IRound = CreateRoundModel;
 
-  const { rounds, setRounds } = useSidebar();
+  const { rounds, setRounds, setIsChanged } = useSidebar();
 
   const debounceTitle = useDebounce(title, 300);
   const debounceDisqualifyAmount = useDebounce(disqualifyAmount, 300);
@@ -42,6 +42,7 @@ export const GameCreatorQuestionRound = () => {
   const navigate = useNavigate();
 
   const saveToSessionStorage = () => {
+    setIsChanged(true);
     var values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.roundCreator) || "{}"
     );
@@ -192,7 +193,6 @@ export const GameCreatorQuestionRound = () => {
 
     if (response.ok) {
       const data = await response.json();
-      console.log("resposne data", data);
       sessionStorage.setItem(
         AdminSessionStorage.questionCreator,
         JSON.stringify({

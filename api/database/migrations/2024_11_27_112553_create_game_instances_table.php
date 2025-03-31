@@ -21,6 +21,7 @@ return new class extends Migration
             $table->uuid('current_question')->nullable()->constrained('questions')->onDelete('cascade');
             $table->timestamp('started_at')->nullable(); // last round/ question started at timestamp
             $table->boolean("game_started")->default(false);
+            $table->boolean("buzzers_mode")->default(false);
             $table->timestamps();
         });
     }

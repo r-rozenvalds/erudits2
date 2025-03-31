@@ -20,10 +20,12 @@ export const GameEditorQuestion = () => {
     CreateQuestionModel.is_text_answer
   );
   const [image, setImage] = useState<File>();
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const [answers, setAnswers] = useState(CreateQuestionModel.answers);
   const [openAnswers, setOpenAnswers] = useState(
     CreateQuestionModel.open_answers
   );
+  const [imageUrl, setImageUrl] = useState(CreateQuestionModel.image_url);
 
   let formValues: IQuestion = CreateQuestionModel;
 
@@ -41,16 +43,18 @@ export const GameEditorQuestion = () => {
   const confirm = useConfirmation();
 
   const saveToSessionStorage = () => {
+    if (!isLoaded) return;
+
     var values = JSON.parse(
       sessionStorage.getItem(AdminSessionStorage.questionCreator) || "{}"
-    );
+    ) as IQuestion;
 
     values = {
       ...values,
       title: formValues.title,
       is_text_answer: formValues.is_text_answer,
       guidelines: formValues.guidelines,
-      image_url: formValues.image,
+      image_url: formValues.image_url,
       answers: formValues.answers,
     };
     sessionStorage.setItem(
@@ -93,15 +97,24 @@ export const GameEditorQuestion = () => {
     }
   }, [debounceOpenAnswers]);
 
+  useEffect(() => {
+    if (isLoaded) {
+      formValues.image_url = imageUrl;
+      saveToSessionStorage();
+    }
+  }, [imageUrl]);
+
   const { questionId } = useParams();
 
   useEffect(() => {
+    setImage(undefined);
     const loadedValues = loadFormValues();
     formValues = { ...formValues, ...loadedValues };
     setQuestion(formValues.title);
     setIsOpenAnswer(formValues.is_text_answer);
     setAnswers(formValues.answers);
     setOpenAnswers(formValues.open_answers);
+    setImageUrl(formValues.image_url);
 
     const selectedRound = rounds?.filter(
       (round) => round.id === formValues.round_id
@@ -172,28 +185,40 @@ export const GameEditorQuestion = () => {
       }
     );
     if (response.ok) {
+      try {
+        if (image) {
+          const formData = new FormData();
+          formData.append("image", image);
+          const response = await fetch(
+            `${constants.baseApiUrl}/question-image/${values.id}`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                  constants.localStorage.TOKEN
+                )}`,
+              },
+              body: formData,
+            }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            formValues.image_url = data.image_url;
+            saveToSessionStorage();
+          }
+        }
+      } catch (error) {
+        showToast(false, "Kļūda augšupielādējot attēlu " + error);
+      }
       const data = await response.json();
       setIsLoading(false);
+      showToast(true, localizeSuccess(data.message));
       const updatedQuestion = questions?.findIndex(
         (round) => round.id === values.id
       );
       questions![updatedQuestion!] = data.question;
       removeLastBreadCrumb();
       setBreadCrumbs("", formValues.title);
-
-      if (image) {
-        await fetch(`${constants.baseApiUrl}/question-image/${values.id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem(
-              constants.localStorage.TOKEN
-            )}`,
-          },
-          body: image,
-        });
-      }
-      showToast(true, localizeSuccess(data.message));
     } else {
       setIsLoading(false);
       const data = await response.json();
@@ -259,9 +284,26 @@ export const GameEditorQuestion = () => {
                 />
                 <label
                   htmlFor="imageUpload"
-                  className="p-2 bg-slate-200 rounded-e-sm px-4 hover:bg-slate-300"
+                  onMouseEnter={() => setShowImagePreview(true)}
+                  onMouseLeave={() => setShowImagePreview(false)}
+                  className={`p-2 rounded-e-sm px-4 ${
+                    image || imageUrl?.length > 0
+                      ? "bg-[#E63946] hover:bg-opacity-90"
+                      : "bg-slate-200 hover:bg-slate-300"
+                  }`}
                 >
                   <i className="fa-solid fa-image"></i>
+                  {showImagePreview && (image || imageUrl) && (
+                    <div className="w-48 h-48 absolute bg-white border border-slate-200 shadow-md p-2">
+                      <img
+                        src={
+                          image
+                            ? URL.createObjectURL(image)
+                            : constants.baseImgUrl + imageUrl
+                        }
+                      />
+                    </div>
+                  )}
                 </label>
                 <input
                   onChange={(e) => {

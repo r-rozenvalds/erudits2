@@ -59,8 +59,9 @@ class QuestionController extends Controller
 
         $questionCount = Question::where('round_id', $request->round_id)->count();
         $validated['order'] = $questionCount + 1;
-
+        
         $question = Question::create($validated);
+        
         $answers = $validated['answers'];
         foreach ($answers as $answer) {
             $answer['question_id'] = $question->id;
@@ -139,9 +140,9 @@ class QuestionController extends Controller
         $imageName = time().'.'.$request->image->extension();  
         $request->image->move(public_path('images'), $imageName);
 
-        $question->image_url = $imageName;
+        $question->image_url = "/images/" . $imageName;
         $question->save();
 
-        return response()->json(['message' => 'Image uploaded successfully.'], 200);
+        return response()->json(['message' => 'Image uploaded successfully.', 'image_url' => $question->image_url], 200);
     }
 }

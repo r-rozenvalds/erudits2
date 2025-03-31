@@ -92,7 +92,7 @@ export const SidebarRound = ({ round }: { round: IRound }) => {
         title: question.title,
         is_text_answer: question.is_text_answer,
         guidelines: question.guidelines,
-        image_url: question.image,
+        image_url: question.image_url,
         round_id: question.round_id,
         answers: question.answers,
       })

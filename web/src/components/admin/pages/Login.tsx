@@ -23,28 +23,23 @@ const AdminLogin = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          showToast!(true, localizeSuccess(data.message));
+    }).then(async (response) => {
+      const data = await response.json();
+      if (response.ok) {
+        showToast!(true, localizeSuccess(data.message));
 
-          localStorage.setItem(constants.localStorage.TOKEN, data.token);
-          navigate("/admin/games");
-        } else {
-          Object.keys(data).map((key) =>
-            showToast!(false, localizeError(data[key]))
-          );
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+        localStorage.setItem(constants.localStorage.TOKEN, data.token);
+        navigate("/admin/games");
+      } else {
+        Object.keys(data).map((key) =>
+          showToast!(false, localizeError(data[key]))
+        );
+      }
+    });
     setIsLoading(false);
   };
 
   const redirectIfLoggedIn = async () => {
-    console.log(await getCurrentUser());
     if (await getCurrentUser()) {
       navigate("/admin/games");
     }

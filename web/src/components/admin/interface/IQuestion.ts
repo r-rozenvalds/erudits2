@@ -5,7 +5,7 @@ export interface IQuestion {
   title: string;
   is_text_answer: boolean;
   guidelines: string;
-  image: File;
+  image_url: string;
   answers: AnswerType[];
   open_answers: string;
   round_id: string;

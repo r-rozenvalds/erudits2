@@ -28,23 +28,19 @@ const AdminRegister = () => {
       headers: {
         "Content-Type": "application/json",
       },
-    })
-      .then(async (response) => {
-        const data = await response.json();
-        if (response.ok) {
-          Object.keys(data).map((key) =>
-            showToast!(true, localizeSuccess(data[key]))
-          );
-          navigate("/admin/login");
-        } else {
-          Object.keys(data).map((key) =>
-            showToast!(false, localizeError(data[key]))
-          );
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    }).then(async (response) => {
+      const data = await response.json();
+      if (response.ok) {
+        Object.keys(data).map((key) =>
+          showToast!(true, localizeSuccess(data[key]))
+        );
+        navigate("/admin/login");
+      } else {
+        Object.keys(data).map((key) =>
+          showToast!(false, localizeError(data[key]))
+        );
+      }
+    });
     setIsLoading(false);
   };
 

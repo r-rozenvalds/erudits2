@@ -24,7 +24,8 @@ class PlayerEvent implements ShouldBroadcast
     public function __construct($playerId, $command)
     {
         $this->command = $command;
-        $this->player = $playerId;
+        $this->playerId = $playerId;
+        
     }
 
     /**

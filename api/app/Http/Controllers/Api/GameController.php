@@ -57,18 +57,20 @@ class GameController extends Controller
         $game = Game::where('id', $id)->where('user_id', $request->user()->id)->first();
 
         if($game) {
-            $rounds = $game->rounds()->get()->sortBy('order');
-            $questions = collect()->sortBy('order');
+            $rounds = $game->rounds()->get()->sortBy('order')->values();
+            $questions = collect();
 
             foreach ($rounds as $round) {
-                $questions = $questions->merge($round->questions()->get());
-                
+            $questions = $questions->merge($round->questions()->get());
             }
 
+            $questions = $questions->sortBy('order')->values();
+
             foreach ($questions as $question) {
-                $question['answers'] = Answer::where('question_id', $question->id)->get();
+            $question['answers'] = Answer::where('question_id', $question->id)->get();
             }
             return response()->json(['game' => $game, 'rounds' => $rounds, 'questions' => $questions], 200);
+        
         } else {
             return response()->json(['message' => 'Game not found.'], 404);
         }

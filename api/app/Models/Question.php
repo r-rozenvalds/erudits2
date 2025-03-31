@@ -17,7 +17,8 @@ class Question extends Model
         'is_text_answer',
         'guidelines',
         'image_url',
-        'round_id'
+        'round_id',
+        'order'
     ];
 
     public function round(): BelongsTo {

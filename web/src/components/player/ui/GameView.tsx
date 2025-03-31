@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnswerOption } from "./AnswerOption";
 import { usePlayer } from "../../universal/PlayerContext";
 import { SpinnerCircularFixed } from "spinners-react";
 import Countdown from "react-countdown";
 import { OpenAnswer } from "./OpenAnswer";
 import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
+import { constants } from "../../../constants";
 
 export const GameView = () => {
   const [viewImage, setViewImage] = useState(false);
@@ -21,7 +22,6 @@ export const GameView = () => {
     setChangedAnswer,
     countdownTime,
     isTiebreaking,
-    setIsTiebreaking,
   } = usePlayer();
 
   if (!currentQuestion || !round) {
@@ -43,6 +43,7 @@ export const GameView = () => {
     completed: boolean;
   }) => {
     if (completed) {
+      console.log("compelted");
       setRoundFinished(true);
       setChangedAnswer(true);
       return (
@@ -115,17 +116,15 @@ export const GameView = () => {
   }
 
   const getCountdownDate = () => {
+    console.log("asea", countdownTime, round?.answer_time);
     if (!countdownTime || !round?.answer_time) return 0;
 
     const dateStartedAt = new Date(countdownTime);
     if (isTiebreaking) {
-      console.log("return", dateStartedAt.getTime() + round.answer_time * 1000);
       return dateStartedAt.getTime() + round.answer_time * 1000;
     }
 
-    // const localTimeOffset = dateStartedAt.getTimezoneOffset() * 60 * 1000;
-    console.log("return", dateStartedAt.getTime() + round.answer_time * 1000);
-
+    console.log("end at", dateStartedAt.getTime() + round.answer_time * 1000);
     return dateStartedAt.getTime() + round.answer_time * 1000;
   };
 
@@ -163,7 +162,7 @@ export const GameView = () => {
         >
           <img
             className="w-full h-full object-contain"
-            src="/test-img1.jpg"
+            src={constants.baseImgUrl + currentQuestion.image_url}
           ></img>
           <p className="absolute z-40 text-white text-3xl font-semibold bg-black opacity-70 px-4 py-2 rounded-md bottom-4">
             Uzklikšķiniet jebkur, lai aizvērtu bildi
@@ -222,15 +221,17 @@ export const GameView = () => {
         </div>
       </>
 
-      <button
-        onClick={handleViewImage}
-        className="bg-black bg-opacity-40 hover:bg-opacity-30 transition-all rounded-md fade-in text-white place-items-center justify-center h-20"
-      >
-        <div className="font-bold text-2xl">
-          {viewImage ? "Aizvērt attēlu" : "Skatīt attēlu"}
-          <i className="fa-regular fa-image text-xl ms-2"></i>
-        </div>
-      </button>
+      {currentQuestion.image_url && (
+        <button
+          onClick={handleViewImage}
+          className="bg-black bg-opacity-40 hover:bg-opacity-30 transition-all rounded-md fade-in text-white place-items-center justify-center h-20"
+        >
+          <div className="font-bold text-2xl">
+            {viewImage ? "Aizvērt attēlu" : "Skatīt attēlu"}
+            <i className="fa-regular fa-image text-xl ms-2"></i>
+          </div>
+        </button>
+      )}
     </div>
   );
 };

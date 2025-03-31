@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { IGame } from "../../interface/IGame";
 import { constants } from "../../../../constants";
-import { useSidebar } from "../../../universal/AdminGameSidebarContext";
-import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import { useToast } from "../../../universal/Toast";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
-import { SpinnerCircularFixed } from "spinners-react";
 import { useNavigate } from "react-router-dom";
+import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 
 export const AdminGameTableItem = ({
   game,
@@ -25,6 +23,11 @@ export const AdminGameTableItem = ({
     if (!!game.activeGameInstance) {
       return;
     }
+
+    sessionStorage.setItem(
+      AdminSessionStorage.gameCreator,
+      JSON.stringify(game)
+    );
 
     navigate("/admin/games/editor/game/" + game.id);
   };

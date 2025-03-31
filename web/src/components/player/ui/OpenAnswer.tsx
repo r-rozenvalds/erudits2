@@ -11,17 +11,19 @@ export const OpenAnswer = ({
   selectedAnswer: string;
   setSelectedAnswer: (answer: string) => void;
   showSubmitButton?: boolean;
-  onSubmit: () => void;
+  onSubmit?: () => void;
 }) => {
   const [error, setError] = useState(false);
 
   const handleSubmit = () => {
-    setError(false);
-    if (selectedAnswer.length < 1) {
-      setError(true);
-      return;
+    if (onSubmit) {
+      setError(false);
+      if (selectedAnswer.length < 1) {
+        setError(true);
+        return;
+      }
+      onSubmit();
     }
-    onSubmit();
   };
 
   return (

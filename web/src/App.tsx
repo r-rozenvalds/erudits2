@@ -49,6 +49,10 @@ function App() {
       localStorage.getItem(PlayerLocalStorage.currentPlayer) ?? "{}"
     );
 
+    const currentGame = JSON.parse(
+      localStorage.getItem(PlayerLocalStorage.currentGame) ?? "{}"
+    );
+
     const response = await fetch(`${constants.baseApiUrl}/join`, {
       method: "POST",
       headers: {
@@ -60,12 +64,14 @@ function App() {
       }),
     });
 
-    localStorage.removeItem(PlayerLocalStorage.currentGame);
-    localStorage.removeItem(PlayerLocalStorage.currentPlayer);
-    localStorage.removeItem(PlayerLocalStorage.answers);
-
     const data = await response.json();
     if (response.ok) {
+      if (data.id !== currentGame.id) {
+        localStorage.removeItem(PlayerLocalStorage.answers);
+        localStorage.removeItem(PlayerLocalStorage.currentGame);
+        localStorage.removeItem(PlayerLocalStorage.currentPlayer);
+      }
+
       localStorage.setItem(
         PlayerLocalStorage.currentGame,
         JSON.stringify({
@@ -74,6 +80,7 @@ function App() {
           title: data.title,
         })
       );
+
       showToast(true, data.message);
       navigate("/play/lobby");
       setIsLoading(false);

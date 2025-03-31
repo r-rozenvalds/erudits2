@@ -100,7 +100,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     if (response.ok) {
       const data = await response.json();
 
-      if (data.player.is_disqualified) {
+      if (
+        data.player.is_disqualified &&
+        !window.location.pathname.includes("disqualified")
+      ) {
         window.location.assign("/play/disqualified");
         return;
       }
@@ -152,18 +155,14 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const navigate = useNavigate();
 
-  const disqualifyPlayer = (player: string) => {
-    if (player === playerId) {
-      setIsDisqualified(true);
-      navigate("/play/disqualified");
-    }
+  const disqualifyPlayer = () => {
+    setIsDisqualified(true);
+    navigate("/play/disqualified");
   };
 
-  const requalifyPlayer = (player: string) => {
-    if (player === playerId) {
-      setIsDisqualified(false);
-      navigate("/play/lobby");
-    }
+  const requalifyPlayer = () => {
+    setIsDisqualified(false);
+    navigate("/play/lobby");
   };
 
   const fetchInfo = async () => {
@@ -198,7 +197,13 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     if (response.ok) {
       const data = await response.json();
       setCurrentQuestion(data.question);
-      setCountdownTime(data.started_at);
+      //fuck. this.
+      setCountdownTime(
+        new Date(
+          new Date(data.started_at).getTime() -
+            new Date().getTimezoneOffset() * 60000
+        ).toISOString()
+      );
     }
   };
 
@@ -230,6 +235,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             setRoundFinished(false);
             setRound(data.currentRound);
             setCurrentQuestion(data.currentQuestion);
+            setAnswers(data.currentQuestion.answers);
             setCountdownTime(data.currentQuestion.started_at);
             break;
         }
@@ -237,10 +243,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       playerChannel.listen(".player-event", (data: any) => {
         switch (data.command) {
           case "disqualified":
-            disqualifyPlayer(data.player);
+            disqualifyPlayer();
             break;
           case "requalified":
-            requalifyPlayer(data.player);
+            requalifyPlayer();
             break;
         }
       });
@@ -278,15 +284,18 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     if (!round?.is_test) {
       return currentQuestion!.id;
     }
-    return questions[selectedQuestionIndex].id;
+    return questions[selectedQuestionIndex - 1].id;
   };
 
   const postAnswers = async () => {
     const currentQuestionId = getCurrentQuestionId();
 
     if (!currentQuestionId) return;
-
+    console.log("current question id", currentQuestionId);
     const answer = selectedAnswers.get(currentQuestionId);
+
+    console.log("selectedAnswers", selectedAnswers);
+    console.log("answer", answer);
 
     await fetch(`${constants.baseApiUrl}/player-answers`, {
       method: "POST",

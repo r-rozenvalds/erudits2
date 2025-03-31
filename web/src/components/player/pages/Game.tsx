@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { usePlayer } from "../../universal/PlayerContext";
 import { GameView } from "../ui/GameView";
 import { TestGameView } from "../ui/TestGameView";
+import { BuzzerView } from "../ui/BuzzerView";
 
 export const Game = () => {
   const { round } = usePlayer();
@@ -31,7 +32,12 @@ export const Game = () => {
   }
 
   if (showGame) {
-    return round.is_test ? <TestGameView /> : <GameView />;
+    return <BuzzerView />;
+    if (round.is_test) {
+      return <TestGameView />;
+    }
+
+    return <GameView />;
   }
 
   return (

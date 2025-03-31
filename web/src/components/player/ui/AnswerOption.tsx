@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 interface AnswerOptionProps {
   setSelectedAnswer: (value: string) => void;
   selectedAnswer: string;
@@ -55,16 +53,8 @@ export const AnswerOption = ({
   selectedAnswer,
   childNr,
   content,
-  isTest,
   answerId,
-  disabled,
 }: AnswerOptionProps) => {
-  const [disabledButton, setDisabledButton] = useState(true);
-
-  setTimeout(() => {
-    setDisabledButton(false);
-  }, 2000);
-
   const child = childData[childNr];
 
   if (!child) return null; // Handle unexpected values gracefully
@@ -73,11 +63,10 @@ export const AnswerOption = ({
     <div
       key={answerId}
       data-selected={selectedAnswer === answerId}
-      onClick={() => (disabledButton ? null : setSelectedAnswer(answerId))}
+      onClick={() => setSelectedAnswer(answerId)}
       className={`answer-option_container ${childData[childNr].colorClass}`}
     >
       <p
-        onClick={() => console.log(disabledButton)}
         data-selected={selectedAnswer === answerId}
         className={`answer-option_text `}
       >

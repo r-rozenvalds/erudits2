@@ -125,8 +125,8 @@ export const RoundControl = () => {
   const { instance_info } = gameController;
 
   return (
-    <div className="w-full h-full flex flex-col place-items-center max-w-5xl">
-      <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
+    <div className="flex flex-col place-items-center w-full overflow-x-scroll">
+      <div className="flex gap-1 place-items-center mb-1">
         <p className="font-semibold">Kārtas</p>
         <button
           disabled={fetchDisabled || !instance_info.game_started}
@@ -139,16 +139,8 @@ export const RoundControl = () => {
           )}
         </button>
       </div>
-      {!instance_info.game_started && (
-        <div className="bg-slate-100 py-2 w-full grow">
-          <div className="justify-center gap-2 flex place-items-center">
-            <i className="fa-solid fa-triangle-exclamation"></i>
-            <p>Spēle nav sākta</p>
-          </div>
-        </div>
-      )}
       {!!instance_info.game_started && (
-        <div className="bg-slate-100 flex flex-col justify-between grow">
+        <div className="bg-slate-100 flex flex-col justify-between w-full h-full">
           <div className="w-full h-84 bg-slate-200 py-2">
             <div className="flex justify-between px-4 gap-4">
               <button
@@ -158,12 +150,12 @@ export const RoundControl = () => {
                   !instance_info.game_started
                     ? "bg-slate-400"
                     : "bg-blue-500 hover:bg-blue-600"
-                }  text-white font-bold px-4 rounded-md py-2 transition-all`}
+                }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
               >
                 <i className="fa-solid fa-backward-fast me-2"></i>
                 Iepriekšējā kārta
               </button>
-              <div className="bg-slate-300 flex-col flex place-items-center px-4 rounded-md">
+              <div className="bg-slate-300 flex-col flex place-items-center px-4 rounded-sm">
                 <p className="text-xs">Atbildējuši</p>
                 {instance?.current_round && (
                   <p className="font-semibold">
@@ -179,7 +171,7 @@ export const RoundControl = () => {
                   {instance_info.current_round ?? "-"}
                 </p>
               </div>
-              <div className="bg-slate-300 flex-col flex place-items-center px-2 rounded-md">
+              <div className="bg-slate-300 flex-col flex place-items-center px-2 rounded-sm">
                 <p className="text-xs">Atlikušais laiks</p>
                 <p className="font-semibold">
                   <RoundCountdown gameController={gameController} />
@@ -192,21 +184,17 @@ export const RoundControl = () => {
                   !instance_info.game_started
                     ? "bg-slate-400"
                     : "bg-blue-500 hover:bg-blue-600"
-                }  text-white font-bold px-4 rounded-md py-2 transition-all`}
+                }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
               >
                 Nākamā kārta
                 <i className="fa-solid fa-forward-fast ms-2"></i>
               </button>
             </div>
           </div>
-          {instance?.current_round && (
+          {gameController.player_answers && (
             <RoundTable gameController={gameController} />
           )}
-          {!instance?.current_round && (
-            <div className="max-w-[64rem] min-w-[64rem] overflow-x-scroll w-full h-full text-center">
-              <span>Nav iesākta kārta</span>
-            </div>
-          )}
+
           <div className="w-full h-84 bg-slate-200 py-2 flex justify-between px-4">
             <button
               disabled={instance_info.is_test || !instance_info.current_round}
@@ -215,7 +203,7 @@ export const RoundControl = () => {
                 instance_info.is_test || !instance_info.current_round
                   ? "bg-slate-400"
                   : "bg-blue-700 hover:bg-blue-800"
-              }  text-white font-bold px-4 rounded-md py-2 transition-all`}
+              }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
             >
               <i className="fa-solid fa-backward me-2"></i>
               Iepriekšējais jautājums
@@ -233,7 +221,7 @@ export const RoundControl = () => {
                 instance_info.is_test || !instance_info.current_round
                   ? "bg-slate-400"
                   : "bg-blue-700 hover:bg-blue-800"
-              }  text-white font-bold px-4 rounded-md py-2 transition-all`}
+              }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
             >
               Nākamais jautājums
               <i className="fa-solid fa-forward ms-2"></i>

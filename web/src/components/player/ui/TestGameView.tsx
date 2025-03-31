@@ -47,7 +47,7 @@ export const TestGameView = () => {
     completed: boolean;
   }) => {
     if (completed) {
-      //setRoundFinished(true);
+      setRoundFinished(true);
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"
@@ -170,7 +170,9 @@ export const TestGameView = () => {
         >
           <img
             className="w-full h-full object-contain"
-            src="/test-img1.jpg"
+            src={
+              constants.baseImgUrl + questions[selectedQuestionIndex].image_url
+            }
           ></img>
           <p className="absolute z-40 text-white text-3xl font-semibold bg-black opacity-70 px-4 py-2 rounded-md bottom-4">
             Uzklikšķiniet jebkur, lai aizvērtu bildi
@@ -249,15 +251,17 @@ export const TestGameView = () => {
         </div>
       </>
 
-      <button
-        onClick={handleViewImage}
-        className="bg-black bg-opacity-40 hover:bg-opacity-30 transition-all rounded-md fade-in text-white place-items-center justify-center h-20"
-      >
-        <div className="font-bold text-2xl">
-          {viewImage ? "Aizvērt attēlu" : "Skatīt attēlu"}
-          <i className="fa-regular fa-image text-xl ms-2"></i>
-        </div>
-      </button>
+      {questions[selectedQuestionIndex].image_url && (
+        <button
+          onClick={handleViewImage}
+          className="bg-black bg-opacity-40 hover:bg-opacity-30 rounded-md text-white place-items-center justify-center h-20"
+        >
+          <div className="font-bold text-2xl">
+            {viewImage ? "Aizvērt attēlu" : "Skatīt attēlu"}
+            <i className="fa-regular fa-image text-xl ms-2"></i>
+          </div>
+        </button>
+      )}
     </div>
   );
 };

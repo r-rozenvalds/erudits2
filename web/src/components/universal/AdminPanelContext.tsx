@@ -67,6 +67,8 @@ type AdminPanelContextType = {
   setQuestions: (questions: IQuestion[]) => void;
   setGameInProgress: (gameInProgress: boolean) => void;
   gameInProgress: boolean;
+  isBuzzerMode: boolean;
+  setIsBuzzerMode: (isBuzzerMode: boolean) => void;
 };
 
 const AdminPanelContext = createContext<AdminPanelContextType | undefined>(
@@ -93,6 +95,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
   const [rounds, setRounds] = useState<IRound[]>([]);
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [gameInProgress, setGameInProgress] = useState(false);
+  const [isBuzzerMode, setIsBuzzerMode] = useState(false);
 
   const { instanceId } = useParams();
 
@@ -212,6 +215,8 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
         setQuestions,
         setGameInProgress,
         gameInProgress,
+        isBuzzerMode,
+        setIsBuzzerMode,
       }}
     >
       {children}

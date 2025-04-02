@@ -23,6 +23,7 @@ import { PlayerLayout } from "./components/player/pages/layouts/PlayerLayout.tsx
 import { PanelLayout } from "./components/admin/pages/layouts/PanelLayout.tsx";
 import { GameEnd } from "./components/player/pages/GameEnd.tsx";
 import { Disqualified } from "./components/player/pages/Disqualified.tsx";
+import { Buzzer } from "./components/admin/ui/panel/Buzzer.tsx";
 
 const router = createBrowserRouter([
   {
@@ -107,6 +108,10 @@ const router = createBrowserRouter([
       {
         path: ":instanceId",
         element: <Panel />,
+      },
+      {
+        path: "buzzer/:instanceId",
+        element: <Buzzer />,
       },
     ],
   },

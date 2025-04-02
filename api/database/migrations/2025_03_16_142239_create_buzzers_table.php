@@ -12,10 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('buzzers', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->foreignUuid("player_id")->constrained('players')->onDelete('cascade');
             $table->foreignUuid("instance_id")->constrained('game_instances')->onDelete('cascade');
-            $table->timestamp("buzzed_at");
+            $table->dateTime("buzzed_at");
+            $table->boolean("active")->default(false);
             $table->timestamps();
         });
     }

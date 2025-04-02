@@ -131,7 +131,7 @@ class PlayerController extends Controller
     {
         $player = Player::findOrFail($id);
         if($player) {
-            $instance = GameInstance::where('id', $player->instance_id)->first(['started_at', 'game_started']);
+            $instance = GameInstance::where('id', $player->instance_id)->first(['started_at', 'game_started', 'buzzers_mode']);
             return response()->json(['player' => new PlayerResource($player), 'instance' => $instance], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);

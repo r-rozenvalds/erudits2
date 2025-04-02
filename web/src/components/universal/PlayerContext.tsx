@@ -39,6 +39,7 @@ type PlayerContextType = {
   setSelectedQuestionIndex: (selectedQuestionIndex: number) => void;
   isTiebreaking: boolean;
   setIsTiebreaking: (isTiebreaking: boolean) => void;
+  isBuzzerMode: boolean;
 };
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -75,6 +76,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [countdownTime, setCountdownTime] = useState<string>();
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number>(0);
   const [isTiebreaking, setIsTiebreaking] = useState<boolean>(false);
+  const [isBuzzerMode, setIsBuzzerMode] = useState<boolean>(false);
 
   useEffect(() => {
     const player = JSON.parse(
@@ -112,6 +114,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       setPlayerName(data.player.player_name);
       setIsDisqualified(data.player.is_disqualified);
       setRoundFinished(data.player.round_finished);
+      setIsBuzzerMode(data.instance.buzzers_mode);
       setIsReady(true);
       if (data.instance.game_started) {
         navigate("/play/game");
@@ -238,6 +241,12 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             setAnswers(data.currentQuestion.answers);
             setCountdownTime(data.currentQuestion.started_at);
             break;
+          case "buzzers-start":
+            setIsBuzzerMode(true);
+            break;
+          case "buzzers-stop":
+            setIsBuzzerMode(false);
+            break;
         }
       });
       playerChannel.listen(".player-event", (data: any) => {
@@ -291,11 +300,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const currentQuestionId = getCurrentQuestionId();
 
     if (!currentQuestionId) return;
-    console.log("current question id", currentQuestionId);
     const answer = selectedAnswers.get(currentQuestionId);
-
-    console.log("selectedAnswers", selectedAnswers);
-    console.log("answer", answer);
 
     await fetch(`${constants.baseApiUrl}/player-answers`, {
       method: "POST",
@@ -342,6 +347,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         setSelectedQuestionIndex,
         isTiebreaking,
         setIsTiebreaking,
+        isBuzzerMode,
       }}
     >
       {children}

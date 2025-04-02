@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PlayerController;
 use App\Http\Controllers\Api\GameInstanceController;
 use App\Http\Controllers\Api\BroadcastController;
 use App\Http\Controllers\Api\PlayerAnswerController;
+use App\Http\Controllers\Api\BuzzerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,8 @@ Route::get('/current-question/{instance_id}', [GameInstanceController::class, 'c
 
 
 Route::post('/player-answers', [PlayerAnswerController::class, 'store']);
+
+Route::post('/buzz', [BuzzerController::class, 'buzz']);
 
 
 Route::post('/instance-index', [GameInstanceController::class, 'indexWithPlayerInfo']);
@@ -97,6 +100,12 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::put('/player-answers', [PlayerAnswerController::class, 'update']);
 
     Route::post('/tiebreak', [GameInstanceController::class, 'tiebreak']);
+
+    //buzzer
+    Route::post('/buzzer-start', [BuzzerController::class, 'initialize']);
+    Route::post('/buzzer-stop', [BuzzerController::class, 'deinitialize']);
+    Route::post('/buzzer-clear', [BuzzerController::class, 'deactivateAll']);
+    Route::get('/buzzers/{instance_id}', [BuzzerController::class, 'getInstanceBuzzers']);
 });
 
 

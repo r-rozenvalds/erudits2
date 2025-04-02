@@ -5,11 +5,11 @@ import { TestGameView } from "../ui/TestGameView";
 import { BuzzerView } from "../ui/BuzzerView";
 
 export const Game = () => {
-  const { round } = usePlayer();
+  const { round, isBuzzerMode } = usePlayer();
   const [showGame, setShowGame] = useState(false);
 
   useEffect(() => {
-    if (round) {
+    if (round || isBuzzerMode) {
       const timeout = setTimeout(() => {
         setShowGame(true);
       }, 2000);
@@ -32,7 +32,9 @@ export const Game = () => {
   }
 
   if (showGame) {
-    return <BuzzerView />;
+    if (isBuzzerMode) {
+      return <BuzzerView />;
+    }
     if (round.is_test) {
       return <TestGameView />;
     }

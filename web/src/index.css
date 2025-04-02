@@ -294,3 +294,34 @@
     background: #118ab2;
   }
 }
+
+:root {
+  --flash-red: #f02d3a;
+  --flash-white: #eff6ee;
+}
+
+.flash-animation {
+  animation: flash 1s linear;
+  background-color: var(--flash-red);
+}
+
+@keyframes flash {
+  0% {
+    background-color: var(--flash-white);
+  }
+  20% {
+    background-color: var(--flash-red);
+  }
+  40% {
+    background-color: var(--flash-white);
+  }
+  60% {
+    background-color: var(--flash-red);
+  }
+  80% {
+    background-color: var(--flash-white);
+  }
+  100% {
+    background-color: var(--flash-red);
+  }
+}

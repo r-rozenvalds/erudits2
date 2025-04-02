@@ -12,14 +12,8 @@ export const Lobby = () => {
   const [instanceId, setInstanceId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    playerName,
-    setPlayerName,
-    setPlayerId,
-    setIsReady,
-    isReady,
-    playerId,
-  } = usePlayer();
+  const { playerName, setPlayerName, setPlayerId, setIsReady, isReady } =
+    usePlayer();
 
   const [agreed, setAgreed] = useState(false);
 

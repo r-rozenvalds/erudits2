@@ -294,6 +294,7 @@ class GameInstanceController extends PlayerAnswerController
             $currentRound = Round::find($gameInstance->current_round);
         
             $nextRound = $game->rounds()->where('order', '>', $currentRound?->order ?? 0)
+                ->where('is_additional', false)
                 ->orderBy('order')
                 ->first();
                 
@@ -331,7 +332,10 @@ class GameInstanceController extends PlayerAnswerController
             $game = Game::findOrFail($gameInstance->game_id);
             $rounds = $game->rounds()->get();
             $currentRound = Round::find($gameInstance->current_round);
-            $previousRound = $rounds->where('order', '<', $currentRound?->order)->sortByDesc('order')->first();
+            $previousRound = $rounds->where('order', '<', $currentRound?->order)
+                ->sortByDesc('order')
+                ->where('is_additional', false)
+                ->first();
             if ($previousRound) {
                 $gameInstance->current_round = $previousRound->id;
                 $gameInstance->current_question = null;

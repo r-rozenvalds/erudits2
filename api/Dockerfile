@@ -18,6 +18,9 @@ COPY . /var/www/html
 # Install Composer dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Link storage with public storage
+RUN php artisan storage:link
+
 # Set file permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache

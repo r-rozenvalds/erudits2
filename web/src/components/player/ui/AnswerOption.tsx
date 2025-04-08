@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 interface AnswerOptionProps {
   setSelectedAnswer: (value: string) => void;
   selectedAnswer: string;
@@ -54,9 +56,18 @@ export const AnswerOption = ({
   childNr,
   content,
   answerId,
+  isTest,
 }: AnswerOptionProps) => {
   const child = childData[childNr];
+  const [isVisible, setIsVisible] = useState(false);
 
+  useEffect(() => {
+    setIsVisible(false);
+    const timer = setTimeout(() => setIsVisible(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isVisible && !isTest) return null;
   if (!child) return null; // Handle unexpected values gracefully
 
   return (

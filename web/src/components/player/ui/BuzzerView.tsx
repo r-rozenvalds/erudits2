@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { constants } from "../../../constants";
 import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
+import { usePlayer } from "../../universal/PlayerContext";
 export const BuzzerView = () => {
-  const [buzzerPressed, setBuzzerPressed] = useState(false);
+  const { buzzerEnabled, setBuzzerEnabled } = usePlayer();
 
   const handleBuzz = async () => {
-    setBuzzerPressed(true);
+    setBuzzerEnabled(false);
 
     const player = JSON.parse(
       localStorage.getItem(PlayerLocalStorage.currentPlayer) || "{}"
@@ -29,7 +30,6 @@ export const BuzzerView = () => {
         buzzed_at: new Date().toISOString(),
       }),
     });
-    setBuzzerPressed(false);
   };
 
   useEffect(() => {
@@ -48,19 +48,23 @@ export const BuzzerView = () => {
 
   return (
     <div className="bg-black fade-in-short bg-opacity-40 rounded-md place-items-center p-8 flex w-full grow m-12 flex-col gap-6">
-      <p className="text-white font-semibold text-lg">
+      <p
+        onClick={() => console.log(buzzerEnabled)}
+        className="text-white font-semibold text-lg"
+      >
         Spied pogu vai tastatūras 'Atstarpi', lai atbildētu!
       </p>
       <button
-        disabled={buzzerPressed}
+        key={buzzerEnabled?.toString()}
+        disabled={!buzzerEnabled}
         onClick={handleBuzz}
         className={`w-full bg-gradient-to-b ${
-          buzzerPressed
+          !buzzerEnabled
             ? "from-slate-600 to-slate-500"
-            : "from-red-600 to-red-500"
-        } hover:opacity-90 transition-opacity rounded-md py-80 text-white font-bold text-2xl`}
+            : "from-red-600 to-red-500 hover:opacity-90"
+        } transition-opacity rounded-md py-80 text-white font-bold text-2xl`}
       >
-        Spied!
+        {!!buzzerEnabled && "Spied!"}
       </button>
     </div>
   );

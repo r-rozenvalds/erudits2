@@ -21,30 +21,11 @@ export const PlayerList = () => {
 
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const [pointsDisabled, setPointsDisabled] = useState(false);
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
   const { fetchPlayers, players, setPlayers, instanceId } = useAdminPanel();
 
   const showToast = useToast();
-
-  const tiedPlayers = useMemo(() => {
-    const scores = players
-      .filter((p) => !p.is_disqualified)
-      .map((p) => p.points);
-    const sortedScores = scores.sort((a, b) => b - a);
-
-    const repeatingScores: number[] = [];
-    sortedScores.forEach((score, idx) => {
-      if (score === sortedScores[idx + 1]) {
-        repeatingScores.push(score);
-      }
-    });
-
-    const uniqueRepeatingScores = new Set(repeatingScores);
-
-    return players.filter(
-      (p) => uniqueRepeatingScores.has(p.points) && !p.is_disqualified
-    );
-  }, [players]);
 
   useEffect(() => {
     fetchPlayers();
@@ -52,15 +33,11 @@ export const PlayerList = () => {
 
   const confirm = useConfirmation();
 
-  const disqualifyPlayer = async (player: IPlayer) => {
-    if (
-      await confirm(
-        `Vai tiešām vēlaties diskvalificēt spēlētāju ${formatText(
-          player.player_name,
-          10
-        )}?`
-      )
-    ) {
+  const disqualifyPlayer = async () => {
+    if (selectedPlayerIds.length < 1) {
+      return;
+    }
+    if (await confirm(`Vai tiešām vēlaties diskvalificēt šos spēlētājus?`)) {
       const response = await fetch(
         `${constants.baseApiUrl}/disqualify-player`,
         {
@@ -72,7 +49,7 @@ export const PlayerList = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            player_id: player.id,
+            player_ids: selectedPlayerIds.join(","),
           }),
         }
       );
@@ -83,14 +60,13 @@ export const PlayerList = () => {
     }
   };
 
-  const deletePlayer = async (player: IPlayer) => {
-    if (
-      await confirm(
-        `Vai tiešām vēlaties dzēst spēlētāju ${player.player_name}?`
-      )
-    ) {
+  const deletePlayer = async () => {
+    if (selectedPlayerIds.length < 1) {
+      return;
+    }
+    if (await confirm(`Vai tiešām vēlaties dzēst šos spēlētājus?`)) {
       const response = await fetch(
-        `${constants.baseApiUrl}/players/${player.id}`,
+        `${constants.baseApiUrl}/players/${selectedPlayerIds.join(",")}`,
         {
           method: "DELETE",
           headers: {
@@ -108,12 +84,11 @@ export const PlayerList = () => {
     }
   };
 
-  const requalifyPlayer = async (player: IPlayer) => {
-    if (
-      await confirm(
-        `Vai tiešām vēlaties kvalificēt spēlētāju ${player.player_name}?`
-      )
-    ) {
+  const requalifyPlayer = async () => {
+    if (selectedPlayerIds.length < 1) {
+      return;
+    }
+    if (await confirm(`Vai tiešām vēlaties kvalificēt šos spēlētājus?`)) {
       const response = await fetch(`${constants.baseApiUrl}/requalify-player`, {
         method: "POST",
         headers: {
@@ -123,7 +98,7 @@ export const PlayerList = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          player_id: player.id,
+          player_ids: selectedPlayerIds.join(","),
         }),
       });
 
@@ -162,11 +137,10 @@ export const PlayerList = () => {
   };
 
   const handleTiebreak = async () => {
-    if (tiedPlayers.length < 2) {
+    if (selectedPlayerIds.length < 1) {
       return;
     }
 
-    const tiedPlayersIds = tiedPlayers.map((p) => p.id);
     const response = await fetch(`${constants.baseApiUrl}/tiebreak`, {
       method: "POST",
       headers: {
@@ -176,7 +150,7 @@ export const PlayerList = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        player_ids: tiedPlayersIds,
+        player_ids: selectedPlayerIds,
         instance_id: instanceId,
       }),
     });
@@ -269,33 +243,13 @@ export const PlayerList = () => {
         header: "Darbības",
         enableSorting: false,
         cell: (info) => {
-          if (info.row.original.is_disqualified) {
-            return (
-              <div className="flex gap-2 justify-items-center">
-                <button
-                  className="rounded-md w-full bg-green-500 text-white text-sm font-bold px-2"
-                  onClick={() => requalifyPlayer(info.row.original)}
-                >
-                  Kvalific.
-                </button>
-                <button
-                  className="rounded-md w-full"
-                  onClick={() => deletePlayer(info.row.original)}
-                >
-                  <i className="fa-solid fa-xmark text-xl"></i>
-                </button>
-              </div>
-            );
-          }
           return (
-            <>
-              <button
-                className="rounded-md w-full bg-red-500 text-white text-sm font-bold px-2 py-1"
-                onClick={() => disqualifyPlayer(info.row.original)}
-              >
-                Diskv.
-              </button>
-            </>
+            <input
+              onChange={() => toggleSelectedPlayerId(info.row.original.id)}
+              type="checkbox"
+              className="accent-[#E63946] w-4 h-4"
+              checked={selectedPlayerIds.includes(info.row.original.id)}
+            ></input>
           );
         },
       }),
@@ -303,12 +257,55 @@ export const PlayerList = () => {
     [columnHelper, requalifyPlayer, disqualifyPlayer]
   );
 
+  const toggleSelectedPlayerId = (playerId: string) => {
+    setSelectedPlayerIds((prev) => {
+      if (prev.includes(playerId)) {
+        return prev.filter((id) => id !== playerId);
+      } else {
+        return [...prev, playerId];
+      }
+    });
+  };
+
   const refresh = () => {
     if (!fetchDisabled) {
       fetchPlayers();
       setFetchDisabled(true);
       setTimeout(() => setFetchDisabled(false), 1000);
     }
+  };
+
+  const showDeleteButton = () => {
+    const selectedPlayers = players.filter((player) =>
+      selectedPlayerIds.includes(player.id)
+    );
+
+    if (selectedPlayers.every((player) => player.is_disqualified)) {
+      return true;
+    }
+    return false;
+  };
+
+  const showDisqualifyButton = () => {
+    const selectedPlayers = players.filter((player) =>
+      selectedPlayerIds.includes(player.id)
+    );
+
+    if (selectedPlayers.every((player) => !player.is_disqualified)) {
+      return true;
+    }
+    return false;
+  };
+
+  const showRequalifyButton = () => {
+    const selectedPlayers = players.filter((player) =>
+      selectedPlayerIds.includes(player.id)
+    );
+
+    if (selectedPlayers.every((player) => player.is_disqualified)) {
+      return true;
+    }
+    return false;
   };
 
   const table = useReactTable({
@@ -355,11 +352,7 @@ export const PlayerList = () => {
                 className={` ${
                   row.original.is_disqualified
                     ? "bg-red-100 odd:bg-red-200"
-                    : `${
-                        tiedPlayers.find((p) => p === row.original)
-                          ? "bg-yellow-100"
-                          : "bg-slate-50 odd:bg-slate-100"
-                      }`
+                    : "bg-slate-50 odd:bg-slate-100"
                 }`}
                 key={row.id}
               >
@@ -373,17 +366,52 @@ export const PlayerList = () => {
           </tbody>
         </table>
       </div>
-      {tiedPlayers.length > 0 && (
-        <div className="w-full h-12 flex justify-between place-items-center px-4 bg-yellow-200 font-semibold place-self-end">
-          <div>
-            <i className="fa-solid fa-triangle-exclamation pe-2"></i> Neizšķirts
+      {selectedPlayerIds.length > 0 && (
+        <div className="w-full h-12 flex justify-between place-items-center px-4 bg-slate-200 font-semibold place-self-end">
+          <div>Darbības</div>
+          <div className="gap-2 flex place-items-center">
+            {showDeleteButton() && (
+              <button
+                onClick={deletePlayer}
+                className={`px-4 py-1 bg-red-500 hover:bg-red-000 text-white rounded-sm`}
+              >
+                <i className="fa-solid fa-trash-can"></i>
+              </button>
+            )}
+            {showDisqualifyButton() && (
+              <button
+                onClick={disqualifyPlayer}
+                className={`px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded-sm`}
+              >
+                <i className="fa-solid fa-ban pe-2 "></i>Diskvalificēt
+              </button>
+            )}
+            {showRequalifyButton() && (
+              <button
+                onClick={requalifyPlayer}
+                className={`px-4 py-1 bg-green-500 hover:bg-green-600 text-white rounded-sm`}
+              >
+                <i className="fa-solid fa-rotate-left pe-2 "></i>Kvalificēt
+              </button>
+            )}
+            <button
+              onClick={handleTiebreak}
+              className={`px-4 py-1 ${
+                selectedPlayerIds.length < 1
+                  ? "bg-slate-500 cursor-not-allowed"
+                  : "bg-yellow-500 hover:bg-yellow-600"
+              } text-white rounded-sm`}
+              disabled={selectedPlayerIds.length < 1}
+            >
+              <i className="fa-solid fa-scale-balanced pe-2 "></i>Lauzt
+            </button>
+            <button
+              onClick={() => setSelectedPlayerIds([])}
+              className={`px-4 py-1 ${"bg-blue-500 hover:bg-blue-600"} text-white rounded-sm`}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>{" "}
           </div>
-          <button
-            onClick={handleTiebreak}
-            className={`px-4 py-1 bg-yellow-400 hover:bg-yellow-500 rounded-sm`}
-          >
-            <i className="fa-solid fa-scale-balanced pe-2 "></i>Lauzt
-          </button>
         </div>
       )}
     </div>

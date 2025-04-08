@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create();
 
-        $questions = ["Kurš autors sarakstījis dzejas rindas Emīla Dārziņa dziesmai 'Mūžam zili'? ",
+        $questions = ["Kurš autors sarakstījis dzejas rindas Emīla Dārziņa dziesmai 'Mūžam zili'?",
                         "Kā var nosaukt pēdējās klases audzēkni vidējā mācību iestādē?",
                         "Kuram ķimiskajam elementam atbilst atomnumurs - 1?",
                         "Starp kurām valstīm norisinājās Ziemas karš?",
@@ -54,7 +54,6 @@ class DatabaseSeeder extends Seeder
         "Absolvents", "Abiturients", "Reflektants", "Alveolārs",
         "Berilijs", "Litijs", "Hēlijs", "Ūdeņradis",
         "Dāniju un Vāciju", "Norvēģiju un Apvienoto Karalisti", "Zviedriju un Poliju", "Somiju un PSRS",
-        "Koleopterologi", "Herpetologi", "Entomologi", "Laringologi",
         "Parazītisms", "Amensālisms", "Monogāmija", "Uzticība",
         "Mg₂(CO₃)₄", "MgCO₃", "Mg₂CO", "MgCO",
         "Semiotika", "Simbolika", "Semantika", "Semasioloģija",

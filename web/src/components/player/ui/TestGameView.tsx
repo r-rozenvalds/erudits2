@@ -48,6 +48,7 @@ export const TestGameView = () => {
   }) => {
     if (completed) {
       setRoundFinished(true);
+      setViewImage(false);
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"
@@ -187,7 +188,7 @@ export const TestGameView = () => {
             renderer={renderer}
             date={getCountdownDate()}
           />
-          <p className="font-semibold text-3xl drop-shadow-md">
+          <p className="font-semibold text-3xl drop-shadow-md mx-4">
             {questions[selectedQuestionIndex].title}
           </p>
           <div className="text-white font-semibold text-2xl w-28">

@@ -43,9 +43,10 @@ export const GameView = () => {
     completed: boolean;
   }) => {
     if (completed) {
-      console.log("compelted");
       setRoundFinished(true);
       setChangedAnswer(true);
+      setViewImage(false);
+      setText("");
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"
@@ -116,7 +117,6 @@ export const GameView = () => {
   }
 
   const getCountdownDate = () => {
-    console.log("asea", countdownTime, round?.answer_time);
     if (!countdownTime || !round?.answer_time) return 0;
 
     const dateStartedAt = new Date(countdownTime);
@@ -124,7 +124,6 @@ export const GameView = () => {
       return dateStartedAt.getTime() + round.answer_time * 1000;
     }
 
-    console.log("end at", dateStartedAt.getTime() + round.answer_time * 1000);
     return dateStartedAt.getTime() + round.answer_time * 1000;
   };
 
@@ -177,7 +176,7 @@ export const GameView = () => {
             renderer={renderer}
             date={getCountdownDate()}
           />
-          <p className="font-semibold text-3xl drop-shadow-md">
+          <p className="font-semibold text-3xl drop-shadow-md mx-4">
             {currentQuestion.title}
           </p>
           <div className="text-white font-semibold text-2xl w-28">

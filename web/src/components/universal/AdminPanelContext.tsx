@@ -37,6 +37,7 @@ interface IInstanceInfo {
   started_at: string;
   game_started: boolean;
   round_questions: IQuestion[];
+  disqualify_amount: number;
   is_test: boolean;
 }
 
@@ -182,6 +183,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
     if (response.ok) {
       const data = await response.json();
       setInstance(data.instance);
+      setIsBuzzerMode(data.instance.buzzers_mode);
       setGame(data.game.game);
       setRounds(data.game.rounds);
       setQuestions(data.game.questions);

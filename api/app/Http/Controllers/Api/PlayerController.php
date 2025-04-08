@@ -52,39 +52,42 @@ class PlayerController extends Controller
     }
 
     public function disqualify(Request $request) {
-        Log::info('Disqualifying player ' . $request->player_id);
-        try {
-            $player = Player::where('id', $request->player_id)->first();
-            if($player) {
-                $player->is_disqualified = true;
-                $player->save();
-                event(new PlayerEvent($request->player_id, 'disqualified'));
-                return response()->json(['message' => 'Player disqualified.'], 200);
+        $players = explode(',', $request->player_ids);
+
+        Log::info('Disqualifying players ' . $request->player_ids);
+        foreach ($players as $playerId) {
+            try {
+                $player = Player::where('id', $playerId)->first();
+                if($player && !$player->is_disqualified) {
+                    $player->is_disqualified = true;
+                    $player->save();
+                    event(new PlayerEvent($playerId, 'disqualified'));
+                }
+            } catch(Exception $e) {
+                Log::error('Error while disqualifying player ' . $playerId . ': ' . $e->getMessage());
             }
-            return response()->json(['error' => 'Player not found.'], 404);
         }
-        catch(Exception $e) {
-            Log::error('Error while disqualifying player ' . $request->player_id . ': ' . $e->getMessage());
-            return response()->json(['message' => 'Error while disqualifying player.'], 500);
-        }
+        return response()->json(['message' => 'Players disqualified.'], 200);
     }
 
     public function requalify(Request $request) {
-        Log::info('Requalifying player ' . $request->player_id);
-        try{
-            $player = Player::where('id', $request->player_id)->first();
-            if($player && $player->is_disqualified) {
-                $player->is_disqualified = false;
-                $player->save();
-                event(new PlayerEvent($request->player_id, 'requalified'));
-                return response()->json(['message' => 'Player requalified.'], 200);
+
+        $players = explode(',', $request->player_ids);
+
+        Log::info('Requalifying players ' . $request->player_ids);
+        foreach ($players as $playerId) {
+            try {
+                $player = Player::where('id', $playerId)->first();
+                if($player && $player->is_disqualified) {
+                    $player->is_disqualified = false;
+                    $player->save();
+                    event(new PlayerEvent($playerId, 'requalified'));
+                }
+            } catch(Exception $e) {
+                Log::error('Error while requalifying player ' . $playerId . ': ' . $e->getMessage());
             }
-            return response()->json(['error' => 'Player not found.'], 404);
         }
-        catch(Exception $e) {
-            Log::error('Error while requalifying player ' . $request->player_id . ': ' . $e->getMessage());
-            return response()->json(['message' => 'Error while requalifying player.'], 500);
-        }
+        return response()->json(['message' => 'Players requalified.'], 200);
     }
 
     public function adjustPoints(Request $request) {
@@ -131,7 +134,7 @@ class PlayerController extends Controller
     {
         $player = Player::findOrFail($id);
         if($player) {
-            $instance = GameInstance::where('id', $player->instance_id)->first(['started_at', 'game_started', 'buzzers_mode']);
+            $instance = GameInstance::where('id', $player->instance_id)->first(['started_at', 'game_started', 'buzzers_mode', 'buzzers_enabled']);
             return response()->json(['player' => new PlayerResource($player), 'instance' => $instance], 200);
         }
         return response()->json(['error' => 'Player not found.'], 404);
@@ -156,13 +159,20 @@ class PlayerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $ids)
     {
-        $player = Player::findOrFail($id);
-        if($player) {
-            $player->delete();
-            return response()->json(['message' => 'Player deleted.'], 200);
+        $playerIds = explode(',', $ids);
+        Log::info('Deleting players ' . $ids);
+        foreach ($playerIds as $id) {
+            try {
+                $player = Player::where('id', $id)->first();
+                if($player) {
+                    $player->delete();
+                }
+            } catch(Exception $e) {
+                Log::error('Error while deleting player ' . $id . ': ' . $e->getMessage());
+            }
         }
-        return response()->json(['error' => 'Player not found.'], 404);
+        return response()->json(['message' => 'Players deleted.'], 200);
     }
 }

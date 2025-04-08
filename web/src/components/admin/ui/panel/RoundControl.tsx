@@ -156,10 +156,10 @@ export const RoundControl = () => {
                 Iepriekšējā kārta
               </button>
               <div className="bg-slate-300 flex-col flex place-items-center px-4 rounded-sm">
-                <p className="text-xs">Atbildējuši</p>
+                <p className="text-xs">Nepieciešams diskvalificēt</p>
                 {instance?.current_round && (
                   <p className="font-semibold">
-                    {instance_info.answered_players}/{instance_info.players}
+                    {instance_info.disqualify_amount} spēlētājus
                   </p>
                 )}
                 {!instance?.current_round && <p className="font-semibold">-</p>}

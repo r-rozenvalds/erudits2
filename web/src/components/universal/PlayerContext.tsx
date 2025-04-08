@@ -40,6 +40,8 @@ type PlayerContextType = {
   isTiebreaking: boolean;
   setIsTiebreaking: (isTiebreaking: boolean) => void;
   isBuzzerMode: boolean;
+  setBuzzerEnabled: (buzzerEnabled: boolean) => void;
+  buzzerEnabled: boolean;
 };
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -77,6 +79,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number>(0);
   const [isTiebreaking, setIsTiebreaking] = useState<boolean>(false);
   const [isBuzzerMode, setIsBuzzerMode] = useState<boolean>(false);
+  const [buzzerEnabled, setBuzzerEnabled] = useState(true);
 
   useEffect(() => {
     const player = JSON.parse(
@@ -115,6 +118,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       setIsDisqualified(data.player.is_disqualified);
       setRoundFinished(data.player.round_finished);
       setIsBuzzerMode(data.instance.buzzers_mode);
+      setBuzzerEnabled(data.instance.buzzers_enabled);
       setIsReady(true);
       if (data.instance.game_started) {
         navigate("/play/game");
@@ -239,13 +243,19 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             setRound(data.currentRound);
             setCurrentQuestion(data.currentQuestion);
             setAnswers(data.currentQuestion.answers);
-            setCountdownTime(data.currentQuestion.started_at);
+            setCountdownTime(new Date(Date.now()).toISOString());
             break;
           case "buzzers-start":
             setIsBuzzerMode(true);
             break;
           case "buzzers-stop":
             setIsBuzzerMode(false);
+            break;
+          case "buzzers-enabled":
+            setBuzzerEnabled(true);
+            break;
+          case "buzzers-disabled":
+            setBuzzerEnabled(false);
             break;
         }
       });
@@ -348,6 +358,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         isTiebreaking,
         setIsTiebreaking,
         isBuzzerMode,
+        setBuzzerEnabled,
+        buzzerEnabled,
       }}
     >
       {children}

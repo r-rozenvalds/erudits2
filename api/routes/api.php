@@ -92,7 +92,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/players/{instance_id}', [PlayerController::class, 'index']);
     Route::post('/disqualify-player', [PlayerController::class, 'disqualify']);
     Route::post('/requalify-player', [PlayerController::class, 'requalify']);
-    Route::delete('/players/{id}', [PlayerController::class, 'destroy']);
+    Route::delete('/players/{ids}', [PlayerController::class, 'destroy']);
     Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
 
     //player-answers
@@ -106,6 +106,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/buzzer-stop', [BuzzerController::class, 'deinitialize']);
     Route::post('/buzzer-clear', [BuzzerController::class, 'deactivateAll']);
     Route::get('/buzzers/{instance_id}', [BuzzerController::class, 'getInstanceBuzzers']);
+    Route::post('/buzzers-toggle', [BuzzerController::class, 'toggleBuzzers']);
 });
 
 

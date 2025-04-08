@@ -211,6 +211,7 @@ class GameInstanceController extends PlayerAnswerController
                     'started_at' => $gameInstance->started_at,
                     'game_started' => $gameInstance->game_started,
                     'round_questions' => $roundQuestions,
+                    'disqualify_amount' => optional($round)->disqualify_amount,
                     'is_test' => optional($round)->is_test,
                 ],
                 'player_answers' => $playerAnswers,
@@ -521,9 +522,6 @@ class GameInstanceController extends PlayerAnswerController
         Log::info("Starting tiebreak in instance ".$request->instance_id);
         try{
             $tiedPlayers = Player::whereIn('id', $request->player_ids)->get();
-            if ($tiedPlayers->count() < 2) {
-                return response()->json(['message' => 'Not enough players to start tiebreak.'], 400);
-            }
             $gameInstance = GameInstance::findOrFail($request->instance_id);
             $game = Game::findOrFail($gameInstance->game_id);
             $rounds = $game->rounds()->get();

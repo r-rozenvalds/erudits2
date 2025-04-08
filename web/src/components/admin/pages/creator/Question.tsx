@@ -26,6 +26,7 @@ export const GameCreatorQuestion = () => {
   );
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [imageUrl, setImageUrl] = useState(CreateQuestionModel.image_url);
+  const [guidelines, setGuidelines] = useState(CreateQuestionModel.guidelines);
 
   let formValues: IQuestion = CreateQuestionModel;
 
@@ -39,6 +40,7 @@ export const GameCreatorQuestion = () => {
   const debounceIsOpenAnswer = useDebounce(isOpenAnswer, 300);
   const debounceAnswers = useDebounce(answers, 300);
   const debounceOpenAnswers = useDebounce(openAnswers, 300);
+  const debounceGuidelines = useDebounce(guidelines, 300);
 
   const navigate = useNavigate();
 
@@ -98,6 +100,13 @@ export const GameCreatorQuestion = () => {
 
   useEffect(() => {
     if (isLoaded) {
+      formValues.guidelines = debounceGuidelines;
+      saveToSessionStorage();
+    }
+  }, [debounceGuidelines]);
+
+  useEffect(() => {
+    if (isLoaded) {
       formValues.image_url = imageUrl;
       saveToSessionStorage();
     }
@@ -111,6 +120,7 @@ export const GameCreatorQuestion = () => {
     setAnswers(formValues.answers);
     setOpenAnswers(formValues.open_answers);
     setImageUrl(formValues.image_url);
+    setGuidelines(formValues.guidelines);
 
     setIsLoaded(true);
   }, []);
@@ -358,6 +368,16 @@ export const GameCreatorQuestion = () => {
               <span className="font-semibold text-lg">
                 Spēlētājs uz šo jautājumu atbildi sniegs rakstiski.
               </span>
+              <label className="" htmlFor="guidelines">
+                Ievades instrukcijas spēlētājam:
+              </label>
+              <input
+                id="guidelines"
+                type="text"
+                className="w-full h-10 px-2 rounded-md shadow-sm bg-slate-100"
+                value={guidelines}
+                onChange={(e) => setGuidelines(e.target.value)}
+              />
               <label>Pareizās atbildes:</label>
               <ul>
                 {answers.map((answer, index) => (

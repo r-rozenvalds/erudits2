@@ -111,7 +111,7 @@ export const Panel = () => {
 
   return (
     <div className="flex flex-col h-screen gap-4 p-4">
-      {isBuzzerMode && (
+      {!!isBuzzerMode && (
         <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2  glass-effect w-full h-full">
           <div className="flex gap-4 place-items-center flex-col absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-80 p-12 rounded-md">
             <h1 className="font-bold text-3xl text-white">Buzzers</h1>

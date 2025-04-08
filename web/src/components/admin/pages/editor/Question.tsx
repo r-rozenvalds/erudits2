@@ -26,6 +26,7 @@ export const GameEditorQuestion = () => {
     CreateQuestionModel.open_answers
   );
   const [imageUrl, setImageUrl] = useState(CreateQuestionModel.image_url);
+  const [guidelines, setGuidelines] = useState(CreateQuestionModel.guidelines);
 
   let formValues: IQuestion = CreateQuestionModel;
 
@@ -39,6 +40,7 @@ export const GameEditorQuestion = () => {
   const debounceIsOpenAnswer = useDebounce(isOpenAnswer, 300);
   const debounceAnswers = useDebounce(answers, 300);
   const debounceOpenAnswers = useDebounce(openAnswers, 300);
+  const debounceGuidelines = useDebounce(guidelines, 300);
 
   const confirm = useConfirmation();
 
@@ -99,6 +101,13 @@ export const GameEditorQuestion = () => {
 
   useEffect(() => {
     if (isLoaded) {
+      formValues.guidelines = debounceGuidelines;
+      saveToSessionStorage();
+    }
+  }, [debounceGuidelines]);
+
+  useEffect(() => {
+    if (isLoaded) {
       formValues.image_url = imageUrl;
       saveToSessionStorage();
     }
@@ -115,6 +124,7 @@ export const GameEditorQuestion = () => {
     setAnswers(formValues.answers);
     setOpenAnswers(formValues.open_answers);
     setImageUrl(formValues.image_url);
+    setGuidelines(formValues.guidelines);
 
     const selectedRound = rounds?.filter(
       (round) => round.id === formValues.round_id
@@ -387,6 +397,16 @@ export const GameEditorQuestion = () => {
               <span className="font-semibold text-lg">
                 Spēlētājs uz šo jautājumu atbildi sniegs rakstiski.
               </span>
+              <label className="" htmlFor="guidelines">
+                Ievades instrukcijas spēlētājam:
+              </label>
+              <input
+                id="guidelines"
+                type="text"
+                className="w-full h-10 px-2 rounded-md shadow-sm bg-slate-100"
+                value={guidelines}
+                onChange={(e) => setGuidelines(e.target.value)}
+              />
               <label>Pareizās atbildes:</label>
               <ul>
                 {answers.map((answer, index) => (

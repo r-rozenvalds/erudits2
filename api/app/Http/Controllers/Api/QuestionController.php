@@ -134,7 +134,7 @@ class QuestionController extends Controller
         $this->authorize('manage', Game::findOrFail($round->game_id));
 
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:4096',
         ]);
 
         $imageName = time().'.'.$request->image->extension();  

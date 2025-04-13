@@ -23,7 +23,7 @@ export const PlayerList = () => {
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const [pointsDisabled, setPointsDisabled] = useState(false);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
-  const [openTiebreakModal, setOpenTiebreakModal] = useState(true);
+  const [openTiebreakModal, setOpenTiebreakModal] = useState(false);
 
   const { fetchPlayers, players, setPlayers, instanceId } = useAdminPanel();
 

@@ -17,7 +17,7 @@ export const BuzzerView = () => {
       localStorage.getItem(PlayerLocalStorage.currentGame) || "{}"
     );
 
-    await fetch(`${constants.baseApiUrl}/buzz`, {
+    const response = await fetch(`${constants.baseApiUrl}/buzz`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem(
@@ -31,6 +31,13 @@ export const BuzzerView = () => {
         buzzed_at: new Date().getTime(),
       }),
     });
+
+    if (!response.ok) {
+      const data = await response.json();
+      if (data.message === "Another buzzer was faster!") {
+        setBuzzerEnabled(true);
+      }
+    }
   };
 
   useEffect(() => {

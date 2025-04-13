@@ -49,6 +49,7 @@ export const TestGameView = () => {
     if (completed) {
       setRoundFinished(true);
       setViewImage(false);
+      setSelectedQuestionIndex(0);
       return (
         <div
           className="text-white font-semibold text-2xl w-28 rounded-md py-1"

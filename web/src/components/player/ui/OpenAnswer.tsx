@@ -15,7 +15,8 @@ export const OpenAnswer = ({
 }) => {
   const [error, setError] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
     if (onSubmit) {
       setError(false);
       if (selectedAnswer.length < 1) {
@@ -30,7 +31,7 @@ export const OpenAnswer = ({
     <div className="flex flex-col place-items-center justify-center gap-4 mx-auto">
       <p className="text-white text-2xl font-semibold">{guidelines}</p>
       <div>
-        <div className="flex gap-4">
+        <form onSubmit={handleSubmit} className="flex gap-4">
           <input
             value={selectedAnswer}
             onChange={(e) => setSelectedAnswer(e.target.value)}
@@ -50,7 +51,7 @@ export const OpenAnswer = ({
               <i className="fa-solid fa-arrow-right ms-2"></i>
             </button>
           )}
-        </div>
+        </form>
         <p className="text-red-600 font-semibold text-lg mt-2">
           {error ? "Lūdzu, ievadiet atbildi!" : " "}
         </p>

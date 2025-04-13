@@ -54,12 +54,12 @@ class PlayerAnswerController extends Controller
 
             if (!Str::isUuid($request->answer)) {
                 // Normalize the user input answer
-                $normalizedAnswer = strtolower(preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($request->answer))));
+                $normalizedAnswer = preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($request->answer)));
                 
                 // Fetch valid answers and normalize them
                 $validAnswers = Answer::where('question_id', $validated['question_id'])->get()->pluck('text')->toArray();
                 $normalizedValidAnswers = array_map(function ($answer) {
-                    return strtolower(preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($answer))));
+                    return preg_replace('/[^\w\s]/', '', preg_replace('/\s+/', ' ', trim($answer)));
                 }, $validAnswers);
             
                 // Check if the normalized user answer exists in the valid answers

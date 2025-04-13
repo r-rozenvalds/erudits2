@@ -44,6 +44,9 @@ export const BuzzerProvider = ({ children }: { children: ReactNode }) => {
         id: data.playerId,
         title: data.playerName,
       });
+      setTimeout(() => {
+        setBuzzedPlayer({} as ITitleId);
+      }, 5000);
       //@ts-ignore
       setPlayers((prevPlayers) =>
         prevPlayers.map((player: { id: string; buzzer_enabled: any }) =>

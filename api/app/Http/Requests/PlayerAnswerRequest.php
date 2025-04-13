@@ -25,6 +25,7 @@ class PlayerAnswerRequest extends FormRequest
             'player_id' => 'required|uuid',
             'question_id' => 'required|uuid',
             'round_id' => 'required|uuid',
+            'is_tiebreak_answer' => 'boolean'
         ];
     }
 }

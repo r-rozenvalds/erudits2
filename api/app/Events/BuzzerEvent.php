@@ -19,11 +19,13 @@ class BuzzerEvent implements ShouldBroadcast
      */
 
      public $instanceId;
+     public $playerId;
      public $playerName;
 
-    public function __construct($instanceId, $playerName)
+    public function __construct($instanceId, $playerId, $playerName)
     {
         $this->instanceId = $instanceId;
+        $this->playerId = $playerId;
         $this->playerName = $playerName;
     }
 
@@ -45,6 +47,7 @@ class BuzzerEvent implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
+            'playerId' => $this->playerId,
             'playerName' => $this->playerName,
         ];
     }

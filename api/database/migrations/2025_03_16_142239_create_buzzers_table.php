@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid("player_id")->constrained('players')->onDelete('cascade');
             $table->foreignUuid("instance_id")->constrained('game_instances')->onDelete('cascade');
-            $table->dateTime("buzzed_at");
+            $table->bigInteger("buzzed_at")->default(-1);
             $table->boolean("active")->default(false);
             $table->timestamps();
         });

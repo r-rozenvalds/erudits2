@@ -24,7 +24,7 @@ class BuzzerRequest extends FormRequest
         return [
             'instance_id' => 'required|uuid',
             'player_id' => 'required|uuid',
-            'buzzed_at' => 'required|date',
+            'buzzed_at' => 'required',
         ];
     }
 }

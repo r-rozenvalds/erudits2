@@ -20,6 +20,7 @@ class PlayerResource extends JsonResource
             'player_name' => $this->player_name,
             'is_disqualified' => $this->is_disqualified,
             'round_finished' => $this->round_finished,
+            'buzzer_enabled' => $this->buzzer_enabled,
         ];
     }
 }

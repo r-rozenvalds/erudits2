@@ -6,6 +6,7 @@ export const BuzzerView = () => {
   const { buzzerEnabled, setBuzzerEnabled } = usePlayer();
 
   const handleBuzz = async () => {
+    if (!buzzerEnabled) return;
     setBuzzerEnabled(false);
 
     const player = JSON.parse(
@@ -27,7 +28,7 @@ export const BuzzerView = () => {
       body: JSON.stringify({
         player_id: player.id,
         instance_id: instance.id,
-        buzzed_at: new Date().toISOString(),
+        buzzed_at: new Date().getTime(),
       }),
     });
   };
@@ -48,10 +49,7 @@ export const BuzzerView = () => {
 
   return (
     <div className="bg-black fade-in-short bg-opacity-40 rounded-md place-items-center p-8 flex w-full grow m-12 flex-col gap-6">
-      <p
-        onClick={() => console.log(buzzerEnabled)}
-        className="text-white font-semibold text-lg"
-      >
+      <p className="text-white font-semibold text-lg">
         Spied pogu vai tastatūras 'Atstarpi', lai atbildētu!
       </p>
       <button

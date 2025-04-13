@@ -79,7 +79,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number>(0);
   const [isTiebreaking, setIsTiebreaking] = useState<boolean>(false);
   const [isBuzzerMode, setIsBuzzerMode] = useState<boolean>(false);
-  const [buzzerEnabled, setBuzzerEnabled] = useState(true);
+  const [buzzerEnabled, setBuzzerEnabled] = useState(false);
 
   useEffect(() => {
     const player = JSON.parse(
@@ -118,7 +118,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       setIsDisqualified(data.player.is_disqualified);
       setRoundFinished(data.player.round_finished);
       setIsBuzzerMode(data.instance.buzzers_mode);
-      setBuzzerEnabled(data.instance.buzzers_enabled);
+      setBuzzerEnabled(data.player.buzzer_enabled);
       setIsReady(true);
       if (data.instance.game_started) {
         navigate("/play/game");
@@ -254,9 +254,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
           case "buzzers-enabled":
             setBuzzerEnabled(true);
             break;
-          case "buzzers-disabled":
-            setBuzzerEnabled(false);
-            break;
         }
       });
       playerChannel.listen(".player-event", (data: any) => {
@@ -266,6 +263,12 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             break;
           case "requalified":
             requalifyPlayer();
+            break;
+          case "buzzer-enabled":
+            setBuzzerEnabled(true);
+            break;
+          case "buzzer-disabled":
+            setBuzzerEnabled(false);
             break;
         }
       });
@@ -322,6 +325,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         question_id: currentQuestionId,
         answer: answer,
         round_id: round?.id,
+        is_tiebreak_answer: isTiebreaking,
       }),
     });
 

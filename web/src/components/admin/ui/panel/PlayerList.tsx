@@ -13,6 +13,7 @@ import { SpinnerCircularFixed } from "spinners-react";
 import { useAdminPanel } from "../../../universal/AdminPanelContext";
 import { useToast } from "../../../universal/Toast";
 import { formatText } from "../../../universal/functions";
+import { TiebreakModal } from "./TiebreakModal";
 
 export const PlayerList = () => {
   const [sorting, setSorting] = useState([
@@ -22,6 +23,7 @@ export const PlayerList = () => {
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const [pointsDisabled, setPointsDisabled] = useState(false);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [openTiebreakModal, setOpenTiebreakModal] = useState(true);
 
   const { fetchPlayers, players, setPlayers, instanceId } = useAdminPanel();
 
@@ -108,6 +110,12 @@ export const PlayerList = () => {
     }
   };
 
+  const tiebreakAdjustPoints = async (playerId: string, amount: number) => {
+    const player = players.find((p) => p.id === playerId);
+    if (!player) return;
+    await adjustPoints(player, amount);
+  };
+
   const adjustPoints = async (player: IPlayer, amount: number) => {
     if (!pointsDisabled) {
       setPointsDisabled(true);
@@ -157,6 +165,7 @@ export const PlayerList = () => {
 
     if (response.ok) {
       showToast(true, "Spēlētājiem uzdoti papildus jautājumi");
+      setOpenTiebreakModal(true);
     }
   };
 
@@ -320,6 +329,13 @@ export const PlayerList = () => {
   });
   return (
     <div className="text-center flex flex-col">
+      {openTiebreakModal && (
+        <TiebreakModal
+          setOpen={setOpenTiebreakModal}
+          adjustPoints={tiebreakAdjustPoints}
+        />
+      )}
+
       <div className="flex gap-1 place-items-center w-20 mx-auto mb-1">
         <p className="font-semibold">Spēlētāji</p>
         <button disabled={fetchDisabled} onClick={refresh}>

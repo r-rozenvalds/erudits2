@@ -17,6 +17,7 @@ class Buzzer extends Model
         'player_id',
         'instance_id',
         'buzzed_at',
+        'active',
     ];
     
     public function instance(): BelongsTo {

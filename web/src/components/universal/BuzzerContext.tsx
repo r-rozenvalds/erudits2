@@ -7,17 +7,11 @@ import {
 } from "react";
 import { useParams } from "react-router-dom";
 import echo from "../../useEcho";
-import { constants } from "../../constants";
-
-type BuzzerType = {
-  id: number;
-  player: string;
-  buzzed_at: string;
-};
+import { ITitleId } from "../admin/interface/ITitleId";
+import { useAdminPanel } from "./AdminPanelContext";
 
 type BuzzerContextType = {
-  buzzerHistory: BuzzerType[];
-  buzzedPlayer: string;
+  buzzedPlayer: ITitleId;
   setBuzzerEnabled: (buzzerEnabled: boolean) => void;
   buzzerEnabled: boolean;
 };
@@ -35,18 +29,29 @@ export const useBuzzer = () => {
 };
 
 export const BuzzerProvider = ({ children }: { children: ReactNode }) => {
-  const [buzzerHistory, setBuzzerHistory] = useState<BuzzerType[]>([]);
-  const [buzzedPlayer, setBuzzedPlayer] = useState<string>("");
+  const [buzzedPlayer, setBuzzedPlayer] = useState<ITitleId>({} as ITitleId);
   const [buzzerEnabled, setBuzzerEnabled] = useState(false);
 
   const { instanceId } = useParams();
+
+  const { setPlayers } = useAdminPanel();
 
   useEffect(() => {
     const gameChannel = echo.channel(`buzzer.${instanceId}`);
 
     gameChannel.listen(".buzzer-event", (data: any) => {
-      setBuzzedPlayer(data.playerName);
-      fetchBuzzedHistory();
+      setBuzzedPlayer({
+        id: data.playerId,
+        title: data.playerName,
+      });
+      //@ts-ignore
+      setPlayers((prevPlayers) =>
+        prevPlayers.map((player: { id: string; buzzer_enabled: any }) =>
+          player.id === data.playerId
+            ? { ...player, buzzer_enabled: !player.buzzer_enabled }
+            : player
+        )
+      );
     });
 
     return () => {
@@ -54,35 +59,9 @@ export const BuzzerProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [instanceId]);
 
-  useEffect(() => {
-    fetchBuzzedHistory();
-  }, []);
-
-  const fetchBuzzedHistory = async () => {
-    const response = await fetch(
-      `${constants.baseApiUrl}/buzzers/${instanceId}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            constants.localStorage.TOKEN
-          )}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      setBuzzerHistory(data.buzzers);
-      setBuzzedPlayer(data.buzzed_player?.player_name || "");
-      setBuzzerEnabled(data.instance.buzzers_enabled);
-    }
-  };
-
   return (
     <BuzzerContext.Provider
-      value={{ buzzerHistory, buzzedPlayer, setBuzzerEnabled, buzzerEnabled }}
+      value={{ buzzedPlayer, setBuzzerEnabled, buzzerEnabled }}
     >
       {children}
     </BuzzerContext.Provider>

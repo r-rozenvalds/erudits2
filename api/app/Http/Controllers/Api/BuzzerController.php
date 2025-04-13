@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 use App\Http\Requests\BuzzerRequest;
 use Carbon;
 use App\Models\Player;
+use App\Events\PlayerEvent;
+
 
 class BuzzerController extends Controller
 {
@@ -35,41 +37,40 @@ class BuzzerController extends Controller
     }
 
     public function buzz(BuzzerRequest $request) {
-        $allBuzzers = Buzzer::where('instance_id', $request['instance_id'])->get();
         $instance = GameInstance::find($request['instance_id']);
-        if($instance->buzzers_mode == 0) {
-            return response()->json(['message' => 'Buzzers are not initialized']);
+    
+        if ($instance->buzzers_mode == 0) {
+            return response()->json(['message' => 'Buzzers are not initialized'], 400);
         }
-
-
-        foreach ($allBuzzers as $existingBuzzer) {
-            if ($existingBuzzer->active && $existingBuzzer->buzzed_at <= Carbon\Carbon::parse($request['buzzed_at'])->format('Y-m-d H:i:s')) {
-                return response()->json(['message' => 'Another buzzer is already active with an earlier or same buzzed_at timestamp']);
-            }
+    
+        $firstBuzz = Buzzer::where('instance_id', $request['instance_id'])
+                           ->where('active', true)
+                           ->orderBy('buzzed_at', 'asc')
+                           ->first();
+    
+        if ($firstBuzz) {
+            return response()->json(['message' => 'Another buzzer was faster!'], 400);
         }
-
+    
         $buzzer = Buzzer::create([
             'id' => Str::uuid(),
             'instance_id' => $request['instance_id'],
             'player_id' => $request['player_id'],
-            'buzzed_at' => Carbon\Carbon::parse($request['buzzed_at'])->format('Y-m-d H:i:s'),
+            'buzzed_at' => $request['buzzed_at'],
+            'active' => 1,
         ]);
-
-
-
-        $buzzer->active = true;
-        $buzzer->save();
-
+    
         $player = $buzzer->player;
-
-        $instance->buzzers_enabled = 0;
-        $instance->save();
-        broadcast(new GameControlEvent($instance->id, 'buzzers-disabled'));
-
-        broadcast(new BuzzerEvent($buzzer->instance_id, $player->player_name, 'buzzed'));
-
+    
+        $player->buzzer_enabled = false;
+        $player->save();
+    
+        // Broadcast only the first buzzer
+        broadcast(new BuzzerEvent($buzzer->instance_id, $player->id, $player->player_name));
+    
         return response()->json(['message' => 'Buzzed']);
     }
+    
 
     public function deactivateAll(Request $request) {
         $buzzers = Buzzer::where('instance_id', $request->instance_id)->get();
@@ -77,25 +78,21 @@ class BuzzerController extends Controller
         if($instance->buzzers_mode == 0) {
             return response()->json(['message' => 'Buzzers are not initialized']);
         }
+
         foreach($buzzers as $buzzer) {
-            $buzzer->active = false;
+            $buzzer->active = 0;
             $buzzer->save();
         }
 
-        $instance->buzzers_enabled = 1;
+        $players = Player::where('instance_id', $request->instance_id)->get();
+        foreach($players as $player) {
+            $player->buzzer_enabled = true;
+            $player->save();
+        }
         $instance->save();
         broadcast(new GameControlEvent($instance->id, 'buzzers-enabled'));
 
-        return response()->json(['message' => 'Buzzers deactivated']);
-    }
-
-    public function getInstanceBuzzers(Request $request) {
-        $buzzers = Buzzer::where('instance_id', $request->instance_id)->get();
-        $instance = GameInstance::find($request->instance_id);
-        $activeBuzzer = $buzzers->where('active', true)->first();
-        $buzzed_player = $activeBuzzer ? Player::findOrFail($activeBuzzer->player_id) : null;
-
-        return response()->json(['buzzers' => $buzzers, 'instance' => $instance, 'buzzed_player' => $buzzed_player], 200);
+        return response()->json(['message' => 'Buzzers enabled']);
     }
 
     public function toggleBuzzers(Request $request) {
@@ -103,14 +100,19 @@ class BuzzerController extends Controller
         if($instance->buzzers_mode == 0) {
             return response()->json(['message' => 'Buzzers are not initialized']);
         }
-        $instance->buzzers_enabled = !$instance->buzzers_enabled;
-        $instance->save();
-
-        if($instance->buzzers_enabled) {
-            broadcast(new GameControlEvent($instance->id, 'buzzers-enabled'));
-        } else {
-            broadcast(new GameControlEvent($instance->id, 'buzzers-disabled'));
+        $player = Player::find($request->player_id);
+        if(!$player) {
+            return response()->json(['message' => 'Player not found']);
         }
+        $player->buzzer_enabled = !$player->buzzer_enabled;
+        $player->save();
+
+        if($player->buzzer_enabled) {
+            broadcast(new PlayerEvent($player->id, 'buzzer-enabled'));
+        } else {
+            broadcast(new PlayerEvent($player->id, 'buzzer-disabled'));
+        }
+
 
         return response()->json(['message' => 'Buzzers toggled']);
     }

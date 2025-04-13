@@ -46,6 +46,16 @@ export interface IGameController {
   player_answers: IPlayerAnswer[];
 }
 
+export interface TiebreakAnswer {
+  player_id: string;
+  player_name: string;
+  question: string;
+  answer: string;
+  correct_answer: string;
+  is_correct: boolean;
+  timestamp: string;
+}
+
 type AdminPanelContextType = {
   currentRound: ITitleId | undefined;
   setCurrentRound: (round: ITitleId) => void;
@@ -70,6 +80,8 @@ type AdminPanelContextType = {
   gameInProgress: boolean;
   isBuzzerMode: boolean;
   setIsBuzzerMode: (isBuzzerMode: boolean) => void;
+  tiebreakAnswers: TiebreakAnswer[];
+  setTiebreakAnswers: (answers: TiebreakAnswer[]) => void;
 };
 
 const AdminPanelContext = createContext<AdminPanelContextType | undefined>(
@@ -97,6 +109,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [gameInProgress, setGameInProgress] = useState(false);
   const [isBuzzerMode, setIsBuzzerMode] = useState(false);
+  const [tiebreakAnswers, setTiebreakAnswers] = useState<TiebreakAnswer[]>([]);
 
   const { instanceId } = useParams();
 
@@ -114,6 +127,7 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const gameChannel = echo.channel(`game.${instanceId}`);
     const playerChannel = echo.channel(`refresh-players.${instanceId}`);
+    const tiebreakAnswerChannel = echo.channel(`tiebreak-answer.${instanceId}`);
 
     gameChannel.listen(".game-control-event", () => {
       fetchQuestionInfo();
@@ -123,8 +137,21 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
       fetchPlayers();
     });
 
+    tiebreakAnswerChannel.listen(
+      ".tiebreak-answer-event",
+      (data: TiebreakAnswer) => {
+        setTiebreakAnswers((prevTiebreakAnswers) => {
+          const filteredAnswers = prevTiebreakAnswers.filter(
+            (answer) => answer.player_id !== data.player_id
+          );
+          return [...filteredAnswers, data];
+        });
+      }
+    );
+
     return () => {
       gameChannel.stopListening(".game-control-event");
+      gameChannel.stopListening(".tiebreak-answer-event");
       playerChannel.stopListening(".refresh-players-event");
     };
   }, [instanceId]);
@@ -219,6 +246,8 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
         gameInProgress,
         isBuzzerMode,
         setIsBuzzerMode,
+        tiebreakAnswers,
+        setTiebreakAnswers,
       }}
     >
       {children}

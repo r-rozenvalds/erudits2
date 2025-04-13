@@ -14,6 +14,8 @@ use App\Models\Round;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use App\Events\RefreshPlayersEvent;
+use App\Events\TiebreakAnswerEvent;
+use App\Models\Question;
 
 class PlayerAnswerController extends Controller
 {
@@ -98,6 +100,19 @@ class PlayerAnswerController extends Controller
             ];
             PlayerAnswer::create($playerAnswer);
             broadcast(new RefreshPlayersEvent($instanceId, $player));
+
+            if($request->is_tiebreak_answer) {
+                broadcast(new TiebreakAnswerEvent(
+                    $instanceId,
+                    $player->id,
+                    $player->player_name,
+                    Question::find($playerAnswer['question_id'])->title,
+                    $playerAnswer['answer_id'] ? Answer::find($playerAnswer['answer_id'])->text : $playerAnswer['answer_text'],
+                    Answer::where('question_id', $playerAnswer['question_id'])->where('is_correct', 1)->first()->text,
+                    $isAnswerCorrect,
+                    now()->timestamp
+                ));
+            }
 
             if(!$round->is_test) {
                 $player->round_finished = true;

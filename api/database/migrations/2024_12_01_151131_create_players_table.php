@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer("is_disqualified")->default(false);
             $table->boolean("round_finished")->default(false);
             $table->foreignUuid("instance_id")->constrained('game_instances')->onDelete('cascade');
+            $table->boolean("buzzer_enabled")->default(false);
             $table->timestamps();
         });
     }

@@ -17,7 +17,8 @@ class Player extends Model
         'points',
         'is_disqualified',
         'instance_id',
-        'round_finished'
+        'round_finished',
+        'buzzer_enabled',
     ];
 
     public function game_instance()

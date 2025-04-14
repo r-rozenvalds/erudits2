@@ -24,6 +24,7 @@ export const TestGameView = () => {
     countdownTime,
     selectedQuestionIndex,
     setSelectedQuestionIndex,
+    isDisqualified,
   } = usePlayer();
 
   const confirm = useConfirmation();
@@ -80,6 +81,7 @@ export const TestGameView = () => {
 
   const finishRound = async () => {
     if (await confirm("Iesniegt atbildes?")) {
+      setSelectedQuestionIndex(selectedQuestionIndex + 1);
       setRoundFinished(true);
       await fetch(`${constants.baseApiUrl}/player-finish-round`, {
         method: "POST",
@@ -164,7 +166,13 @@ export const TestGameView = () => {
 
   return (
     <div className="text-center select-none p-12 w-screen flex flex-col gap-4 h-screen">
-      {viewImage && (
+      {!!isDisqualified && (
+        <div className="fixed place-items-center h-12 text-xl font-semibold text-white left-0 top-0 w-full opacity-70 bg-red-500 flex justify-around">
+          <i className="fa-solid fa-ban"></i>Dalībnieks diskvalificēts - punkti
+          netiek uzskaitīti<i className="fa-solid fa-ban"></i>
+        </div>
+      )}
+      {!!viewImage && (
         <div
           onClick={handleViewImage}
           onDrag={handleViewImage}

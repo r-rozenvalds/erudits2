@@ -22,6 +22,10 @@ export const RoundTable = ({
       {
         accessorKey: "player_name",
         header: "Player Name",
+        meta: {
+          className: "sticky left-0 bg-slate-300 z-10", // bg-white ensures it covers cells behind
+        } as { className?: string },
+        cell: ({ getValue }: { getValue: () => any }) => getValue(),
       },
       ...tableQuestions.map((question) => ({
         accessorKey: question.id,
@@ -72,19 +76,27 @@ export const RoundTable = ({
   });
 
   return (
-    <div className="overflow-x-scroll w-full h-full">
+    <div className="overflow-x-auto w-full h-full">
       <table className="table-auto text-center text-sm w-full">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr className="bg-slate-300" key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id}>
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </th>
-              ))}
+              {headerGroup.headers.map((header) => {
+                const meta = header.column.columnDef.meta as {
+                  className?: string;
+                };
+                return (
+                  <th
+                    className={`px-2 py-1 ${meta?.className ?? ""}`}
+                    key={header.id}
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </th>
+                );
+              })}
             </tr>
           ))}
         </thead>
@@ -96,11 +108,19 @@ export const RoundTable = ({
               }`}
               key={row.id}
             >
-              {row.getVisibleCells().map((cell) => (
-                <td className="px-2 py-1" key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
+              {row.getVisibleCells().map((cell) => {
+                const meta = cell.column.columnDef.meta as {
+                  className?: string;
+                };
+                return (
+                  <td
+                    className={`px-2 py-1 ${meta?.className ?? ""}`}
+                    key={cell.id}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

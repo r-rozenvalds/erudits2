@@ -105,14 +105,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     if (response.ok) {
       const data = await response.json();
 
-      if (
-        data.player.is_disqualified &&
-        !window.location.pathname.includes("disqualified")
-      ) {
-        window.location.assign("/play/disqualified");
-        return;
-      }
-
       setPlayerId(data.player.id);
       setPlayerName(data.player.player_name);
       setIsDisqualified(data.player.is_disqualified);
@@ -162,16 +154,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const navigate = useNavigate();
 
-  const disqualifyPlayer = () => {
-    setIsDisqualified(true);
-    navigate("/play/disqualified");
-  };
-
-  const requalifyPlayer = () => {
-    setIsDisqualified(false);
-    navigate("/play/lobby");
-  };
-
   const fetchInfo = async () => {
     if (!instanceId) return;
     const response = await fetch(
@@ -182,6 +164,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       setAnswers(data.answers);
       setRound(data.round);
       setCountdownTime(data.round?.started_at);
+      setSelectedQuestionIndex(0);
     }
   };
 
@@ -225,11 +208,11 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             navigate("/play/end");
             break;
           case "start":
-            if (isReady) {
+            if (isReady || playerId.length) {
               fetchInfo();
               navigate("/play/game");
             }
-            if (!isReady) navigate("/play/end");
+            if (!isReady && !playerId.length) navigate("/play/end");
             break;
           case "next-round":
           case "previous-round":
@@ -259,10 +242,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       playerChannel.listen(".player-event", (data: any) => {
         switch (data.command) {
           case "disqualified":
-            disqualifyPlayer();
+            setIsDisqualified(true);
             break;
           case "requalified":
-            requalifyPlayer();
+            setIsDisqualified(false);
             break;
           case "buzzer-enabled":
             setBuzzerEnabled(true);

@@ -74,7 +74,7 @@ class PlayerAnswerController extends Controller
                 $isAnswerCorrect = $answer->is_correct;
             }
 
-            if ($isAnswerCorrect) {
+            if ($isAnswerCorrect && !$player->is_disqualified) {
                 $pointsForCorrectAnswer = $round->points;
                 $player->points += $pointsForCorrectAnswer;
                 $player->save();

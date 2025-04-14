@@ -10,6 +10,7 @@ import {
 // Create a context for the confirmation dialog
 interface ConfirmationContextType {
   confirm: (message: string) => Promise<boolean>;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 const ConfirmationContext = createContext<ConfirmationContextType | undefined>(
@@ -91,7 +92,7 @@ export const ConfirmationProvider = ({ children }: { children: ReactNode }) => {
     );
 
   return (
-    <ConfirmationContext.Provider value={{ confirm }}>
+    <ConfirmationContext.Provider value={{ confirm, setIsOpen }}>
       {children}
       <ConfirmationDialog />
     </ConfirmationContext.Provider>

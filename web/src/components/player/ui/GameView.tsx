@@ -22,6 +22,7 @@ export const GameView = () => {
     setChangedAnswer,
     countdownTime,
     isTiebreaking,
+    isDisqualified,
   } = usePlayer();
 
   if (!currentQuestion || !round) {
@@ -146,7 +147,13 @@ export const GameView = () => {
     <div
       className={`text-center select-none p-12 w-screen flex flex-col gap-4 h-screen`}
     >
-      {isTiebreaking && (
+      {!!isDisqualified && (
+        <div className="fixed place-items-center h-12 text-xl font-semibold text-white left-0 top-0 w-full opacity-70 bg-red-500 flex justify-around">
+          <i className="fa-solid fa-ban"></i>Dalībnieks diskvalificēts - punkti
+          netiek uzskaitīti<i className="fa-solid fa-ban"></i>
+        </div>
+      )}
+      {!!isTiebreaking && (
         <div className="flex absolute left-0 top-0 px-12 h-12 bg-yellow-300 animate-pulse w-full shadow-lg place-items-center justify-between text-2xl">
           <i className="fa-solid fa-scale-balanced"></i>
           <p className="font-bold">Neizšķirts - papildu jautājums</p>

@@ -99,7 +99,6 @@ class PlayerAnswerController extends Controller
                 'is_answer_correct' => $isAnswerCorrect,
             ];
             PlayerAnswer::create($playerAnswer);
-            broadcast(new RefreshPlayersEvent($instanceId, $player));
 
             if($request->is_tiebreak_answer) {
                 broadcast(new TiebreakAnswerEvent(

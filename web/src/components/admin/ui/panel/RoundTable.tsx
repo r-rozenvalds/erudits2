@@ -43,6 +43,7 @@ export const RoundTable = ({
           if (!answer) return "";
           return (
             <span
+              title={answer.answer}
               className={answer.is_correct ? "text-green-800" : "text-red-800"}
             >
               {answer.answer?.length > 15

@@ -53,26 +53,26 @@ export const TestGameView = () => {
       setSelectedQuestionIndex(0);
       return (
         <div
-          className="text-white font-semibold text-2xl w-28 rounded-md py-1"
+          className="text-white font-semibold lg:text-xl flex place-items-center rounded-mm"
           style={{
             backgroundColor: `rgba(255, 0, 0, 0.5)`,
           }}
         >
-          <i className="fa-regular fa-clock text-2xl drop-shadow-lg me-3"></i>
+          <i className="fa-regular fa-clock lg:text-xl drop-shadow-lg me-3"></i>
           00:00
         </div>
       );
     }
     return (
       <div
-        className="text-white font-semibold text-2xl w-28 rounded-md py-1"
+        className="text-white font-semibold flex place-items-center lg:text-xl rounded-md"
         style={{
           backgroundColor: `rgba(255, 0, 0, ${
             minutes === 0 && seconds < 11 ? 0.05 * (11 - seconds) : 0
           })`,
         }}
       >
-        <i className="fa-regular fa-clock text-2xl drop-shadow-lg me-3"></i>
+        <i className="fa-regular fa-clock lg:text-xl drop-shadow-lg me-3"></i>
         {minutes > 9 ? minutes : "0" + minutes}:
         {seconds > 9 ? seconds : "0" + seconds}
       </div>
@@ -165,9 +165,9 @@ export const TestGameView = () => {
   };
 
   return (
-    <div className="text-center select-none p-12 w-screen flex flex-col gap-4 h-screen">
+    <div className="text-center select-none lg:p-12 w-screen flex flex-col lg:gap-4 h-screen fade-in">
       {!!isDisqualified && (
-        <div className="fixed place-items-center h-12 text-xl font-semibold text-white left-0 top-0 w-full opacity-70 bg-red-500 flex justify-around">
+        <div className="lg:fixed place-items-center h-12 lg:text-xl font-semibold text-white left-0 top-0 w-full lg:opacity-70 px-4 bg-red-500 flex justify-around">
           <i className="fa-solid fa-ban"></i>Dalībnieks diskvalificēts - punkti
           netiek uzskaitīti<i className="fa-solid fa-ban"></i>
         </div>
@@ -184,30 +184,50 @@ export const TestGameView = () => {
               constants.baseImgUrl + questions[selectedQuestionIndex].image_url
             }
           ></img>
-          <p className="absolute z-40 text-white text-3xl font-semibold bg-black opacity-70 px-4 py-2 rounded-md bottom-4">
-            Uzklikšķiniet jebkur, lai aizvērtu bildi
+          <p className="absolute z-40 text-white text-xl lg:text-3xl font-semibold bg-black opacity-70 px-4 py-2 rounded-md bottom-4">
+            Uzspiediet jebkur, lai aizvērtu bildi
           </p>
         </div>
       )}
 
-      <>
-        <div className="bg-black bg-opacity-40 rounded-md text-white w-full h-24 flex place-items-center px-12 justify-between slide-up">
+      <div className="bg-black bg-opacity-40 lg:rounded-md text-white w-full flex flex-col place-items-center lg:px-12 lg:py-4 py-2 px-4">
+        <div className="flex lg:justify-center justify-between lg:gap-12 w-full place-items-center lg:px-12">
           <Countdown
             key={countdownTime}
             renderer={renderer}
             date={getCountdownDate()}
           />
-          <p className="font-semibold text-3xl drop-shadow-md mx-4">
-            {questions[selectedQuestionIndex].title}
-          </p>
-          <div className="text-white font-semibold text-2xl w-28">
+
+          <div className="text-white font-semibold lg:text-xl">
             <span>
               {selectedQuestionIndex + 1}/{questions.length}
             </span>
-            <i className="fa-regular fa-circle-question text-2xl drop-shadow-lg ms-3"></i>
+            <i className="fa-regular fa-circle-question lg:text-xl drop-shadow-lg ms-3"></i>
           </div>
         </div>
-        <div className="bg-black bg-opacity-40 rounded-md fade-in text-white grow place-items-center p-8 flex gap-4 justify-between">
+        <p className="font-semibold lg:text-3xl text-xl drop-shadow-md">
+          {questions[selectedQuestionIndex].title}
+        </p>
+      </div>
+      <div className="bg-black bg-opacity-40 lg:rounded-md  text-white grow place-items-center p-4 lg:p-8 flex flex-col lg:flex-row gap-4 lg:justify-between">
+        {window.outerWidth <= 1024 && (
+          <div className="flex w-full gap-2">
+            <button
+              onClick={prevQuestion}
+              disabled={selectedQuestionIndex === 0}
+              className="w-full h-16 justify-center bg-black bg-opacity-30 rounded-md transition-all"
+            >
+              <i className="fa-solid fa-angle-left text-4xl drop-shadow-lg"></i>
+            </button>
+            <button
+              onClick={nextQuestion}
+              className="w-full h-16 justify-center bg-black bg-opacity-30 rounded-md transition-all"
+            >
+              <i className="fa-solid fa-angle-right text-4xl drop-shadow-lg"></i>
+            </button>
+          </div>
+        )}
+        {window.outerWidth > 1024 && (
           <button
             onClick={prevQuestion}
             disabled={selectedQuestionIndex === 0}
@@ -219,52 +239,53 @@ export const TestGameView = () => {
           >
             <i className="fa-solid fa-angle-left text-6xl drop-shadow-lg"></i>
           </button>
-          {!questions[selectedQuestionIndex].is_text_answer && (
-            <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
-              {answers
-                .filter(
-                  (answer) =>
-                    answer.question_id === questions[selectedQuestionIndex].id
-                )
-                .map((answer, index) => (
-                  <AnswerOption
-                    key={answer.id}
-                    setSelectedAnswer={setSelectedAnswer}
-                    selectedAnswer={
-                      selectedAnswers?.get(
-                        questions[selectedQuestionIndex].id
-                      ) ?? ""
-                    }
-                    answerId={answer.id}
-                    childNr={index + 1}
-                    content={answer.text ?? ""}
-                    isTest={true}
-                  />
-                ))}
-            </div>
-          )}
-          {!!questions[selectedQuestionIndex].is_text_answer && (
-            <OpenAnswer
-              guidelines={questions[selectedQuestionIndex].guidelines}
-              selectedAnswer={
-                selectedAnswers?.get(questions[selectedQuestionIndex].id) ?? ""
-              }
-              setSelectedAnswer={setSelectedAnswer}
-            />
-          )}
+        )}
+        {!questions[selectedQuestionIndex].is_text_answer && (
+          <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-4">
+            {answers
+              .filter(
+                (answer) =>
+                  answer.question_id === questions[selectedQuestionIndex].id
+              )
+              .map((answer, index) => (
+                <AnswerOption
+                  key={answer.id}
+                  setSelectedAnswer={setSelectedAnswer}
+                  selectedAnswer={
+                    selectedAnswers?.get(questions[selectedQuestionIndex].id) ??
+                    ""
+                  }
+                  answerId={answer.id}
+                  childNr={index + 1}
+                  content={answer.text ?? ""}
+                  isTest={true}
+                />
+              ))}
+          </div>
+        )}
+        {!!questions[selectedQuestionIndex].is_text_answer && (
+          <OpenAnswer
+            guidelines={questions[selectedQuestionIndex].guidelines}
+            selectedAnswer={
+              selectedAnswers?.get(questions[selectedQuestionIndex].id) ?? ""
+            }
+            setSelectedAnswer={setSelectedAnswer}
+          />
+        )}
+        {window.outerWidth > 1024 && (
           <button
             onClick={nextQuestion}
             className="w-24 h-full justify-center bg-black bg-opacity-30 rounded-md transition-all hover:bg-opacity-60"
           >
             <i className="fa-solid fa-angle-right text-6xl drop-shadow-lg"></i>
           </button>
-        </div>
-      </>
+        )}
+      </div>
 
       {questions[selectedQuestionIndex].image_url && (
         <button
           onClick={handleViewImage}
-          className="bg-black bg-opacity-40 hover:bg-opacity-30 rounded-md text-white place-items-center justify-center h-20"
+          className="bg-black bg-opacity-40 hover:bg-opacity-30 lg:rounded-md text-white place-items-center justify-center h-20"
         >
           <div className="font-bold text-2xl">
             {viewImage ? "Aizvērt attēlu" : "Skatīt attēlu"}

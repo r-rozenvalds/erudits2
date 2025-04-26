@@ -15,8 +15,6 @@ export const Lobby = () => {
   const { playerName, setPlayerName, setPlayerId, setIsReady, isReady } =
     usePlayer();
 
-  const [agreed, setAgreed] = useState(false);
-
   useEffect(() => {
     const gameSessionStorage = JSON.parse(
       localStorage.getItem(PlayerLocalStorage.currentGame) ?? "{}"
@@ -28,18 +26,9 @@ export const Lobby = () => {
     }
   }, []);
 
-  useEffect(() => {
-    setAgreed(isReady);
-  }, [isReady]);
-
   const readyPlayer = async () => {
     setIsLoading(true);
     setError("");
-    if (!agreed) {
-      setError("Lūdzu, atzīmējiet, ka piekrītat noteikumiem!");
-      setIsLoading(false);
-      return;
-    }
     if (playerName === "") {
       setError("Lūdzu, ievadiet spēlētāja nosaukumu!");
       setIsLoading(false);
@@ -81,16 +70,11 @@ export const Lobby = () => {
     return false;
   };
 
-  const changeAgreed = (value: boolean) => {
-    setError("");
-    setAgreed(value);
-  };
-
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-6 lg:gap-12">
       <div className="flex flex-col place-items-center justify-center text-white drop-shadow-lg">
         <p className="font-semibold text-lg">Jūs esat pievienojušies spēlei</p>
-        <p className="font-bold text-4xl">"{gameTitle}"</p>
+        <p className="font-bold lg:text-4xl text-xl">{gameTitle}</p>
       </div>
       <div className="flex place-items-center flex-col gap-4">
         <label
@@ -102,29 +86,18 @@ export const Lobby = () => {
         <input
           disabled={isReady}
           id="playername"
-          className="w-full h-12 bg-white rounded-md text-2xl px-4 text-center shadow-md"
+          className="w-[22rem] lg:w-[28rem] h-12 bg-white rounded-md text-2xl px-4 text-center shadow-md"
           placeholder="Pēteris"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
         />
-        <div className="flex gap-2 place-items-center justify-center">
-          <input
-            className="h-5 w-5 accent-[#E63946] shadow-md"
-            type="checkbox"
-            id="agreement"
-            checked={agreed}
-            onChange={(e) => changeAgreed(e.target.checked)}
-            disabled={isReady}
-          />
-          <label htmlFor="agreement" className="text-white">
-            Es piekrītu neizmantot palīgierīces spēles laikā.
-          </label>
-        </div>
         {!isReady && !isLoading && (
           <button
             onClick={readyPlayer}
-            className={`text-white w-32 h-12 rounded-md text-2xl shadow-md hover:opacity-70 ${
-              agreed ? "bg-[#E63946]" : "bg-gray-400 cursor-not-allowed"
+            className={`text-white w-32 h-12 rounded-md text-2xl shadow-md hover:opacity-70  ${
+              !!playerName.length
+                ? "bg-[#E63946]"
+                : "bg-gray-400 cursor-not-allowed"
             }`}
           >
             <i className="fa-solid fa-check"></i>
@@ -149,11 +122,11 @@ export const Lobby = () => {
         )}
         <p
           className={`font-semibold ${
-            error.length > 0 ? "text-red-600" : "text-white"
+            !!error.length ? "text-red-600" : "text-white"
           } drop-shadow-lg`}
         >
           {isReady ? "Lūdzu, gaidiet spēles sākumu!" : ""}
-          {error.length > 0 ? error : ""}
+          {error ?? ""}
         </p>
       </div>
     </div>

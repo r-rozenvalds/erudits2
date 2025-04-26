@@ -139,7 +139,7 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#31587A] to-[#3C3266]">
       {!!existingGameCode && (
-        <div className="bg-white slide-down flex flex-col gap-3 w-1/6 place-items-center justify-center shadow-lg rounded-b-md fixed top-0 left-0 right-0 mx-auto pt-4 z-50">
+        <div className="bg-white slide-down flex flex-col gap-3 lg:w-1/6 w-[90%] place-items-center justify-center shadow-lg rounded-b-md fixed top-0 left-0 right-0 mx-auto pt-4 z-50">
           <div className="flex gap-2 mx-8">
             <i className="fa-solid fa-circle-info text-xl text-[#E63946]"></i>
             <p className="font-semibold text-lg">Jums ir iesākta spēle</p>
@@ -154,21 +154,21 @@ function App() {
       )}
       <form onSubmit={handleJoin} className="flex flex-col w-screen h-screen">
         <div className="flex flex-col w-full h-full place-items-center justify-center gap-8">
-          <p className="text-white lg:text-5xl text-3xl font-[Manrope]">
-            Sistēma "Erudīts v2.0"
+          <p className="text-white lg:text-5xl text-3xl font-semibold font-[Manrope]">
+            Sistēma "Erudīts 2"
           </p>
           <div className="flex flex-col gap-4">
             <div className="flex lg:flex-row flex-col lg:gap-0 gap-4 place-items-center">
               <input
                 placeholder="Spēles kods"
                 type="text"
-                className="font-[Manrope] h-14 lg:rounded-e-none rounded-md shadow-lg lg:text-4xl text-2xl font-semibold px-6 text-center focus:outline-none"
+                className="font-[Manrope] lg:h-14 h-12 lg:rounded-e-none rounded-md shadow-lg lg:text-4xl text-2xl font-semibold lg:px-6 text-center focus:outline-none"
                 value={code}
                 onChange={setCodeValue}
               />
               {!isLoading && (
                 <input
-                  className="font-[Manrope] w-32 h-14 bg-[#E63946] lg:rounded-s-none rounded-md shadow-lg text-white text-2xl font-bold hover:bg-opacity-80 transition-all hover:cursor-pointer"
+                  className="font-[Manrope] w-32 lg:h-14 h-12 bg-[#E63946] lg:rounded-s-none rounded-md shadow-lg text-white text-lg lg:text-2xl font-bold hover:bg-opacity-80 transition-all hover:cursor-pointer"
                   type="submit"
                   value="Spēlēt"
                 />
@@ -176,7 +176,7 @@ function App() {
               {isLoading && (
                 <button
                   disabled
-                  className="w-32 h-14 bg-slate-400 lg:rounded-e-md shadow-lg"
+                  className="w-32 lg:h-14 h-12 bg-slate-400 rounded-md shadow-lg"
                 >
                   <div className="w-10 mx-auto">
                     <SpinnerCircularFixed
@@ -200,28 +200,23 @@ function App() {
           </div>
         )}
       </form>
-      <div className="bg-black bg-opacity-25 h-auto p-12">
-        <div className="grid lg:grid-cols-3 grid-cols-1 w-full gap-12">
-          {gameInstances?.map((instance, index) => (
-            <InstanceCard
-              key={index}
-              title={instance.title}
-              description={instance.description}
-              code={instance.code}
-              postJoin={postJoin}
-            />
-          ))}
-        </div>
-        {gameInstances.length < 1 && (
-          <div className="w-full text-center">
-            <h1 className="text-white text-2xl font-[Manrope]">
-              Pašlaik nav pieejamas spēles :(
-            </h1>
+      {!!gameInstances.length && (
+        <div className="bg-black bg-opacity-25 h-auto p-12">
+          <div className="grid lg:grid-cols-3 grid-cols-1 w-full gap-12">
+            {gameInstances?.map((instance, index) => (
+              <InstanceCard
+                key={index}
+                title={instance.title}
+                description={instance.description}
+                code={instance.code}
+                postJoin={postJoin}
+              />
+            ))}
           </div>
-        )}
-      </div>
-      <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-between">
-        <p className="text-white font-semibold">Veidoja: Roberts R.; 2024</p>
+        </div>
+      )}
+      <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-center lg:justify-between">
+        <p className="text-white">Veidoja: Roberts R.; 2024-2025</p>
         <button
           onClick={() => navigate("/admin/games")}
           className="px-4 py-2 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"

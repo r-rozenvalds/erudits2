@@ -93,7 +93,7 @@
 
   .fade-in {
     animation-name: fade-in;
-    animation-duration: 2.2s;
+    animation-duration: 0.2s;
     animation-timing-function: ease-in;
   }
 
@@ -144,9 +144,6 @@
 
   @keyframes fade-in {
     0% {
-      opacity: 0;
-    }
-    90% {
       opacity: 0;
     }
     100% {
@@ -246,7 +243,6 @@
   .answer-option_text {
     font-size: 2rem;
     font-weight: 700;
-    width: 80%;
     color: #333;
     position: absolute;
     top: 50%;
@@ -256,6 +252,14 @@
     transition: transform 0.3s ease-in-out;
     will-change: transform;
     transform-origin: center;
+  }
+
+  @media (max-width: 1024px) {
+    .answer-option_text {
+      font-size: 1.5rem;
+      width: 90%;
+      text-wrap: wrap;
+    }
   }
 
   .answer-option_container:hover .answer-option_text {

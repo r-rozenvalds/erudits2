@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string("player_name")->nullable();
+            $table->string("player_name", 16)->nullable();
             $table->integer("points")->default(0);
             $table->integer("is_disqualified")->default(false);
             $table->boolean("round_finished")->default(false);

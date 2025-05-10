@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('rounds', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string("title")->index();
+            $table->string("title", 32)->index();
             $table->integer("disqualify_amount")->default(0);
             $table->float("answer_time")->default(30);
             $table->integer("points")->default(1);

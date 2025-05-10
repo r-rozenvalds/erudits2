@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('answers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string("text")->nullable();
+            $table->string("text", 48)->nullable();
             $table->boolean("is_correct")->default(false)->nullable();
             $table->foreignUuid("question_id")->constrained('questions')->onDelete('cascade');
             $table->timestamps();

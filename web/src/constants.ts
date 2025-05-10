@@ -1,6 +1,6 @@
 export const constants = {
-  baseApiUrl: "http://127.0.0.1:8000/api",
-  baseImgUrl: "http://127.0.0.1:8000",
+  baseApiUrl: import.meta.env.BASE_URL,
+  baseImgUrl: import.meta.env.BASE_IMG_URL,
   localStorage: {
     TOKEN: "TOKEN",
   },

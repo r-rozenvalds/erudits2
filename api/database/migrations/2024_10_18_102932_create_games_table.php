@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('games', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('title')->index();
-            $table->text('description')->nullable();
+            $table->string('title', 128)->index();
+            $table->string('description', 512)->nullable();
             $table->foreignUuid("user_id")->constrained('users')->onDelete('cascade');
             $table->date('last_activation')->nullable();
             $table->timestamps();

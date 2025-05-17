@@ -216,7 +216,7 @@ function App() {
         </div>
       )}
       <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-center lg:justify-between">
-        <p className="text-white">Versija: {__BUILD_VERSION__}</p>
+        <p className="text-white">🛠️ Versija: {__BUILD_VERSION__ ?? "-"}</p>
         <button
           onClick={() => navigate("/admin/games")}
           className="px-4 py-2 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"

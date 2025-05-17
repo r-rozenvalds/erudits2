@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\GameInstanceController;
 use App\Http\Controllers\Api\BroadcastController;
 use App\Http\Controllers\Api\PlayerAnswerController;
 use App\Http\Controllers\Api\BuzzerController;
+use App\Http\Controllers\Api\DeployController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +51,8 @@ Route::post('/player-finish-round', [PlayerController::class, 'finishRound']);
 Route::get('/ping', [BroadcastController::class, 'ping']);
 
 Route::get('/player/{id}', [PlayerController::class, 'show']);
+
+Route::post('/webhook', [DeployController::class, 'handle']);
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
 

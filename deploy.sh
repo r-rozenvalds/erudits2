@@ -26,7 +26,7 @@ FULL_TAG="$DATE_TAG.$BUILD_VERSION"
 git tag "$FULL_TAG"
 git push origin "$FULL_TAG"
 
-echo "VITE_APP_VERSION=$FULL_TAG" > .env
+sed -i "s/^VITE_APP_VERSION=.*/VITE_APP_VERSION=$FULL_TAG/" .env
 
 npm install >> /var/log/deploy.log 2>&1
 npm run build >> /var/log/deploy.log 2>&1
@@ -36,7 +36,6 @@ chown -R www-data:www-data /var/www/erudits2
 
 
 # Restart services
-systemctl restart php8.2-fpm
 systemctl restart apache2
 
 echo "Deployment completed at $(date)" >> /var/log/deploy.log

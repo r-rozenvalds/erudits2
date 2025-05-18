@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class DeployController extends Controller
 {
-    public function handle()
+    public function handle(Request $request)
     {
         Log::info('GitHub webhook received.');
 

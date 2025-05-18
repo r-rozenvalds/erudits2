@@ -158,7 +158,7 @@ function App() {
       <form onSubmit={handleJoin} className="flex flex-col w-screen h-screen">
         <div className="flex flex-col w-full h-full place-items-center justify-center gap-8">
           <p className="text-white lg:text-5xl text-3xl font-semibold font-[Manrope]">
-            Sistēma "Erudīts 2"
+            Sistēma "Erudīts 2" !
           </p>
           <div className="flex flex-col gap-4">
             <div className="flex lg:flex-row flex-col lg:gap-0 gap-4 place-items-center">

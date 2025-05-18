@@ -138,6 +138,9 @@ function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#31587A] to-[#3C3266]">
+      <div className="h-12 opacity-70 flex place-items-center justify-around w-full bg-yellow-400 font-semibold fixed animate-pulse">
+        🛠️ Pašlaik tiek veikti vietnes uzlabošanas darbi 🛠️
+      </div>
       {!!existingGameCode && (
         <div className="bg-white slide-down flex flex-col gap-3 lg:w-1/6 w-[90%] place-items-center justify-center shadow-lg rounded-b-md fixed top-0 left-0 right-0 mx-auto pt-4 z-50">
           <div className="flex gap-2 mx-8">

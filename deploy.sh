@@ -5,7 +5,7 @@ echo "Starting deployment at $(date)" >> /var/log/deploy.log
 cd /var/www/erudits2 || exit
 
 # Pull latest changes
-git pull origin main >> /var/log/deploy.log 2>&1
+git pull origin master >> /var/log/deploy.log 2>&1
 
 # Backend
 cd api
@@ -30,8 +30,5 @@ sed -i "s/^VITE_APP_VERSION=.*/VITE_APP_VERSION=$FULL_TAG/" .env
 
 npm install >> /var/log/deploy.log 2>&1
 npm run build >> /var/log/deploy.log 2>&1
-
-# Restart services
-systemctl restart apache2
 
 echo "Deployment completed at $(date)" >> /var/log/deploy.log

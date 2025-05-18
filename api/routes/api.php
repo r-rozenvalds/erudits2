@@ -52,7 +52,11 @@ Route::get('/ping', [BroadcastController::class, 'ping']);
 
 Route::get('/player/{id}', [PlayerController::class, 'show']);
 
-Route::post('/webhook', [DeployController::class, 'handle']);
+Route::get('/version', function () {
+    return response()->json([
+        'version' => trim(file_get_contents(base_path('version.txt')))
+    ]);
+});
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
 

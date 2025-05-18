@@ -31,10 +31,6 @@ sed -i "s/^VITE_APP_VERSION=.*/VITE_APP_VERSION=$FULL_TAG/" .env
 npm install >> /var/log/deploy.log 2>&1
 npm run build >> /var/log/deploy.log 2>&1
 
-# Permissions (if needed)
-chown -R www-data:www-data /var/www/erudits2
-
-
 # Restart services
 systemctl restart apache2
 

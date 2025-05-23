@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
+import { LandingPage } from "./components/player/pages/LandingPage.tsx";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AdminLogin from "./components/admin/pages/Login.tsx";
@@ -28,7 +28,7 @@ import { Buzzer } from "./components/admin/ui/panel/Buzzer.tsx";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <LandingPage />,
   },
   {
     path: "admin/login",

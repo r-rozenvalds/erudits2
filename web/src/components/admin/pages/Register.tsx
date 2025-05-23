@@ -111,13 +111,13 @@ const AdminRegister = () => {
           <div className="flex flex-col"></div>
         </div>
         <hr className="border-dashed w-80" />
-        <button
-          onClick={() => navigate("/admin/login")}
-          className="text-white text-lg place-self-center hover:underline"
-        >
-          Autorizēties
-        </button>
       </form>
+      <button
+        onClick={() => navigate("/admin/login")}
+        className="text-white text-lg place-self-center hover:underline"
+      >
+        Autorizēties
+      </button>
     </div>
   );
 };

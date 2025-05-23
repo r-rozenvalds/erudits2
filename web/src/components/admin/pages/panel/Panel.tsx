@@ -6,8 +6,7 @@ import { SpinnerCircularFixed } from "spinners-react";
 import { BuzzerModal } from "../../ui/panel/BuzzerModal";
 
 export const Panel = () => {
-  const { game, instanceId, instance, isBuzzerMode, setIsBuzzerMode } =
-    useAdminPanel();
+  const { game, instanceId, instance, isBuzzerMode } = useAdminPanel();
 
   if (!instance) {
     return (
@@ -45,26 +44,6 @@ export const Panel = () => {
         <PlayerList />
 
         <RoundControl />
-      </div>
-      <div className="flex gap-4 place-items-center">
-        <button
-          disabled
-          onClick={() => setIsBuzzerMode(!isBuzzerMode)}
-          className="h-10 px-4 group rounded-sm bg-slate-500 hover:bg-slate-600 hover:cursor-not-allowed text-white font-bold transition-all w-48"
-        >
-          <i className="fa-solid fa-lock me-2"></i>
-          35.99
-          <i className="fa-solid fa-euro-sign ms-2"></i>
-        </button>
-        <button
-          disabled
-          onClick={() => window.location.assign("/admin/games")}
-          className="h-10 px-4 rounded-sm bg-slate-500 hover:bg-slate-600 hover:cursor-not-allowed text-white font-bold transition-all w-48"
-        >
-          <i className="fa-solid fa-lock me-2"></i>
-          65.99
-          <i className="fa-solid fa-euro-sign ms-2"></i>
-        </button>
       </div>
     </div>
   );

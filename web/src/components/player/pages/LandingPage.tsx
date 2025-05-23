@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import InstanceCard from "./components/ui/InstanceCard";
+import InstanceCard from "../../ui/InstanceCard";
 import { useEffect, useState } from "react";
-import { useToast } from "./components/universal/Toast";
-import { constants } from "./constants";
+import { useToast } from "../../universal/Toast";
+import { constants } from "../../../constants";
 import { SpinnerCircularFixed } from "spinners-react";
-import { PlayerLocalStorage } from "./components/player/enum/PlayerLocalStorage";
-import { IGameSessionStorage } from "./components/player/interface/IGameSessionStorage";
+import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
+import { IGameSessionStorage } from "../interface/IGameSessionStorage";
 
 interface IGameInstance {
   title: string;
@@ -13,7 +13,7 @@ interface IGameInstance {
   code: string;
 }
 
-function App() {
+export const LandingPage = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
   const showToast = useToast();
@@ -147,9 +147,11 @@ function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#31587A] to-[#3C3266]">
-      <div className="h-12 opacity-70 flex place-items-center justify-around w-full bg-yellow-400 font-semibold fixed animate-pulse">
-        🛠️ Pašlaik tiek veikti vietnes uzlabošanas darbi 🛠️
-      </div>
+      {version != "vLOCAL-DEV" && (
+        <div className="h-12 opacity-70 flex place-items-center justify-around w-full bg-yellow-400 font-semibold fixed animate-pulse">
+          🛠️ Pašlaik tiek veikti vietnes uzlabošanas darbi 🛠️
+        </div>
+      )}
       {!!existingGameCode && (
         <div className="bg-white slide-down flex flex-col gap-3 lg:w-1/6 w-[90%] place-items-center justify-center shadow-lg rounded-b-md fixed top-0 left-0 right-0 mx-auto pt-4 z-50">
           <div className="flex gap-2 mx-8">
@@ -228,7 +230,7 @@ function App() {
         </div>
       )}
       <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-center lg:justify-between">
-        <p className="text-white">Versija: {version}</p>
+        <p className="text-white">{version}</p>
         <button
           onClick={() => navigate("/admin/games")}
           className="px-4 py-2 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"
@@ -239,6 +241,4 @@ function App() {
       </div>
     </div>
   );
-}
-
-export default App;
+};

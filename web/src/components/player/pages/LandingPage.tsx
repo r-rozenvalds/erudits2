@@ -6,6 +6,7 @@ import { constants } from "../../../constants";
 import { SpinnerCircularFixed } from "spinners-react";
 import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
 import { IGameSessionStorage } from "../interface/IGameSessionStorage";
+import { localizeError, localizeSuccess } from "../../../localization";
 
 interface IGameInstance {
   title: string;
@@ -82,13 +83,13 @@ export const LandingPage = () => {
         })
       );
 
-      showToast(true, data.message);
+      showToast(true, localizeSuccess(data.message));
       navigate("/play/lobby");
       setIsLoading(false);
       return;
     }
 
-    showToast(false, data?.error ?? "Kļūda meklējot spēli");
+    showToast(false, localizeError(data?.error) ?? "Kļūda meklējot spēli");
   };
 
   const setCodeValue = (e: {

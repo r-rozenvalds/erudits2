@@ -3,6 +3,7 @@ import { constants } from "../../../constants";
 import { IGame } from "../interface/IGame";
 import { useToast } from "../../universal/Toast";
 import { SpinnerCircularFixed } from "spinners-react";
+import { localizeError, localizeSuccess } from "../../../localization";
 
 export const ActivationModal = ({
   game,
@@ -57,11 +58,13 @@ export const ActivationModal = ({
 
     if (response.ok) {
       const data = await response.json();
-      showToast(true, data.message);
+      console.log(localizeSuccess(data.message));
+      showToast(true, localizeSuccess(data.message));
       onClose(true);
     } else {
       const data = await response.json();
-      showToast(false, data.message);
+      console.log(localizeError(data.message));
+      showToast(false, localizeError(data.message));
     }
     setIsLoading(false);
     onClose();

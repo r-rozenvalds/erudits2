@@ -122,7 +122,7 @@ class PlayerAnswerController extends Controller
         }
         catch(\Exception $e) {
             Log::error('Error storing player answer: ' . $e->getMessage());
-            return response()->json(['error' => 'Error storing player answer.'], 500);
+            return response()->json(['message' => 'Error storing player answer.'], 500);
         }
     }
 
@@ -166,7 +166,7 @@ class PlayerAnswerController extends Controller
         }
         catch(\Exception $e) {
             Log::error('Error getting answers for game instance ' . $gameInstanceId . ': ' . $e->getMessage());
-            return response()->json(['error' => 'Error getting answers for game instance.'], 500);
+            return response()->json(['message' => 'Error getting answers for game instance.'], 500);
         }
     }
 
@@ -198,7 +198,7 @@ class PlayerAnswerController extends Controller
             $playerAnswer->update($request->all());
             return response()->json(['message' => 'Player answer successfully updated.'], 200);
         } else {
-            return response()->json(['error' => 'Player answer not found.'], 404);
+            return response()->json(['message' => 'Player answer not found.'], 404);
         }
     }
 

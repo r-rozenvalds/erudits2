@@ -5,6 +5,7 @@ import { useToast } from "../../../universal/Toast";
 import { IGame } from "../../interface/IGame";
 import { IInstance } from "../../interface/IInstance";
 import { useNavigate } from "react-router-dom";
+import { localizeError } from "../../../../localization";
 
 export const StartStop = ({
   game,
@@ -30,7 +31,33 @@ export const StartStop = ({
       return;
     }
 
-    try {
+    const response = await fetch(`${constants.baseApiUrl}/game-control`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem(
+          constants.localStorage.TOKEN
+        )}`,
+      },
+      body: JSON.stringify({
+        command: "start",
+        instance_id: instanceId,
+      }),
+    });
+
+    if (response.ok) {
+      showToast(true, "Spēle sākta");
+      setGameStarted(true);
+    } else {
+      const data = await response.json();
+      showToast(false, localizeError(data.message));
+    }
+    setIsLoading(false);
+  };
+
+  const closeGame = async () => {
+    setIsLoading(true);
+    if (await confirm(`Slēgt spēli ${game.title}?`)) {
       const response = await fetch(`${constants.baseApiUrl}/game-control`, {
         method: "POST",
         headers: {
@@ -40,46 +67,19 @@ export const StartStop = ({
           )}`,
         },
         body: JSON.stringify({
-          command: "start",
+          command: "end",
           instance_id: instanceId,
         }),
       });
-
-      if (!response.ok) throw new Error("Game start failed");
-      showToast(true, "Spēle sākta");
-      setGameStarted(true);
-    } catch (error) {
-      showToast(false, "Kļūda: " + error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const closeGame = async () => {
-    setIsLoading(true);
-    if (await confirm(`Slēgt spēli ${game.title}?`)) {
-      try {
-        await fetch(`${constants.baseApiUrl}/game-control`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(
-              constants.localStorage.TOKEN
-            )}`,
-          },
-          body: JSON.stringify({
-            command: "end",
-            instance_id: instanceId,
-          }),
-        });
+      if (response.ok) {
         showToast(true, "Spēle slēgta");
         navigate("/admin/games");
-      } catch (error) {
-        showToast(false, "Kļūda:" + error);
-      } finally {
-        setIsLoading(false);
+      } else {
+        const data = await response.json();
+        showToast(false, localizeError(data.message));
       }
     }
+    setIsLoading(false);
   };
 
   return (

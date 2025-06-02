@@ -5,6 +5,7 @@ import { useToast } from "../../../universal/Toast";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
 import { useNavigate } from "react-router-dom";
 import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
+import { localizeError, localizeSuccess } from "../../../../localization";
 
 export const AdminGameTableItem = ({
   game,
@@ -48,14 +49,48 @@ export const AdminGameTableItem = ({
       const response = await fetch(`${constants.baseApiUrl}/games/${game.id}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem(
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(
             constants.localStorage.TOKEN
           )}`,
         },
       });
       if (response.ok) {
-        showToast(true, "Spēle veiksmīgi izdzēsta");
+        const data = await response.json();
+        showToast(true, localizeSuccess(data.message));
         setTimeout(() => window.location.reload(), 1000);
+      } else {
+        const data = await response.json();
+        showToast(true, localizeError(data?.message) ?? "Sistēmas kļūda");
+      }
+    }
+    return;
+  };
+
+  const duplicateGame = async () => {
+    if (!!game.activeGameInstance) {
+      return;
+    }
+    if (await confirm(`Kopēt spēli ${game.title}?`)) {
+      const response = await fetch(
+        `${constants.baseApiUrl}/duplicate-game/${game.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(
+              constants.localStorage.TOKEN
+            )}`,
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        showToast(true, localizeSuccess(data.message));
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        const data = await response.json();
+        showToast(true, localizeError(data?.message) ?? "Sistēmas kļūda");
       }
     }
     return;
@@ -124,6 +159,19 @@ export const AdminGameTableItem = ({
             >
               <i
                 className={`fa-solid fa-gear text-2xl text-gray-400 ${
+                  !!!game.activeGameInstance && "group-hover:text-black"
+                }`}
+              ></i>
+            </button>
+            <button
+              onClick={duplicateGame}
+              disabled={!!game.activeGameInstance}
+              className={`group w-8 h-8 ${
+                !!game.activeGameInstance && "opacity-50 cursor-not-allowed"
+              }`}
+            >
+              <i
+                className={`fa-solid fa-clone text-2xl text-gray-400 ${
                   !!!game.activeGameInstance && "group-hover:text-black"
                 }`}
               ></i>

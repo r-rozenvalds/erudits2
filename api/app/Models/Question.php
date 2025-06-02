@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Question extends Model
 {
@@ -23,5 +24,9 @@ class Question extends Model
 
     public function round(): BelongsTo {
         return $this->belongsTo(Round::class);
+    }
+
+    public function answers(): HasMany {
+        return $this->hasMany(Answer::class);
     }
 }

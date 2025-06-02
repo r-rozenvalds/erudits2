@@ -5,6 +5,7 @@ import { useState } from "react";
 import { constants } from "../../../../constants";
 import { useToast } from "../../../universal/Toast";
 import { RoundCountdown } from "./RoundCountdown";
+import { localizeError, localizeSuccess } from "../../../../localization";
 
 export const RoundControl = () => {
   const { gameController, fetchQuestionInfo, instanceId, instance } =
@@ -43,10 +44,10 @@ export const RoundControl = () => {
     if (response.ok) {
       const data = await response.json();
       fetchQuestionInfo();
-      showToast(true, data.message);
+      showToast(true, localizeSuccess(data.message));
     } else {
       const data = await response.json();
-      showToast(false, data.message);
+      showToast(false, localizeError(data.message));
     }
   };
 
@@ -67,10 +68,10 @@ export const RoundControl = () => {
     if (response.ok) {
       const data = await response.json();
       fetchQuestionInfo();
-      showToast(true, data.message);
+      showToast(true, localizeSuccess(data.message));
     } else {
       const data = await response.json();
-      showToast(false, data.message);
+      showToast(false, localizeError(data.message));
     }
   };
 
@@ -91,10 +92,10 @@ export const RoundControl = () => {
     if (response.ok) {
       const data = await response.json();
       fetchQuestionInfo();
-      showToast(true, data.message);
+      showToast(true, localizeSuccess(data.message));
     } else {
       const data = await response.json();
-      showToast(false, data.message);
+      showToast(false, localizeError(data.message));
     }
   };
 
@@ -115,10 +116,10 @@ export const RoundControl = () => {
     if (response.ok) {
       const data = await response.json();
       fetchQuestionInfo();
-      showToast(true, data.message);
+      showToast(true, localizeSuccess(data.message));
     } else {
       const data = await response.json();
-      showToast(false, data.message);
+      showToast(false, localizeError(data.message));
     }
   };
 

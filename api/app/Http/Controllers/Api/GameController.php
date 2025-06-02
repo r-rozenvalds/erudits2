@@ -151,7 +151,47 @@ class GameController extends Controller
         $game = Game::findOrFail($id);
         $game->delete();
 
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Game successfully deleted.', 204]);
+    }
+
+    public function duplicate(string $game_id) {
+        try {
+            $originalGame = Game::findOrFail($game_id);
+
+            $newGame = $originalGame->replicate();
+            $newGame->id = Str::uuid()->toString();
+            $newGame->title = $originalGame->title . ' (kopija)';
+            $newGame->save();
+
+            $originalRounds = $originalGame->rounds()->get();
+            foreach ($originalRounds as $originalRound) {
+                $newRound = $originalRound->replicate();
+                $newRound->id = Str::uuid()->toString();
+                $newRound->game_id = $newGame->id;
+                $newRound->save();
+
+                $originalQuestions = $originalRound->questions()->get();
+                foreach ($originalQuestions as $originalQuestion) {
+                    $newQuestion = $originalQuestion->replicate();
+                    $newQuestion->id = Str::uuid()->toString();
+                    $newQuestion->round_id = $newRound->id;
+                    $newQuestion->save();
+
+                    $originalAnswers = $originalQuestion->answers()->get();
+                    foreach ($originalAnswers as $originalAnswer) {
+                        $newAnswer = $originalAnswer->replicate();
+                        $newAnswer->id = Str::uuid()->toString();
+                        $newAnswer->question_id = $newQuestion->id;
+                        $newAnswer->save();
+                    }
+                }
+            }
+
+            return response()->json(['message' => 'Game successfully duplicated.', 'game' => $newGame], 201);
+        } catch (Exception $e) {
+            Log::error('Error duplicating game: ' . $e->getMessage());
+            return response()->json(['message' => 'Error duplicating game.'], 500);
+        }
     }
 
 } 

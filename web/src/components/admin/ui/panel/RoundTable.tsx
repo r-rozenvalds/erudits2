@@ -21,7 +21,7 @@ export const RoundTable = ({
     return [
       {
         accessorKey: "player_name",
-        header: "Player Name",
+        header: "Spēlētājs",
         meta: {
           className: "sticky left-0 bg-slate-300 z-10", // bg-white ensures it covers cells behind
         } as { className?: string },

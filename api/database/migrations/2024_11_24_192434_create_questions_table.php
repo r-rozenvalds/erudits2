@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('questions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string("title", 64)->index();
+            $table->string("title", 255)->index();
             $table->boolean("is_text_answer")->default(false);
             $table->foreignUuid("round_id")->constrained('rounds')->onDelete('cascade');
             $table->string("guidelines", 255)->nullable();

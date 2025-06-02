@@ -93,11 +93,11 @@ export const TiebreakModal = ({
   };
 
   return (
-    <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2  glass-effect w-full h-full">
+    <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2  glass-effect w-full h-full z-40">
       <div className="w-screen h-screen flex place-items-center justify-center gap-4">
         <div className="flex gap-4 place-items-center flex-col bg-black bg-opacity-80 p-3 rounded-md">
           <div className="flex justify-between place-items-center w-full min-w-80">
-            <h1 className="font-bold text-white">Tiebreak Results</h1>
+            <h1 className="font-bold text-white">Laušanas rezultāti</h1>
             <button>
               <i
                 className="fa-solid fa-xmark text-white cursor-pointer"

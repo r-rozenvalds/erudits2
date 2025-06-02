@@ -67,6 +67,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/create-game', [GameController::class, 'create']);
     Route::get('/game-sidebar/{game_id}', [GameController::class, 'sidebar']);
     Route::get('/full-game/{game_id}', [GameController::class, 'fullIndex']);
+    Route::post('/duplicate-game/{game_id}', [GameController::class, 'duplicate']);
 
     //rounds
     Route::apiResource('/rounds', RoundController::class);
@@ -114,6 +115,14 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/buzzer-clear', [BuzzerController::class, 'deactivateAll']);
     Route::get('/buzzers/{instance_id}', [BuzzerController::class, 'getInstanceBuzzers']);
     Route::post('/buzzers-toggle', [BuzzerController::class, 'toggleBuzzers']);
+
+    // PLAYERS
+    // Route::get('/players', [PlayerController::class, 'get']);
+    // Route::post('/delete-players', [PlayerController::class, 'destroy']);
+    // Route::post('/disqualify-players', [PlayerController::class, 'disqualify']);
+    // Route::post('/requalify-players', [PlayerController::class, 'requalify']);
+    // Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
+
 });
 
 

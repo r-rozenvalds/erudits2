@@ -48,7 +48,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in indexing game instances: ".$e->getMessage());
-            return response()->json(['error' => 'Error in indexing game instances'], 500);
+            return response()->json(['message' => 'Error in indexing game instances'], 500);
         }
     }
     
@@ -80,7 +80,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch (Exception $e) {
             Log::error("Error in indexing game instances with player info: ".$e->getMessage());
-            return response()->json(['error' => 'Error in indexing game instances with player info'], 500);
+            return response()->json(['message' => 'Error in indexing game instances with player info'], 500);
         }
     }
 
@@ -121,7 +121,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in activating game instance: ".$e->getMessage());
-            return response()->json(['error' => 'Error in activating game instance'], 500);
+            return response()->json(['message' => 'Error in activating game instance'], 500);
         }
     }
 
@@ -145,7 +145,7 @@ class GameInstanceController extends PlayerAnswerController
             ]);
 
             if ($validator->fails()) {
-                return response()->json(['error' => 'Invalid code.'], 400);
+                return response()->json(['message' => 'Invalid code.'], 400);
             }
 
             $gameInstance = GameInstance::where('code', $request->code)
@@ -156,22 +156,22 @@ class GameInstanceController extends PlayerAnswerController
             if ($gameInstance && $gameInstance->game_started != false) { // if game already started
                 $player = Player::find($request->player_id);
                 if (!$player) { // and player not found
-                    return response()->json(['error' => 'Game already started'], 400);
+                    return response()->json(['message' => 'Game already started'], 400);
                 }
                 if ($player->disqualified) { // if found but disqualified
-                    return response()->json(['error' => 'Player disqualified'], 400);
+                    return response()->json(['message' => 'Player disqualified'], 400);
                 }
             }
             if ($gameInstance) {
                 $game = Game::where('id', $gameInstance->game_id)->first();
                 return response()->json(['message' => 'Game instance found.', 'id' => $gameInstance['id'], 'end_date' => $gameInstance['end_date'], 'title' => $game['title']], 200);
             } else {
-                return response()->json(['error' => 'Game instance not found.'], 404);
+                return response()->json(['message' => 'Game instance not found.'], 404);
             }
         }
         catch(Exception $e){
             Log::error("Error in joining game instance: ".$e->getMessage());
-            return response()->json(['error' => 'Error in joining game instance'], 500);
+            return response()->json(['message' => 'Error in joining game instance'], 500);
         }
     }
 
@@ -219,7 +219,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in getting question info: ".$e->getMessage());
-            return response()->json(['error' => 'Error in getting question info'], 500);
+            return response()->json(['message' => 'Error in getting question info'], 500);
         }
     }
     
@@ -321,7 +321,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in starting next round: ".$e->getMessage());
-            return response()->json(['error' => 'Error in starting next round'], 500);
+            return response()->json(['message' => 'Error in starting next round'], 500);
         }
     }
     
@@ -356,7 +356,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in starting previous round: ".$e->getMessage());
-            return response()->json(['error' => 'Error in starting previous round'], 500);
+            return response()->json(['message' => 'Error in starting previous round'], 500);
         }
     }
 
@@ -422,7 +422,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in starting next question: ".$e->getMessage());
-            return response()->json(['error' => 'Error in starting next question'], 500);
+            return response()->json(['message' => 'Error in starting next question'], 500);
         }
     }
 
@@ -487,7 +487,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in starting previous question: ".$e->getMessage());
-            return response()->json(['error' => 'Error in starting previous question'], 500);
+            return response()->json(['message' => 'Error in starting previous question'], 500);
         }
     }
     
@@ -498,7 +498,7 @@ class GameInstanceController extends PlayerAnswerController
             $instanceId = $request->input('instance_id'); 
             if($command == 'start') {
                 if(Player::where('instance_id', $instanceId)->count() < 2) {
-                    return response()->json(['error' => 'Not enough players to start game'], 400);
+                    return response()->json(['message' => 'Not enough players to start game'], 400);
                 }
                 $gameId = GameInstance::where('id', $instanceId)->value('game_id');
                 $roundId = Round::where('game_id', $gameId)->where('order', 1)->value('id');
@@ -514,14 +514,15 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in executing game control command: ".$e->getMessage());
-            return response()->json(['error' => 'Error in executing game control command'], 500);
+            return response()->json(['message' => 'Error in executing game control command'], 500);
         }
     }
 
     public function tiebreak(Request $request) {
         Log::info("Starting tiebreak in instance ".$request->instance_id);
+        $playerIds = explode(",", $request->player_ids);
         try{
-            $tiedPlayers = Player::whereIn('id', $request->player_ids)->get();
+            $tiedPlayers = Player::whereIn('id', $playerIds)->get();
             $gameInstance = GameInstance::findOrFail($request->instance_id);
             $game = Game::findOrFail($gameInstance->game_id);
             $rounds = $game->rounds()->get();
@@ -547,7 +548,7 @@ class GameInstanceController extends PlayerAnswerController
         }
         catch(Exception $e){
             Log::error("Error in starting tiebreak: ".$e->getMessage());
-            return response()->json(['error' => 'Error in starting tiebreak'], 500);
+            return response()->json(['message' => 'Error in starting tiebreak'], 500);
         }
     }
     

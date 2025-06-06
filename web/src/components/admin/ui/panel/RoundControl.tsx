@@ -8,8 +8,7 @@ import { RoundCountdown } from "./RoundCountdown";
 import { localizeError, localizeSuccess } from "../../../../localization";
 
 export const RoundControl = () => {
-  const { gameController, fetchQuestionInfo, instanceId, instance } =
-    useAdminPanel();
+  const { gameController, fetchQuestionInfo, instanceId } = useAdminPanel();
   const [fetchDisabled, setFetchDisabled] = useState(false);
   const showToast = useToast();
 
@@ -140,10 +139,11 @@ export const RoundControl = () => {
           )}
         </button>
       </div>
-      {!!instance_info.game_started && (
-        <div className="bg-slate-100 flex flex-col justify-between w-full h-full">
-          <div className="w-full h-84 bg-slate-200 py-2">
-            <div className="flex justify-between px-4 gap-4">
+
+      <div className="bg-slate-100 flex flex-col justify-between w-full h-full">
+        <div className="w-full h-84 bg-slate-200 py-2">
+          <div className="flex justify-between px-4 gap-4">
+            <div className="flex gap-2">
               <button
                 disabled={!instance_info.game_started}
                 onClick={previousRound}
@@ -156,28 +156,52 @@ export const RoundControl = () => {
                 <i className="fa-solid fa-backward-fast me-2"></i>
                 Iepriekšējā kārta
               </button>
-              <div className="bg-slate-300 flex-col flex place-items-center px-4 rounded-sm">
-                <p className="text-xs">Nepieciešams diskvalificēt</p>
-                {instance?.current_round && (
-                  <p className="font-semibold">
-                    {instance_info.disqualify_amount} spēlētājus
-                  </p>
-                )}
-                {!instance?.current_round && <p className="font-semibold">-</p>}
+              <button
+                disabled={instance_info.is_test || !instance_info.current_round}
+                onClick={previousQuestion}
+                className={`${
+                  instance_info.is_test || !instance_info.current_round
+                    ? "bg-slate-400"
+                    : "bg-blue-700 hover:bg-blue-800"
+                }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
+              >
+                <i className="fa-solid fa-backward me-2"></i>
+                Iepriekšējais jautājums
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <div className="bg-slate-300 flex-col flex place-items-center text-center w-32">
+                <p className="text-xs">Pašreizējais jautājums</p>
+                <p className="font-semibold">
+                  {instance_info.current_question ?? "-"}
+                </p>
               </div>
-
-              <div className="flex flex-col place-items-center grow">
+              <div className="bg-slate-300 flex-col flex place-items-center text-center w-32 rounded-sm">
                 <p className="text-xs">Pašreizējā kārta</p>
                 <p className="font-semibold">
                   {instance_info.current_round ?? "-"}
                 </p>
               </div>
-              <div className="bg-slate-300 flex-col flex place-items-center px-2 rounded-sm">
+              <div className="bg-slate-300 flex-col flex place-items-center text-center w-32 rounded-sm">
                 <p className="text-xs">Atlikušais laiks</p>
                 <p className="font-semibold">
                   <RoundCountdown gameController={gameController} />
                 </p>
               </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                disabled={instance_info.is_test || !instance_info.current_round}
+                onClick={nextQuestion}
+                className={`${
+                  instance_info.is_test || !instance_info.current_round
+                    ? "bg-slate-400"
+                    : "bg-blue-700 hover:bg-blue-800"
+                }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
+              >
+                Nākamais jautājums
+                <i className="fa-solid fa-forward ms-2"></i>
+              </button>
               <button
                 disabled={!instance_info.game_started}
                 onClick={nextRound}
@@ -192,44 +216,9 @@ export const RoundControl = () => {
               </button>
             </div>
           </div>
-          {gameController.player_answers && (
-            <RoundTable gameController={gameController} />
-          )}
-
-          <div className="w-full h-84 bg-slate-200 py-2 flex justify-between px-4">
-            <button
-              disabled={instance_info.is_test || !instance_info.current_round}
-              onClick={previousQuestion}
-              className={`${
-                instance_info.is_test || !instance_info.current_round
-                  ? "bg-slate-400"
-                  : "bg-blue-700 hover:bg-blue-800"
-              }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
-            >
-              <i className="fa-solid fa-backward me-2"></i>
-              Iepriekšējais jautājums
-            </button>
-            <div className="flex flex-col place-items-center grow">
-              <p className="text-xs">Pašreizējais jautājums</p>
-              <p className="font-semibold">
-                {instance_info.current_question ?? "-"}
-              </p>
-            </div>
-            <button
-              disabled={instance_info.is_test || !instance_info.current_round}
-              onClick={nextQuestion}
-              className={`${
-                instance_info.is_test || !instance_info.current_round
-                  ? "bg-slate-400"
-                  : "bg-blue-700 hover:bg-blue-800"
-              }  text-white font-bold px-4 rounded-sm py-2 transition-all`}
-            >
-              Nākamais jautājums
-              <i className="fa-solid fa-forward ms-2"></i>
-            </button>
-          </div>
         </div>
-      )}
+        <RoundTable gameController={gameController} />
+      </div>
     </div>
   );
 };

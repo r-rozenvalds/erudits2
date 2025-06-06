@@ -54,11 +54,7 @@ export const usePlayer = () => {
   return context;
 };
 
-interface IAnswerDto {
-  id: string;
-  text?: string;
-  question_id: string;
-}
+interface IAnswerDto {}
 
 export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [playerId, setPlayerId] = useState<string>("");

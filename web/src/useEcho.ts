@@ -8,8 +8,8 @@ const echo = new Echo({
   wsHost: import.meta.env.VITE_APP_HOST,
   wsPort: import.meta.env.VITE_APP_PORT,
   cluster: import.meta.env.VITE_APP_CLUSTER,
-  forceTLS: true,
-  encrypted: true,
+  forceTLS: false,
+  encrypted: false,
   disableStats: true,
   enabledTransports: ["ws", "wss"],
 });

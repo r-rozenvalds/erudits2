@@ -15,15 +15,20 @@ use App\Events\RefreshPlayersEvent;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+use App\Http\Requests\QueryModels\PlayerQueryModel; 
+use App\Traits\QueryTraits;
+
 class PlayerController extends Controller
 {
+
+    use QueryTraits;
 
     public function createPlayer(PlayerRequest $request)
     {
         Log::info('Creating player ' . $request->player_name . ' for instance ' . $request->instance_id);
         try{
             if(Player::where('player_name', '=', $request->player_name)->where('instance_id', '=', $request->instance_id)->exists()) {
-                return response()->json(['error' => 'Player already exists.'], 400);
+                return response()->json(['message' => 'Player already exists.'], 400);
             }
             $validated = $request->validated();
 
@@ -71,7 +76,6 @@ class PlayerController extends Controller
     }
 
     public function requalify(Request $request) {
-
         $players = explode(',', $request->player_ids);
 
         Log::info('Requalifying players ' . $request->player_ids);
@@ -93,12 +97,12 @@ class PlayerController extends Controller
     public function adjustPoints(Request $request) {
         $player = Player::where('id', $request->player_id)->first();
         if($player) {
-            $player->points = $player->points + $request->amount;
+            $player->points = $request->points;
             $player->save();
 
-            return response()->json(['points' => $player->points], 200);
+            return response()->json(['message' => 'Points adjusted successfully.'], 200);
         }
-        return response()->json(['error' => 'Player not found.'], 404);
+        return response()->json(['message' => 'Player not found.'], 404);
     }
 
     public function finishRound(Request $request) {
@@ -108,7 +112,7 @@ class PlayerController extends Controller
             $player->save();
             return response()->json(['message' => 'Player round finished.'], 200);
         }
-        return response()->json(['error' => 'Player not found.'], 404);
+        return response()->json(['message' => 'Player not found.'], 404);
     }
 
     /**
@@ -137,32 +141,16 @@ class PlayerController extends Controller
             $instance = GameInstance::where('id', $player->instance_id)->first(['started_at', 'game_started', 'buzzers_mode']);
             return response()->json(['player' => new PlayerResource($player), 'instance' => $instance], 200);
         }
-        return response()->json(['error' => 'Player not found.'], 404);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Player $player)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Player $player)
-    {
-        //
+        return response()->json(['message' => 'Player not found.'], 404);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $ids)
+    public function destroy(Request $request)
     {
-        $playerIds = explode(',', $ids);
-        Log::info('Deleting players ' . $ids);
+        $playerIds = explode(',', $request->player_ids);
+        Log::info('Deleting players ' . $request->player_ids);
         foreach ($playerIds as $id) {
             try {
                 $player = Player::where('id', $id)->first();
@@ -174,5 +162,58 @@ class PlayerController extends Controller
             }
         }
         return response()->json(['message' => 'Players deleted.'], 200);
+    }
+
+//----------------------------------- new apis
+
+    public function get(PlayerQueryModel $request) {
+        $filterableFields = ['player_name'];
+
+        $query = Player::query();
+
+        $paginator = $this->applyQueryParameters($query, $request, $filterableFields);
+
+        $players = $paginator->items();
+
+        // Filter out disqualified players for ranking
+        $rankedPlayers = collect($players)->filter(function ($player) {
+            return !$player->is_disqualified;
+        })->sortByDesc('points')->values();
+
+        // Assign ranks to players
+        $rankedPlayers->each(function ($player, $index) {
+            $player->position = $index + 1;
+        });
+
+        // Add position '-' for disqualified players
+        foreach ($players as $player) {
+            if ($player->is_disqualified) {
+            $player->position = '-';
+            } else {
+            $player->position = $rankedPlayers->firstWhere('id', $player->id)->position ?? '-';
+            }
+        }
+
+        // Sort players by position
+        usort($players, function ($a, $b) {
+            if ($a->position === '-' && $b->position === '-') {
+            return 0;
+            }
+            if ($a->position === '-') {
+            return 1;
+            }
+            if ($b->position === '-') {
+            return -1;
+            }
+            return $a->position <=> $b->position;
+        });
+
+        return response()->json([
+            'items' => $players,
+            'total_items' => $paginator->total(),
+            'items_per_page' => $paginator->perPage(),
+            'page' => $paginator->currentPage(),
+            'total_pages' => $paginator->lastPage(),
+        ]);
     }
 }

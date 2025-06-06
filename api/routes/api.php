@@ -98,10 +98,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     //players
     Route::get('/players/{instance_id}', [PlayerController::class, 'index']);
-    Route::post('/disqualify-player', [PlayerController::class, 'disqualify']);
-    Route::post('/requalify-player', [PlayerController::class, 'requalify']);
-    Route::delete('/players/{ids}', [PlayerController::class, 'destroy']);
-    Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
+    // Route::post('/disqualify-player', [PlayerController::class, 'disqualify']);
+    // Route::post('/requalify-player', [PlayerController::class, 'requalify']);
+    // Route::delete('/players/{ids}', [PlayerController::class, 'destroy']);
+    // Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
 
     //player-answers
     Route::get('/player-answers/{gameInstanceId}', [PlayerAnswerController::class, 'getInstanceAnswers']);
@@ -117,11 +117,11 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/buzzers-toggle', [BuzzerController::class, 'toggleBuzzers']);
 
     // PLAYERS
-    // Route::get('/players', [PlayerController::class, 'get']);
-    // Route::post('/delete-players', [PlayerController::class, 'destroy']);
-    // Route::post('/disqualify-players', [PlayerController::class, 'disqualify']);
-    // Route::post('/requalify-players', [PlayerController::class, 'requalify']);
-    // Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
+    Route::get('/players', [PlayerController::class, 'get']);
+    Route::post('/delete-players', [PlayerController::class, 'destroy']);
+    Route::post('/disqualify-players', [PlayerController::class, 'disqualify']);
+    Route::post('/requalify-players', [PlayerController::class, 'requalify']);
+    Route::post('/adjust-points', [PlayerController::class, 'adjustPoints']);
 
 });
 

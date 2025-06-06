@@ -79,28 +79,30 @@ export const RoundTable = ({
   return (
     <div className="overflow-x-auto w-full h-full">
       <table className="table-auto text-center text-sm w-full">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr className="bg-slate-300" key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                const meta = header.column.columnDef.meta as {
-                  className?: string;
-                };
-                return (
-                  <th
-                    className={`px-2 py-1 ${meta?.className ?? ""}`}
-                    key={header.id}
-                  >
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          ))}
-        </thead>
+        {player_answers.length > 0 && (
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr className="bg-slate-300" key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as {
+                    className?: string;
+                  };
+                  return (
+                    <th
+                      className={`px-2 py-1 ${meta?.className ?? ""}`}
+                      key={header.id}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+        )}
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr

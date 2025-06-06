@@ -133,9 +133,9 @@ export const AdminPanelProvider = ({ children }: { children: ReactNode }) => {
       fetchQuestionInfo();
     });
 
-    playerChannel.listen(".refresh-players-event", () => {
-      fetchPlayers();
-    });
+    // playerChannel.listen(".refresh-players-event", () => {
+    //   fetchPlayers();
+    // });
 
     tiebreakAnswerChannel.listen(
       ".tiebreak-answer-event",

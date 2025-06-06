@@ -1,4 +1,4 @@
-import { PlayerList } from "../../ui/panel/PlayerList";
+import { PlayerList } from "../../ui/panel/playerlist/PlayerList";
 import { StartStop } from "../../ui/panel/StartStop";
 import { RoundControl } from "../../ui/panel/RoundControl";
 import { useAdminPanel } from "../../../universal/AdminPanelContext";
@@ -17,9 +17,9 @@ export const Panel = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen gap-4 p-4">
+    <div className="flex flex-col h-screen">
       {!!isBuzzerMode && <BuzzerModal />}
-      <div className="flex justify-between place-items-center">
+      <div className="flex justify-between place-items-center bg-slate-100 p-4">
         <div className="flex place-items-center gap-6">
           <button
             onClick={() => window.location.assign("/admin/games")}
@@ -40,7 +40,7 @@ export const Panel = () => {
           <StartStop instance={instance} game={game} instanceId={instanceId} />
         )}
       </div>
-      <div className="flex grow justify-between gap-8">
+      <div className="flex grow justify-between gap-4 px-4 pb-4">
         <PlayerList />
 
         <RoundControl />

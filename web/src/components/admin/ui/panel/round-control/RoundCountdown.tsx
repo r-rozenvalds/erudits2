@@ -1,5 +1,5 @@
 import Countdown from "react-countdown";
-import { IGameController } from "../../../universal/AdminPanelContext";
+import { IGameController } from "../../../../universal/AdminPanelContext";
 
 export const RoundCountdown = ({
   gameController,

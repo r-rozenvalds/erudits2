@@ -4,7 +4,7 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { IGameController } from "../../../universal/AdminPanelContext";
+import { IGameController } from "../../../../universal/AdminPanelContext";
 
 export const RoundTable = ({
   gameController,

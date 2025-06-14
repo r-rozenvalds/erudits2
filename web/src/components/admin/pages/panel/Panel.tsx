@@ -1,6 +1,6 @@
-import { PlayerList } from "../../ui/panel/playerlist/PlayerList";
+import { PlayerList } from "../../ui/panel/player-list/PlayerList";
 import { StartStop } from "../../ui/panel/StartStop";
-import { RoundControl } from "../../ui/panel/RoundControl";
+import { RoundControl } from "../../ui/panel/round-control/RoundControl";
 import { useAdminPanel } from "../../../universal/AdminPanelContext";
 import { SpinnerCircularFixed } from "spinners-react";
 import { BuzzerModal } from "../../ui/panel/BuzzerModal";

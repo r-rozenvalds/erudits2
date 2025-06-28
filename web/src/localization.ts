@@ -37,6 +37,10 @@ export const localization = {
       executingGameControlCommand: "Kļūda izpildot spēles vadības komandu.",
       noTiebreakRound: "Nav papildkārtas.",
       startingTiebreak: "Kļūda sākot papildkārtu.",
+      savingGame: "Kļūda saglabājot spēli.",
+      savingRound: "Kļūda saglabājot kārtu.",
+      savingQuestion: "Kļūda saglabājot jautājumu.",
+      savingAnswer: "Kļūda saglabājot atbildi.",
     },
     success: {
       gameCreated: "Spēle veiksmīgi izveidota.",
@@ -95,6 +99,10 @@ export const localization = {
       executingGameControlCommand: "Error in executing game control command",
       noTiebreakRound: "No tiebreak round.",
       startingTiebreak: "Error in starting tiebreak",
+      savingGame: "Error saving game.",
+      savingQuestion: "Error saving question.",
+      savingRound: "Error saving round.",
+      savingAnswer: "Error saving answer.",
     },
     success: {
       gameCreated: "Game successfully created.",

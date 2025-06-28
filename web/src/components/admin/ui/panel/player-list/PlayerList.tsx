@@ -75,6 +75,7 @@ export const PlayerList = () => {
 
       if (await postDelete(request)) {
         fetchPlayers();
+        setSelectedPlayerIds([]);
       }
     }
   };
@@ -329,7 +330,7 @@ export const PlayerList = () => {
           </div>
         </div>
         {selectedPlayerIds.length > 0 && (
-          <div className="w-16 my-8 p-2 bg-slate-200 flex flex-col gap-2">
+          <div className="w-16 my-7 p-2 bg-slate-200 flex flex-col gap-2">
             {showDisqualifyButton() && (
               <ButtonWithTooltip
                 color={"#d00000"}

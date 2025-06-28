@@ -7,13 +7,13 @@ import { InstanceProvider } from "../../../../stores/InstanceStore";
 export const PanelLayout = () => {
   return (
     <InstanceProvider>
-      <PlayerProvider>
-        <AdminPanelProvider>
+      <AdminPanelProvider>
+        <PlayerProvider>
           <BuzzerProvider>
             <Outlet />
           </BuzzerProvider>
-        </AdminPanelProvider>
-      </PlayerProvider>
+        </PlayerProvider>
+      </AdminPanelProvider>
     </InstanceProvider>
   );
 };

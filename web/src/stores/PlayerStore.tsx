@@ -94,7 +94,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       `tiebreak-answer.${instance.id}`
     );
 
-    playerChannel.listen(".refresh-players-event", () => {
+    playerChannel.listen("refresh-players-event", () => {
+      console.log("aa");
       fetchPlayerItems({ instance_id: instance.id } as IPlayerQueryModel);
     });
 
@@ -111,8 +112,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     // );
 
     return () => {
-      tiebreakAnswerChannel.stopListening(".tiebreak-answer-event");
-      playerChannel.stopListening(".refresh-players-event");
+      tiebreakAnswerChannel.stopListening("tiebreak-answer-event");
+      playerChannel.stopListening("refresh-players-event");
     };
   }, [instance]);
 

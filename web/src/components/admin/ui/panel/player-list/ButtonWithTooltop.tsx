@@ -26,7 +26,7 @@ export const ButtonWithTooltip = ({
         <i className={`fa-solid ${icon}`}></i>
       </button>
       {isHovering && (
-        <div className="absolute w-auto h-8 top-0 left-14 flex place-items-center">
+        <div className="absolute w-auto h-8 top-0 left-14 flex place-items-center z-30">
           <div
             style={{ borderRightColor: color }}
             className="border-t-4 border-b-4 border-b-transparent border-t-transparent border-r-4"

@@ -26,4 +26,12 @@ class PlayerQueryModel extends BaseQueryModel
             'instance_id' => 'nullable|string',
         ]);
     }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'sortDesc' => filter_var($this->sortDesc, FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
+
 }

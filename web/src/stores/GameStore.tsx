@@ -5,6 +5,8 @@ import { IQuestion } from "./interfaces/creator/IQuestion";
 import { IAnswer } from "./interfaces/creator/IAnswer";
 import { useToast } from "../components/universal/Toast";
 import { localization, localizeError } from "../localization";
+import { useApi } from "../components/universal/RequestBuilder";
+import { IGameQueryModel } from "./interfaces/query/IGameQueryModel";
 
 type GameStoreType = {
   game?: IGame;
@@ -15,6 +17,8 @@ type GameStoreType = {
   setRounds: (rounds: IRound[]) => void;
   setQuestions: (questions: IQuestion[]) => void;
   setAnswers: (answer: IAnswer[]) => void;
+  getGame: (query: IGameQueryModel) => void;
+  postGame: () => Promise<boolean>;
 };
 
 const GameStore = createContext<GameStoreType | undefined>(undefined);
@@ -34,27 +38,27 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [answers, setAnswers] = useState<IAnswer[]>([]);
 
-  // const { get, post } = useApi();
+  const { get, post } = useApi();
   const showToast = useToast();
 
-  const getGame = (id: string) => {
-    try {
-      if (!id) {
-        throw new Error(localization.en.errors.gameNotFound);
-      }
-    } catch (error: any) {
-      showToast(false, localizeError(error?.message) ?? "Unknown error");
+  const getGame = async (query: IGameQueryModel) => {
+    const response = await get<IGame, IGameQueryModel>("/games", query);
+    if (response.total_items === 0) {
+      showToast(
+        false,
+        localizeError(localization.en.errors.gameNotFound) ?? "Unknown error"
+      );
+      return;
     }
+    setGame(response.items[0]);
   };
 
-  const postGame = () => {
-    try {
-      if (!game) {
-        throw new Error(localization.en.errors.savingGame);
-      }
-    } catch (error: any) {
-      showToast(false, localizeError(error?.message) ?? "Unknown error");
+  const postGame = async () => {
+    if (!game) {
+      showToast(false, localizeError(localization.en.errors.gameNotFound));
+      return false;
     }
+    return await post<boolean, IGame>("games", game);
   };
 
   const postRounds = () => {
@@ -98,6 +102,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         setRounds,
         setQuestions,
         setAnswers,
+        getGame,
+        postGame,
       }}
     >
       {children}

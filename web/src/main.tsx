@@ -44,11 +44,11 @@ const router = createBrowserRouter([
   },
 
   {
-    path: "admin/games/creator",
+    path: "admin/creator",
     element: <CreatorLayout />,
     children: [
       {
-        path: "game/:gameId",
+        path: ":gameId",
         element: <AdminGameCreator />,
       },
       {
@@ -58,24 +58,6 @@ const router = createBrowserRouter([
       {
         path: "question/:questionId",
         element: <GameCreatorQuestion />,
-      },
-    ],
-  },
-  {
-    path: "admin/games/editor",
-    element: <CreatorLayout />,
-    children: [
-      {
-        path: "game/:gameId",
-        element: <AdminGameEditor />,
-      },
-      {
-        path: "round/:roundId",
-        element: <GameEditorQuestionRound />,
-      },
-      {
-        path: "question/:questionId",
-        element: <GameEditorQuestion />,
       },
     ],
   },

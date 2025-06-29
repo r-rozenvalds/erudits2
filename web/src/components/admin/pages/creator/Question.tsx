@@ -3,7 +3,7 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import useDebounce from "../../../universal/useDebounce";
 import CreateQuestionModel from "../../models/CreateQuestionModel";
 import { Answer } from "../../ui/Answer";
-import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
+import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { IQuestion } from "../../interface/IQuestion";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";

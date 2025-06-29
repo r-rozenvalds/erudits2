@@ -17,8 +17,15 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+use App\Http\Requests\QueryModels\GameQueryModel; 
+use App\Traits\QueryTraits;
+
 class GameController extends Controller
 {
+
+        use QueryTraits;
+
+        
     /**
      * Display a listing of the user's games.
      */
@@ -193,5 +200,40 @@ class GameController extends Controller
             return response()->json(['message' => 'Error duplicating game.'], 500);
         }
     }
+
+    public function get(GameQueryModel $request)
+    {
+        $filterableFields = ['title', 'description'];
+        $controlKeys = ['add_rounds', 'add_questions', 'add_answers'];
+
+
+        $query = Game::query();
+
+        if ($request->add_rounds) {
+            $with = ['rounds'];
+
+            if ($request->add_questions) {
+                $with[] = 'rounds.questions';
+
+                if ($request->add_answers) {
+                    $with[] = 'rounds.questions.answers';
+                }
+            }
+
+            $query->with($with);
+        }
+
+        $paginator = $this->applyQueryParameters($query, $request, $filterableFields, $controlKeys);
+        $games = $paginator->items();
+
+        return response()->json([
+            'items' => $games,
+            'total_items' => $paginator->total(),
+            'items_per_page' => $paginator->perPage(),
+            'page' => $paginator->currentPage(),
+            'total_pages' => $paginator->lastPage(),
+        ]);
+    }
+
 
 } 

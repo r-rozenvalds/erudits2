@@ -1,163 +1,47 @@
-import { useEffect, useState } from "react";
-import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
-import CreateGameModel from "../../models/CreateGameModel";
-import useDebounce from "../../../universal/useDebounce";
-import { constants } from "../../../../constants";
-import { useNavigate } from "react-router-dom";
-import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
-import { useToast } from "../../../universal/Toast";
-import { localizeError, localizeSuccess } from "../../../../localization";
-import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
-import { IGame } from "../../interface/IGame";
-import { useSidebar } from "../../../universal/AdminGameSidebarContext";
+import { FormEvent, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { gameStore } from "../../../../stores/GameStore";
+import { IGameQueryModel } from "../../../../stores/interfaces/query/IGameQueryModel";
+import { SpinnerCircularFixed } from "spinners-react";
+import { SaveDeleteButtons } from "../../ui/SaveDeleteButtons";
 
 export const AdminGameCreator = () => {
-  const [title, setTitle] = useState(CreateGameModel.title);
-  const [description, setDescription] = useState(CreateGameModel.description);
   const [isLoaded, setIsLoaded] = useState(false); // for debounce
   const [isLoading, setIsLoading] = useState(false); // for spinner
-  const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
-
-  var formValues: IGame = CreateGameModel;
-
-  const navigate = useNavigate();
-
-  const debounceTitle = useDebounce(title, 300);
-  const debounceDescription = useDebounce(description, 300);
-
-  const showToast = useToast();
-  const { setGame, clearSidebar, setIsChanged } = useSidebar();
-
-  const saveToSessionStorage = () => {
-    setIsChanged(true);
-    var values = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    );
-
-    values = { ...values, title, description };
-    sessionStorage.setItem(
-      AdminSessionStorage.gameCreator,
-      JSON.stringify(values)
-    );
-  };
-
-  const loadFormValues = () => {
-    return JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    ) as IGame;
-  };
+  // const { setBreadCrumbs, clearBreadCrumbs } = useBreadCrumbs();
+  const { getGame, game, setGame, postGame } = gameStore();
+  const { gameId } = useParams();
 
   useEffect(() => {
-    if (isLoaded) {
-      formValues.title = debounceTitle;
-      saveToSessionStorage();
-    }
-  }, [debounceTitle]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      formValues.description = debounceDescription;
-      saveToSessionStorage();
-    }
-  }, [debounceDescription]);
-
-  useEffect(() => {
-    clearSidebar();
-    formValues = loadFormValues();
-    setTitle(formValues.title);
-    setDescription(formValues.description);
-    clearBreadCrumbs();
-    setBreadCrumbs("/admin/games", "Spēļu saraksts");
-    setBreadCrumbs("", formValues.title);
-    setIsLoaded(true);
+    getGame({
+      id: gameId,
+      add_rounds: true,
+      add_questions: true,
+      add_answers: true,
+      limit: 1,
+      page: 1,
+    } as IGameQueryModel);
   }, []);
 
-  const onFormSubmit = async (e: { preventDefault: () => void }) => {
-    setIsLoading(true);
+  const onFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const values = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
-    );
 
-    if (!values) {
-      return;
-    }
-    const response = await fetch(`${constants.baseApiUrl}/games`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem(
-          constants.localStorage.TOKEN
-        )}`,
-      },
-      body: JSON.stringify({
-        id: values.id,
-        title: values.title,
-        description: values.description,
-        user_id: values.user_id,
-      }),
-    });
-
-    if (response.ok) {
-      setGame(values);
-      clearBreadCrumbs();
-      setBreadCrumbs("/admin/games", "Spēļu saraksts");
-      setBreadCrumbs("/admin/games/editor/game/" + values.id, values.title);
-      setBreadCrumbs("", "Spēles kārta");
-      setIsLoading(false);
-      const data = await response.json();
-      showToast(true, localizeSuccess(data.message));
-      await createRound();
-    } else {
-      setIsLoading(false);
-      const data = await response.json();
-      Object.keys(data).map((key) =>
-        showToast!(false, localizeError(data[key]))
-      );
+    if (await postGame()) {
+      // navigate
     }
   };
 
-  const createRound = async () => {
-    setIsLoading(true);
-    const values = JSON.parse(
-      sessionStorage.getItem(AdminSessionStorage.gameCreator) || "{}"
+  if (!game) {
+    return (
+      <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white place-items-center justify-center font-semibold gap-2">
+        Tiek veikta ielāde...
+        <SpinnerCircularFixed color="#fff" size="18" thickness={210} />
+      </div>
     );
-    if (!values) {
-      return;
-    }
-    sessionStorage.setItem(AdminSessionStorage.gameId, values.id);
-    const response = await fetch(
-      `${constants.baseApiUrl}/create-round/${values.id}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            constants.localStorage.TOKEN
-          )}`,
-        },
-      }
-    );
+  }
 
-    if (response.ok) {
-      const data = await response.json();
-      sessionStorage.setItem(
-        AdminSessionStorage.roundCreator,
-        JSON.stringify({
-          id: data.round.id,
-          title: data.round.title,
-          disqualify_amount: data.round.disqualify_amount,
-          points: data.round.points,
-          answer_time: data.round.answer_time,
-          is_additional: data.round.is_additional,
-          game_id: data.round.game_id,
-          is_test: data.round.is_test,
-        })
-      );
-      navigate(`/admin/games/creator/round/${data.round.id}`);
-    } else {
-      console.error("Failed to create game:", response.statusText);
-    }
-    setIsLoading(false);
+  const handleDelete = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
   };
 
   return (
@@ -166,23 +50,56 @@ export const AdminGameCreator = () => {
         onSubmit={(e) => onFormSubmit(e)}
         className="flex flex-col gap-2 w-full justify-between"
       >
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 h-full">
           <label className="text-lg font-semibold">Spēles nosaukums</label>
           <input
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => setGame({ ...game, title: e.target.value })}
             type="text"
             className="p-2 px-4 shadow-sm rounded-sm bg-slate-100"
-            value={title}
+            value={game.title}
           />
           <label className="text-lg font-semibold">Apraksts</label>
           <textarea
-            onChange={(e) => setDescription(e.target.value)}
-            value={description}
-            className="p-2 px-4 shadow-sm h-40 rounded-sm bg-slate-100 resize-none"
+            onChange={(e) => setGame({ ...game, description: e.target.value })}
+            value={game.description}
+            className="p-2 px-4 shadow-sm rounded-sm bg-slate-100 resize-none grow"
           />
+          <label className="text-lg font-semibold">Papildu informācija</label>
+          <div className="flex justify-around mt-2">
+            <div>
+              Kārtas
+              <span className="px-4 py-2 rounded-sm bg-slate-200 font-semibold ms-2">
+                {game.rounds?.length}
+              </span>
+            </div>
+            <div>
+              Jautājumi
+              <span className="px-4 py-2 rounded-sm bg-slate-200 font-semibold ms-2">
+                {game.rounds?.map((r) => r.questions?.length)}
+              </span>
+            </div>
+            <div>
+              Izveidots
+              <span className="px-4 py-2 rounded-sm bg-slate-200 font-semibold ms-2">
+                {new Date(game.created_at).toLocaleString("lv-lv")}
+              </span>
+            </div>
+            <div>
+              Pēdējoreiz spēlēta
+              <span className="px-4 py-2 rounded-sm bg-slate-200 font-semibold ms-2">
+                {game.last_activation
+                  ? new Date(game.last_activation).toLocaleString("lv-lv")
+                  : "-"}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="place-self-end">
-          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
+        <div className="w-full mt-8">
+          <SaveDeleteButtons
+            showSpinner={isLoading}
+            onDelete={handleDelete}
+            showNavigationButtons
+          />
         </div>
       </form>
     </div>

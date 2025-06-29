@@ -63,11 +63,13 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/auth/logout', [UserController::class, 'logout']);
 
     //games
-    Route::apiResource('/games', GameController::class);
+    //Route::apiResource('/games', GameController::class);
     Route::get('/create-game', [GameController::class, 'create']);
     Route::get('/game-sidebar/{game_id}', [GameController::class, 'sidebar']);
     Route::get('/full-game/{game_id}', [GameController::class, 'fullIndex']);
     Route::post('/duplicate-game/{game_id}', [GameController::class, 'duplicate']);
+
+    Route::get('/games', [GameController::class, 'get']);
 
     //rounds
     Route::apiResource('/rounds', RoundController::class);

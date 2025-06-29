@@ -41,6 +41,7 @@ export const localization = {
       savingRound: "Kļūda saglabājot kārtu.",
       savingQuestion: "Kļūda saglabājot jautājumu.",
       savingAnswer: "Kļūda saglabājot atbildi.",
+      fetch: "Servera kļūda.",
     },
     success: {
       gameCreated: "Spēle veiksmīgi izveidota.",
@@ -103,6 +104,7 @@ export const localization = {
       savingQuestion: "Error saving question.",
       savingRound: "Error saving round.",
       savingAnswer: "Error saving answer.",
+      fetch: "Failed to fetch",
     },
     success: {
       gameCreated: "Game successfully created.",

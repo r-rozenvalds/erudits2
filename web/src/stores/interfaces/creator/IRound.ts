@@ -8,7 +8,7 @@ export interface IRound {
   points: number;
   is_additional: boolean;
   game_id: string;
-  questions: IQuestion[];
+  questions?: IQuestion[];
   order: number;
   is_test: boolean;
   created_at: string;

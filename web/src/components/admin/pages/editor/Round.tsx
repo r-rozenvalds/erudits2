@@ -5,7 +5,7 @@ import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useToast } from "../../../universal/Toast";
-import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
+import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { IRound } from "../../interface/IRound";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";

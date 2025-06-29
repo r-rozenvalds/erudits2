@@ -3,7 +3,7 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import CreateGameModel from "../../models/CreateGameModel";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
-import { SubmitSaveButton } from "../../ui/SubmitSaveButton";
+import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";

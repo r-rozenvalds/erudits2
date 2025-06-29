@@ -7,7 +7,7 @@ export interface IQuestion {
   guidelines: string;
   image_url: string;
   order: number;
-  answers: IAnswer[];
+  answers?: IAnswer[];
   round_id: string;
   created_at: string;
   updated_at: string;

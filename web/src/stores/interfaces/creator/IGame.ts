@@ -6,7 +6,7 @@ export interface IGame {
   title: string;
   description: string;
   user?: IUser;
-  rounds: IRound[];
+  rounds?: IRound[];
   last_activation?: string;
   created_at: string;
   updated_at: string;

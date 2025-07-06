@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { constants } from "../../../constants";
-import { IGame } from "../interface/IGame";
 import { useToast } from "../../universal/Toast";
 import { SpinnerCircularFixed } from "spinners-react";
-import { localizeError, localizeSuccess } from "../../../localization";
+import { IGame } from "../../../stores/interfaces/creator/IGame";
+import { IActivateGameRequestModel } from "../../../stores/interfaces/request/IActivateGameRequestModel";
+import { gameStore } from "../../../stores/GameStore";
 
 export const ActivationModal = ({
   game,
@@ -17,6 +17,7 @@ export const ActivationModal = ({
   const [privateGame, setPrivateGame] = useState(false);
   const [expiryDate, setExpiryDate] = useState(new Date());
   const showToast = useToast();
+  const { activateGame } = gameStore();
 
   const handleCancel = () => {
     onClose();
@@ -40,34 +41,15 @@ export const ActivationModal = ({
       return;
     }
 
-    const response = await fetch(`${constants.baseApiUrl}/activate`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(
-          constants.localStorage.TOKEN
-        )}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        code: code,
-        private: privateGame,
-        game_id: game.id,
-        end_date: expiryDate.toISOString().split("T")[0],
-      }),
-    });
+    const request = {
+      code: code,
+      private: privateGame,
+      game_id: game.id,
+      end_date: expiryDate.toISOString().split("T")[0],
+    } as IActivateGameRequestModel;
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log(localizeSuccess(data.message));
-      showToast(true, localizeSuccess(data.message));
-      onClose(true);
-    } else {
-      const data = await response.json();
-      console.log(localizeError(data.message));
-      showToast(false, localizeError(data.message));
-    }
+    onClose(await activateGame(request));
     setIsLoading(false);
-    onClose();
   };
 
   const setCodeValue = (e: {

@@ -12,45 +12,28 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function getCurrentUser(Request $request)
+{
+    $user = auth()->user();
+    if (!$user) {
+        return response()->json([
+            'items' => [],
+            'total_items' => 0,
+            'items_per_page' => 0,
+            'page' => 0,
+            'total_pages' => 0,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+    return response()->json([
+        'items' => [$user],
+        'total_items' => 1,
+        'items_per_page' => 1,
+        'page' => 1,
+        'total_pages' => 1,
+    ]);
+}
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 
     public function logout(Request $request) {
         $request->user()->currentAccessToken()->delete();
@@ -96,6 +79,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => ['Login successful.'],
+            'user' => $user,
             'token' => $user->createToken("TOKEN")->plainTextToken,
         ], 200);
     }

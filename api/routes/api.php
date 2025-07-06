@@ -25,9 +25,7 @@ use App\Http\Controllers\Api\DeployController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+
 Route::post('/auth/register', [UserController::class, 'createUser']);
 Route::post('/auth/login', [UserController::class, 'loginUser']);
 
@@ -59,6 +57,7 @@ Route::get('/version', function () {
 });
 
 Route::group(['middleware' => 'auth:sanctum'], function() {
+    Route::get('/user', [UserController::class, 'getCurrentUser']);
 
     Route::post('/auth/logout', [UserController::class, 'logout']);
 
@@ -68,6 +67,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/game-sidebar/{game_id}', [GameController::class, 'sidebar']);
     Route::get('/full-game/{game_id}', [GameController::class, 'fullIndex']);
     Route::post('/duplicate-game/{game_id}', [GameController::class, 'duplicate']);
+    Route::post('/games/delete/{game_id}', [GameController::class, 'destroy']);
 
     Route::get('/games', [GameController::class, 'get']);
 
@@ -87,6 +87,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
 
     //game-instances
     Route::post('/activate', [GameInstanceController::class, 'activate']);
+    Route::post('/deactivate/{instance_id}', [GameInstanceController::class, 'deactivate']);
     Route::get('/status/{game_id}', [GameInstanceController::class, 'status']);
     Route::get('/instance-game/{instance_id}', [GameInstanceController::class, 'instanceGame']);
     Route::get('/game-controller-info/{instance_id}', [GameInstanceController::class, 'questionInfo']);

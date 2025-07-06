@@ -1,14 +1,14 @@
 import { constants } from "../../constants";
 import { localizeError, localizeSuccess } from "../../localization";
-import { IPagedResult } from "../../stores/interfaces/IPagedResult";
+import { Empty, IPagedResult } from "../../stores/interfaces/IPagedResult";
 import { useToast } from "./Toast";
 
 export const useApi = () => {
   const showToast = useToast();
 
-  const post = async <T, D>(
+  const post = async <T, D = null>(
     endpoint: string,
-    data: D,
+    data?: D,
     hideSuccessToast?: boolean
   ): Promise<T> => {
     try {
@@ -35,20 +35,20 @@ export const useApi = () => {
     } catch (error: any) {
       console.error("POST request failed:", error);
       showToast(false, localizeError(error?.message) ?? "Unknown error");
-      throw error;
+      return false as T;
     }
   };
 
-  const get = async <T, Q>(
+  const get = async <T, Q = null>(
     endpoint: string,
-    query: Q
+    query?: Q
   ): Promise<IPagedResult<T>> => {
     try {
       const queryString = new URLSearchParams(
         query as Record<string, string>
       ).toString();
       const url = `${constants.baseApiUrl}${endpoint}${
-        queryString ? `?${queryString}` : ""
+        query ? `?${queryString}` : ""
       }`;
 
       const response = await fetch(url, {
@@ -70,7 +70,7 @@ export const useApi = () => {
     } catch (error: any) {
       console.error("GET request failed:", error);
       showToast(false, "Kļūda iegūstot datus");
-      throw error;
+      return Empty<T>();
     }
   };
 
@@ -103,7 +103,7 @@ export const useApi = () => {
     } catch (error: any) {
       console.error("POST request failed:", error);
       showToast(false, localizeError(error?.message) ?? "Unknown error");
-      throw error;
+      return false as T;
     }
   };
 

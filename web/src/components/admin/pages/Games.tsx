@@ -1,192 +1,121 @@
-import { useNavigate } from "react-router-dom";
-import { constants } from "../../../constants";
-import { AdminSessionStorage } from "../enum/AdminSessionStorage";
-import { AdminGameTable } from "../ui/table/AdminGameTable";
 import { useEffect, useState } from "react";
-import { IGame } from "../interface/IGame";
-import { SpinnerCircularFixed } from "spinners-react";
 import { ActivationModal } from "../ui/ActivationModal";
+import { AdminGameTable } from "../ui/table/AdminGameTable";
+import { IGame } from "../../../stores/interfaces/creator/IGame";
+import { Navbar } from "../navbar/Navbar";
+import { SelectedGame } from "../ui/SelectedGame";
+import { gameStore } from "../../../stores/GameStore";
+import { IGameQueryModel } from "../../../stores/interfaces/query/IGameQueryModel";
+import { useConfirmation } from "../../universal/ConfirmationWindowContext";
+import { useNavigate } from "react-router-dom";
 
 export const AdminGames = () => {
-  const [games, setGames] = useState<IGame[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<IGame | null>(null);
-  const [authorized, setAuthorized] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<IGame | undefined>(
+    undefined
+  );
+  const [textFilter, setTextFilter] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const {
+    getGames,
+    query,
+    setQuery,
+    deleteGame,
+    deactivateGame,
+    duplicateGame,
+  } = gameStore();
+  const confirm = useConfirmation();
   const navigate = useNavigate();
-  useEffect(() => {
-    clearSessionStorage();
-    fetchGames();
-  }, []);
-
-  const clearSessionStorage = () => {
-    sessionStorage.removeItem(AdminSessionStorage.gameCreator);
-    sessionStorage.removeItem(AdminSessionStorage.roundCreator);
-    sessionStorage.removeItem(AdminSessionStorage.questionCreator);
-    sessionStorage.removeItem(AdminSessionStorage.sidebarGame);
-    sessionStorage.removeItem(AdminSessionStorage.sidebarQuestions);
-    sessionStorage.removeItem(AdminSessionStorage.sidebarRounds);
-    sessionStorage.removeItem(AdminSessionStorage.breadCrumbs);
-    sessionStorage.removeItem(AdminSessionStorage.gameId);
-  };
-
-  const logout = async () => {
-    setIsLoading(true);
-    const response = await fetch(`${constants.baseApiUrl}/auth/logout`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(
-          constants.localStorage.TOKEN
-        )}`,
-      },
-    });
-
-    if (response.ok) {
-      localStorage.removeItem(constants.localStorage.TOKEN);
-      navigate("/");
-    }
-    setIsLoading(false);
-  };
-
-  const createGame = async () => {
-    clearSessionStorage();
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${constants.baseApiUrl}/create-game`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem(
-            constants.localStorage.TOKEN
-          )}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        sessionStorage.setItem(
-          AdminSessionStorage.gameCreator,
-          JSON.stringify({
-            id: data.game.id,
-            title: data.game.title,
-            description: data.game.description,
-            user_id: data.game.user_id,
-          })
-        );
-        navigate(`creator/game/${data.game.id}`);
-      } else {
-        console.error("Failed to create game:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during game creation:", error);
-    }
-    setIsLoading(false);
-  };
-
-  const fetchGames = async () => {
-    const response = await fetch(`${constants.baseApiUrl}/games`, {
-      method: "get",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem(
-          constants.localStorage.TOKEN
-        )}`,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setAuthorized(true);
-      setGames(data.games);
-      return;
-    }
-
-    navigate("/admin/login");
-  };
-
-  if (!authorized) {
-    return (
-      <div>
-        <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-[#31587A] to-[#3C3266] place-items-center justify-center">
-          <SpinnerCircularFixed color="#fff" size="48" thickness={210} />
-        </div>
-      </div>
-    );
-  }
 
   const onModalClose = async (success?: boolean) => {
     setIsActivationModalOpen(false);
     if (success) {
-      await fetchGames();
+      await getGames(query);
     }
+    setIsLoading(false);
   };
 
   const onActivationModalOpen = (game: IGame) => {
+    setIsLoading(true);
     setSelectedGame(game);
     setIsActivationModalOpen(true);
   };
 
+  const handleDelete = async (game: IGame) => {
+    setIsLoading(true);
+    if (await confirm(`Tiešām dzēst spēli ${game.title}?`)) {
+      await deleteGame(game.id);
+      await getGames(query);
+    }
+    setIsLoading(false);
+  };
+
+  const handleEdit = (game: IGame) => {
+    navigate(`/admin/creator/${game.id}`);
+  };
+
+  const handleDeactivate = async (game: IGame) => {
+    setIsLoading(true);
+    if (await confirm(`Tiešām deaktivizēt spēli ${game.title}?`)) {
+      await deactivateGame(game.id);
+      await getGames(query);
+      setSelectedGame(undefined);
+    }
+    setIsLoading(false);
+  };
+
+  function handleDuplicate(game: IGame): void {
+    throw new Error("Function not implemented.");
+  }
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setQuery({ ...query, filter: textFilter });
+      getGames({ ...query, filter: textFilter } as IGameQueryModel);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [textFilter]);
+
   return (
-    <>
-      <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-r from-[#31587A] to-[#3C3266]">
-        <div className="flex flex-col w-screen h-screen p-12 gap-12">
-          <div className="flex justify-between">
-            <span className="font-[Manrope] font-semibold text-white text-3xl">
-              Izveidotās spēles
-            </span>
-            <div className="flex gap-4">
-              <button
-                disabled={isLoading}
-                className={`${
-                  isLoading ? "bg-slate-500" : "bg-white hover:bg-slate-200"
-                } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
-                onClick={logout}
-              >
-                <span className="font-[Manrope] font-semibold">
-                  Beigt darbu
-                </span>
-                {!isLoading && (
-                  <i className="fa-solid fa-right-from-bracket"></i>
-                )}
-                {isLoading && (
-                  <SpinnerCircularFixed
-                    color="#ffffff"
-                    size={20}
-                    thickness={150}
-                  />
-                )}
-              </button>
-              <button
-                onClick={createGame}
-                disabled={isLoading}
-                className={`${
-                  isLoading
-                    ? "bg-slate-500"
-                    : "bg-emerald-400 hover:bg-emerald-300 "
-                } px-6 rounded-sm shadow-sm py-2 flex place-items-center gap-2`}
-              >
-                <span className="font-[Manrope] font-semibold">
-                  Jauna spēle
-                </span>
-                {!isLoading && <i className="fa-solid fa-plus"></i>}
-                {isLoading && (
-                  <SpinnerCircularFixed
-                    color="#ffffff"
-                    size={20}
-                    thickness={150}
-                  />
-                )}
-              </button>
-            </div>
+    <div className="flex gap-4 flex-1 flex-col">
+      <Navbar sectionTitle={"Manas spēles"} />
+      <div className="flex grow gap-2">
+        <AdminGameTable
+          onActivationModalOpen={onActivationModalOpen}
+          setSelectedGame={setSelectedGame}
+          onDelete={handleDelete}
+          onDuplicate={handleDuplicate}
+          onEdit={handleEdit}
+          onDeactivate={handleDeactivate}
+        />
+        <div className="flex flex-col gap-2 grow">
+          <div className="w-full h-12 bg-white px-2 py-1 flex gap-2 place-items-center rounded-sm justify-center">
+            <input
+              className="h-full w-full p-2 outline-none font-semibold"
+              placeholder="Meklē šeit..."
+              value={textFilter}
+              onChange={(e) => setTextFilter(e.target.value)}
+            />
+            <i className="text-slate-400 fa-solid fa-magnifying-glass text-lg px-2"></i>
           </div>
-          <AdminGameTable
-            games={games}
+          <SelectedGame
+            game={selectedGame}
             onActivationModalOpen={onActivationModalOpen}
+            onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
+            onEdit={handleEdit}
+            isLoading={isLoading}
+            onDeactivate={handleDeactivate}
           />
         </div>
       </div>
       {isActivationModalOpen && selectedGame && (
         <ActivationModal game={selectedGame} onClose={onModalClose} />
       )}
-    </>
+    </div>
   );
 };

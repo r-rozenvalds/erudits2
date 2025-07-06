@@ -3,7 +3,7 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import useDebounce from "../../../universal/useDebounce";
 import CreateQuestionModel from "../../models/CreateQuestionModel";
 import { Answer } from "../../ui/Answer";
-import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
+import { SaveDeleteButtons } from "../../ui/SaveDeleteButtons";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { IQuestion } from "../../interface/IQuestion";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
@@ -446,11 +446,7 @@ export const GameEditorQuestion = () => {
           )}
         </div>
         <div className="flex gap-6 justify-end">
-          <SubmitSaveButton
-            showSpinner={isLoading}
-            hideSaveButton={false}
-            hideContinueButton={true}
-          />
+          <SaveDeleteButtons showSpinner={isLoading} />
         </div>
       </form>
     </div>

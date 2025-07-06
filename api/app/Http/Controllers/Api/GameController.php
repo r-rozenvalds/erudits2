@@ -158,7 +158,7 @@ class GameController extends Controller
         $game = Game::findOrFail($id);
         $game->delete();
 
-        return response()->json(['message' => 'Game successfully deleted.', 204]);
+        return response()->json(['message' => 'Game successfully deleted.', 200]);
     }
 
     public function duplicate(string $game_id) {
@@ -205,9 +205,8 @@ class GameController extends Controller
     {
         $filterableFields = ['title', 'description'];
         $controlKeys = ['add_rounds', 'add_questions', 'add_answers'];
-
-
-        $query = Game::query();
+        $userGames = Game::where('user_id', $request->user()->id);
+        $query = $userGames->newQuery();
 
         if ($request->add_rounds) {
             $with = ['rounds'];
@@ -225,6 +224,14 @@ class GameController extends Controller
 
         $paginator = $this->applyQueryParameters($query, $request, $filterableFields, $controlKeys);
         $games = $paginator->items();
+
+        foreach ($games as $game) {
+            $game['is_active'] = GameInstance::where('game_id', $game->id)
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                ->orWhere('end_date', '>', now());
+            })->exists();
+        }
 
         return response()->json([
             'items' => $games,

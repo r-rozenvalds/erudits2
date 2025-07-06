@@ -3,12 +3,12 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import CreateGameModel from "../../models/CreateGameModel";
 import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
-import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
 import { useToast } from "../../../universal/Toast";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { IGame } from "../../interface/IGame";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
+import { SaveDeleteButtons } from "../../ui/SaveDeleteButtons";
 
 export const AdminGameEditor = () => {
   const [title, setTitle] = useState(CreateGameModel.title);
@@ -133,11 +133,7 @@ export const AdminGameEditor = () => {
           />
         </div>
         <div className="place-self-end">
-          <SubmitSaveButton
-            hideContinueButton={true}
-            showSpinner={isLoading}
-            onSave={onFormSubmit}
-          />
+          <SaveDeleteButtons showSpinner={isLoading} />
         </div>
       </form>
     </div>

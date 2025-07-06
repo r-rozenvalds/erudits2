@@ -5,11 +5,11 @@ import useDebounce from "../../../universal/useDebounce";
 import { constants } from "../../../../constants";
 import { localizeError, localizeSuccess } from "../../../../localization";
 import { useToast } from "../../../universal/Toast";
-import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { useNavigate } from "react-router-dom";
 import { IRound } from "../../interface/IRound";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
+import { SaveDeleteButtons } from "../../ui/SaveDeleteButtons";
 
 export const GameCreatorQuestionRound = () => {
   const [title, setTitle] = useState(CreateRoundModel.title);
@@ -306,7 +306,7 @@ export const GameCreatorQuestionRound = () => {
         </div>
 
         <div className="flex gap-6 place-self-end">
-          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
+          <SaveDeleteButtons showSpinner={isLoading} />
         </div>
       </form>
     </div>

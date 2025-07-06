@@ -9,7 +9,7 @@ import { playerStore } from "../../../../../stores/PlayerStore";
 import { IPlayer } from "../../../../../stores/interfaces/IPlayer";
 import { IPlayerQueryModel } from "../../../../../stores/interfaces/query/IPlayerQueryModel";
 import { Table } from "../../../../table/Table";
-import { ButtonWithTooltip } from "./ButtonWithTooltop";
+import { ButtonWithTooltip } from "./ButtonWithTooltip";
 import { IPlayerRequestModel } from "../../../../../stores/interfaces/request/IPlayerRequestModel";
 import { IPlayerPointsRequestModel } from "../../../../../stores/interfaces/request/IPlayerPointsRequestModel";
 
@@ -325,7 +325,7 @@ export const PlayerList = () => {
               pagedResult={playerItems}
               columns={columns}
               isLoading={!playerItems}
-              fetchPlayers={fetchPlayers}
+              fetch={fetchPlayers}
             />
           </div>
         </div>

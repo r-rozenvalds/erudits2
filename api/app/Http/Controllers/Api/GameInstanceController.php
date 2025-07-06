@@ -125,6 +125,25 @@ class GameInstanceController extends PlayerAnswerController
         }
     }
 
+    public function deactivate(string $gameId)
+    {
+        Log::info("Deactivating instance with instance id ".$gameId);
+        try {
+            $gameInstance = GameInstance::where('game_id', $gameId)
+                ->first();
+
+            if ($gameInstance) {
+                $gameInstance->update(['end_date' => now()]);
+                return response()->json(['message' => 'Game instance successfully deactivated.'], 200);
+            }
+
+            return response()->json(['message' => 'Game instance not active or already deactivated.'], 400);
+        } catch (Exception $e) {
+            Log::error("Error in deactivating game instance: " . $e->getMessage());
+            return response()->json(['message' => 'Error in deactivating game instance'], 500);
+        }
+    }
+
     public function status(string $gameId)
     {
         $gameInstance = GameInstance::where('gameId', $gameId)->first();

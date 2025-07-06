@@ -12,9 +12,6 @@ import { GameCreatorQuestion } from "./components/admin/pages/creator/Question.t
 import { ToastProvider } from "./components/universal/Toast.tsx";
 import { CreatorLayout } from "./components/admin/pages/layouts/CreatorLayout.tsx";
 import { BreadCrumbProvider } from "./components/universal/BreadCrumbContext.tsx";
-import { AdminGameEditor } from "./components/admin/pages/editor/Game.tsx";
-import { GameEditorQuestionRound } from "./components/admin/pages/editor/Round.tsx";
-import { GameEditorQuestion } from "./components/admin/pages/editor/Question.tsx";
 import { ConfirmationProvider } from "./components/universal/ConfirmationWindowContext.tsx";
 import { Lobby } from "./components/player/pages/Lobby.tsx";
 import { Game } from "./components/player/pages/Game.tsx";
@@ -24,6 +21,9 @@ import { PanelLayout } from "./components/admin/pages/layouts/PanelLayout.tsx";
 import { GameEnd } from "./components/player/pages/GameEnd.tsx";
 import { Disqualified } from "./components/player/pages/Disqualified.tsx";
 import { Buzzer } from "./components/admin/ui/panel/Buzzer.tsx";
+import { AdminLayout } from "./components/admin/pages/layouts/AdminLayout.tsx";
+import { UserProvider } from "./stores/UserStore.tsx";
+import { RequireAuth } from "./components/universal/RequireAuth.tsx";
 
 const router = createBrowserRouter([
   {
@@ -32,15 +32,35 @@ const router = createBrowserRouter([
   },
   {
     path: "admin/login",
-    element: <AdminLogin />,
+    element: (
+      <UserProvider>
+        <AdminLogin />
+      </UserProvider>
+    ),
   },
   {
     path: "admin/register",
-    element: <AdminRegister />,
+    element: (
+      <UserProvider>
+        <AdminRegister />
+      </UserProvider>
+    ),
   },
   {
-    path: "admin/games",
-    element: <AdminGames />,
+    path: "admin",
+    element: (
+      <UserProvider>
+        <RequireAuth>
+          <AdminLayout />
+        </RequireAuth>
+      </UserProvider>
+    ),
+    children: [
+      {
+        path: "games",
+        element: <AdminGames />,
+      },
+    ],
   },
 
   {

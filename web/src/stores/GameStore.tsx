@@ -3,22 +3,24 @@ import { IGame } from "./interfaces/creator/IGame";
 import { IRound } from "./interfaces/creator/IRound";
 import { IQuestion } from "./interfaces/creator/IQuestion";
 import { IAnswer } from "./interfaces/creator/IAnswer";
-import { useToast } from "../components/universal/Toast";
-import { localization, localizeError } from "../localization";
 import { useApi } from "../components/universal/RequestBuilder";
 import { IGameQueryModel } from "./interfaces/query/IGameQueryModel";
+import { IPagedResult } from "./interfaces/IPagedResult";
+import { IActivateGameRequestModel } from "./interfaces/request/IActivateGameRequestModel";
 
 type GameStoreType = {
-  game?: IGame;
-  rounds?: IRound[];
-  questions?: IQuestion[];
-  answers?: IAnswer[];
-  setGame: (game: IGame) => void;
-  setRounds: (rounds: IRound[]) => void;
-  setQuestions: (questions: IQuestion[]) => void;
-  setAnswers: (answer: IAnswer[]) => void;
-  getGame: (query: IGameQueryModel) => void;
-  postGame: () => Promise<boolean>;
+  games?: IPagedResult<IGame>;
+  query: IGameQueryModel;
+  getGames: (query?: IGameQueryModel) => Promise<void>;
+  postGame: (game: IGame) => Promise<boolean>;
+  postRound: (round: IRound) => Promise<boolean>;
+  postQuestion: (question: IQuestion) => Promise<boolean>;
+  postAnswer: (answer: IAnswer) => Promise<boolean>;
+  setQuery: (query: IGameQueryModel) => void;
+  deleteGame: (id: string) => Promise<boolean>;
+  activateGame: (request: IActivateGameRequestModel) => Promise<boolean>;
+  deactivateGame: (id: string) => Promise<boolean>;
+  duplicateGame: (id: string) => Promise<boolean>;
 };
 
 const GameStore = createContext<GameStoreType | undefined>(undefined);
@@ -33,77 +35,64 @@ export const gameStore = () => {
 };
 
 export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [game, setGame] = useState<IGame>();
-  const [rounds, setRounds] = useState<IRound[]>([]);
-  const [questions, setQuestions] = useState<IQuestion[]>([]);
-  const [answers, setAnswers] = useState<IAnswer[]>([]);
-
+  const [games, setGames] = useState<IPagedResult<IGame>>();
+  const [query, setQuery] = useState<IGameQueryModel>({
+    page: 1,
+    limit: 15,
+  } as IGameQueryModel);
   const { get, post } = useApi();
-  const showToast = useToast();
 
-  const getGame = async (query: IGameQueryModel) => {
-    const response = await get<IGame, IGameQueryModel>("/games", query);
-    if (response.total_items === 0) {
-      showToast(
-        false,
-        localizeError(localization.en.errors.gameNotFound) ?? "Unknown error"
-      );
-      return;
-    }
-    setGame(response.items[0]);
+  const getGames = async (query?: IGameQueryModel) => {
+    setGames(await get<IGame, IGameQueryModel>("/games", query));
   };
 
-  const postGame = async () => {
-    if (!game) {
-      showToast(false, localizeError(localization.en.errors.gameNotFound));
-      return false;
-    }
-    return await post<boolean, IGame>("games", game);
+  const postGame = async (game: IGame) => {
+    return await post<boolean, IGame>("/games", game);
   };
 
-  const postRounds = () => {
-    try {
-      if (!game) {
-        throw new Error(localization.en.errors.savingRound);
-      }
-    } catch (error: any) {
-      showToast(false, localizeError(error?.message) ?? "Unknown error");
-    }
+  const postRound = async (round: IRound) => {
+    return await post<boolean, IRound>("/rounds", round);
   };
 
-  const postQuestions = () => {
-    try {
-      if (!game) {
-        throw new Error(localization.en.errors.savingQuestion);
-      }
-    } catch (error: any) {
-      showToast(false, localizeError(error?.message) ?? "Unknown error");
-    }
+  const postQuestion = async (question: IQuestion) => {
+    return await post<boolean, IQuestion>("/questions", question);
   };
 
-  const postAnswers = () => {
-    try {
-      if (!game) {
-        throw new Error(localization.en.errors.savingAnswer);
-      }
-    } catch (error: any) {
-      showToast(false, localizeError(error?.message) ?? "Unknown error");
-    }
+  const postAnswer = async (answer: IAnswer) => {
+    return await post<boolean, IAnswer>("/questions", answer);
+  };
+
+  const deleteGame = async (id: string) => {
+    return await post<boolean>(`/games/delete/${id}`);
+  };
+
+  const activateGame = async (request: IActivateGameRequestModel) => {
+    return await post<boolean, IActivateGameRequestModel>("/activate", request);
+  };
+
+  const deactivateGame = async (id: string) => {
+    return await post<boolean>(`/deactivate/${id}`);
+  };
+
+  const duplicateGame = async (id: string) => {
+    return await post<boolean>(`/duplicate-game/${id}`);
   };
 
   return (
     <GameStore.Provider
       value={{
-        game,
-        rounds,
-        questions,
-        answers,
-        setGame,
-        setRounds,
-        setQuestions,
-        setAnswers,
-        getGame,
+        games,
+        query,
+        getGames,
         postGame,
+        postRound,
+        postQuestion,
+        postAnswer,
+        setQuery,
+        deleteGame,
+        activateGame,
+        deactivateGame,
+        duplicateGame,
       }}
     >
       {children}

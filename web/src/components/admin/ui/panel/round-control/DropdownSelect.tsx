@@ -4,7 +4,6 @@ interface IDropdownSelectProps<T> {
   title: string;
   items: T[];
   value: string;
-  className?: string;
   getItemName: (item: T) => string;
   onItemSelect: (item: T) => void;
 }
@@ -12,7 +11,6 @@ interface IDropdownSelectProps<T> {
 export const DropdownSelect = <T,>({
   title,
   items,
-  className,
   getItemName,
   onItemSelect,
 }: IDropdownSelectProps<T>) => {

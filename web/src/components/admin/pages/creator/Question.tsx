@@ -3,7 +3,6 @@ import { AdminSessionStorage } from "../../enum/AdminSessionStorage";
 import useDebounce from "../../../universal/useDebounce";
 import CreateQuestionModel from "../../models/CreateQuestionModel";
 import { Answer } from "../../ui/Answer";
-import { SubmitSaveButton } from "../../ui/SaveDeleteButtons";
 import { useBreadCrumbs } from "../../../universal/BreadCrumbContext";
 import { IQuestion } from "../../interface/IQuestion";
 import { useSidebar } from "../../../universal/AdminGameSidebarContext";
@@ -13,6 +12,7 @@ import { localizeError, localizeSuccess } from "../../../../localization";
 import { useNavigate } from "react-router-dom";
 import { AnswerType } from "../../../universal/AnswerType";
 import { useConfirmation } from "../../../universal/ConfirmationWindowContext";
+import { SaveDeleteButtons } from "../../ui/SaveDeleteButtons";
 
 export const GameCreatorQuestion = () => {
   const [question, setQuestion] = useState(CreateQuestionModel.title);
@@ -417,7 +417,7 @@ export const GameCreatorQuestion = () => {
           )}
         </div>
         <div className="flex gap-6 justify-end">
-          <SubmitSaveButton showSpinner={isLoading} hideSaveButton={true} />
+          <SaveDeleteButtons showSpinner={isLoading} />
         </div>
       </form>
     </div>

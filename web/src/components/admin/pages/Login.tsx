@@ -1,46 +1,24 @@
 import { useEffect, useState } from "react";
-import { constants } from "../../../constants";
-import { getCurrentUser } from "../../universal/functions";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "../../universal/Toast";
-import { localizeError, localizeSuccess } from "../../../localization";
+import { userStore } from "../../../stores/UserStore";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { login, getUser } = userStore();
 
   const navigate = useNavigate();
 
-  const showToast = useToast();
-
   const onFormSubmit = async (e: { preventDefault: () => void }) => {
-    setIsLoading(true);
     e.preventDefault();
-    await fetch(`${constants.baseApiUrl}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    }).then(async (response) => {
-      const data = await response.json();
-      if (response.ok) {
-        showToast!(true, localizeSuccess(data.message));
-
-        localStorage.setItem(constants.localStorage.TOKEN, data.token);
-        navigate("/admin/games");
-      } else {
-        Object.keys(data).map((key) =>
-          showToast!(false, localizeError(data[key]))
-        );
-      }
-    });
+    setIsLoading(true);
+    await login({ email, password });
     setIsLoading(false);
   };
 
   const redirectIfLoggedIn = async () => {
-    if (await getCurrentUser()) {
+    if (await getUser()) {
       navigate("/admin/games");
     }
   };

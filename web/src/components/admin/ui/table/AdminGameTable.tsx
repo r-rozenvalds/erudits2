@@ -51,7 +51,11 @@ export const AdminGameTable = ({
       columnHelper.accessor("title", {
         header: "Nosaukums",
         meta: { filterKey: "title" },
-        cell: (info) => <p title={info.getValue()}>{info.getValue()}</p>,
+        cell: (info) => (
+          <p className="truncate" title={info.getValue()}>
+            {info.getValue()}
+          </p>
+        ),
         enableSorting: true,
       }),
       columnHelper.accessor("last_activation", {

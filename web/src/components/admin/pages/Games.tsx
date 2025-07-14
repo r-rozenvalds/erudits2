@@ -47,6 +47,7 @@ export const AdminGames = () => {
     if (await confirm(`Tiešām dzēst spēli ${game.title}?`)) {
       await deleteGame(game.id);
       await getGames(query);
+      setSelectedGame(undefined);
     }
     setIsLoading(false);
   };
@@ -65,9 +66,10 @@ export const AdminGames = () => {
     setIsLoading(false);
   };
 
-  function handleDuplicate(game: IGame): void {
-    throw new Error("Function not implemented.");
-  }
+  const handleDuplicate = async (game: IGame) => {
+    await duplicateGame(game.id);
+    await getGames(query);
+  };
 
   useEffect(() => {
     const handler = setTimeout(() => {

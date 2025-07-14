@@ -106,7 +106,7 @@ export const Table = <T,>({
                 key={row.id}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td className={`p-1 px-4 text-center`} key={cell.id}>
+                  <td className={`p-1 px-4 text-center max-w-52`} key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

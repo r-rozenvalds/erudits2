@@ -6,7 +6,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AdminLogin from "./components/admin/pages/Login.tsx";
 import AdminRegister from "./components/admin/pages/Register.tsx";
 import { AdminGames } from "./components/admin/pages/Games.tsx";
-import { AdminGameCreator } from "./components/admin/pages/creator/Game.tsx";
 import { GameCreatorQuestionRound } from "./components/admin/pages/creator/Round.tsx";
 import { GameCreatorQuestion } from "./components/admin/pages/creator/Question.tsx";
 import { ToastProvider } from "./components/universal/Toast.tsx";
@@ -24,6 +23,8 @@ import { Buzzer } from "./components/admin/ui/panel/Buzzer.tsx";
 import { AdminLayout } from "./components/admin/pages/layouts/AdminLayout.tsx";
 import { UserProvider } from "./stores/UserStore.tsx";
 import { RequireAuth } from "./components/universal/RequireAuth.tsx";
+import { Creator } from "./components/admin/pages/creator/Creator.tsx";
+import { CreatorProvider } from "./stores/CreatorStore.tsx";
 
 const router = createBrowserRouter([
   {
@@ -60,24 +61,13 @@ const router = createBrowserRouter([
         path: "games",
         element: <AdminGames />,
       },
-    ],
-  },
-
-  {
-    path: "admin/creator",
-    element: <CreatorLayout />,
-    children: [
       {
-        path: ":gameId",
-        element: <AdminGameCreator />,
-      },
-      {
-        path: "round/:roundId",
-        element: <GameCreatorQuestionRound />,
-      },
-      {
-        path: "question/:questionId",
-        element: <GameCreatorQuestion />,
+        path: "creator/:gameId",
+        element: (
+          <CreatorProvider>
+            <Creator />
+          </CreatorProvider>
+        ),
       },
     ],
   },

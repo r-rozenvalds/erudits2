@@ -1,11 +1,14 @@
 import { Outlet } from "react-router-dom";
 import { PlayerProvider } from "../../../universal/PlayerContext";
+import { PlayerInstanceProvider } from "../../stores/PlayerInstanceStore";
 
 export const PlayerLayout = () => {
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-gradient-to-r from-[#30345f] to-[#533266] place-items-center justify-center">
       <PlayerProvider>
-        <Outlet />
+        <PlayerInstanceProvider>
+          <Outlet />
+        </PlayerInstanceProvider>
       </PlayerProvider>
     </div>
   );

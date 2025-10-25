@@ -2,24 +2,16 @@ import { useEffect, useState } from "react";
 import { Navbar } from "../../navbar/Navbar";
 import { useParams } from "react-router-dom";
 import { gameStore } from "../../../../stores/GameStore";
-import { IGameQueryModel } from "../../../../stores/interfaces/query/IGameQueryModel";
 import { SpinnerCircularFixed } from "spinners-react/lib/esm/SpinnerCircularFixed";
 import { creatorStore } from "../../../../stores/CreatorStore";
 import { IGame } from "../../../../stores/interfaces/creator/IGame";
 import { Sidebar } from "./sidebar/Sidebar";
-
-enum Components {
-  GAME = "GAME",
-  ROUND = "ROUND",
-  QUESTION = "QUESTION",
-}
+import { GameCreator } from "./GameCreator";
+import { QuestionCreator } from "./QuestionCreator";
+import { RoundCreator } from "./RoundCreator";
 
 export const Creator = () => {
-  const [selectedComponent, setSelectedComponent] = useState<Components>(
-    Components.GAME
-  );
-
-  const { getGames, games } = gameStore();
+  const { games } = gameStore();
   const { gameId } = useParams();
 
   const {
@@ -29,19 +21,11 @@ export const Creator = () => {
     selectedGame,
     selectedRound,
     selectedQuestion,
+    fetchCurrentGame,
   } = creatorStore();
 
   useEffect(() => {
-    if (gameId) {
-      getGames({
-        id: gameId,
-        add_rounds: true,
-        add_questions: true,
-        add_answers: true,
-        limit: 1,
-        page: 1,
-      } as IGameQueryModel);
-    }
+    if (gameId) fetchCurrentGame(gameId);
   }, []);
 
   useEffect(() => {
@@ -56,7 +40,7 @@ export const Creator = () => {
   }, [games?.items]);
 
   const renderCreator = () => {
-    if (!games?.items || games.items.length < 1) {
+    if (!games?.items || games.items.length < 1 || !gameId) {
       return (
         <div className="flex gap-2">
           Tiek veikta ielāde...
@@ -64,33 +48,25 @@ export const Creator = () => {
         </div>
       );
     }
-  };
-
-  const getNavbarTitle = () => {
-    switch (selectedComponent) {
-      case Components.GAME: {
-        return selectedGame ? selectedGame.title : "Jauna spēle";
-      }
-      case Components.ROUND: {
-        return selectedRound ? selectedRound.title : "Jauna kārta";
-      }
-      case Components.QUESTION: {
-        return selectedQuestion ? selectedQuestion.title : "Jauns jautājums";
-      }
-      default: {
-        return "Spēles veidotājs";
-      }
+    if (selectedGame) {
+      return <GameCreator game={selectedGame} />;
+    }
+    if (selectedRound) {
+      return <RoundCreator round={selectedRound} />;
+    }
+    if (selectedQuestion) {
+      return <QuestionCreator question={selectedQuestion} />;
     }
   };
 
   return (
     <div className="flex gap-4 flex-1 flex-col">
-      <Navbar sectionTitle={getNavbarTitle()} />
+      <Navbar sectionTitle={"Spēles veidotājs"} />
       <div className="flex gap-4 h-full">
-        <div className="w-[500px] p-4 h-full overflow-hidden rounded-md font-[Manrope] grow bg-white">
+        <div className="w-[500px] px-4 py-2 h-full overflow-hidden rounded-md font-[Manrope] grow bg-white">
           <Sidebar />
         </div>
-        <div className="flex w-full p-4 rounded-md font-[Manrope] grow bg-white place-items-center justify-center font-semibold gap-2">
+        <div className="flex w-full rounded-md font-[Manrope] grow bg-white font-semibold gap-2">
           {renderCreator()}
         </div>
       </div>

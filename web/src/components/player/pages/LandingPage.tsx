@@ -7,6 +7,9 @@ import { SpinnerCircularFixed } from "spinners-react";
 import { PlayerLocalStorage } from "../enum/PlayerLocalStorage";
 import { IGameSessionStorage } from "../interface/IGameSessionStorage";
 import { localizeError, localizeSuccess } from "../../../localization";
+import { PlayModal } from "../ui/PlayModal";
+import { GameBrowserModal } from "../ui/GameBrowserModal";
+import { playerInstanceStore } from "../stores/PlayerInstanceStore";
 
 interface IGameInstance {
   title: string;
@@ -22,6 +25,14 @@ export const LandingPage = () => {
   const [existingGameCode, setExistingGameCode] = useState("");
   const [gameInstances, setGameInstances] = useState<IGameInstance[]>([]);
   const [version, setVersion] = useState<string>();
+  const [isPlayModalOpen, setIsPlayModalOpen] = useState<boolean>(false);
+  const [isGamesModalOpen, setIsGamesModalOpen] = useState<boolean>(false);
+  const [isAuthenticationModalOpen, setIsAuthenticationModalOpen] =
+    useState<boolean>(false);
+
+  const instanceStore = playerInstanceStore();
+
+  const { getInstances, query } = instanceStore;
 
   const handleJoin = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -92,52 +103,10 @@ export const LandingPage = () => {
     showToast(false, localizeError(data?.error) ?? "Kļūda meklējot spēli");
   };
 
-  const setCodeValue = (e: {
-    target: {
-      value: string;
-    };
-  }) => {
-    if (
-      e.target.value === "" ||
-      (/^[a-zA-Z0-9]+$/.test(e.target.value) && e.target.value.length <= 6)
-    ) {
-      setCode(e.target.value.toUpperCase());
-    }
-  };
-
   useEffect(() => {
-    getInstancesAndPlayerStatus();
+    getInstances(query);
     getVersion();
   }, []);
-
-  const getInstancesAndPlayerStatus = async () => {
-    const currentInstance = JSON.parse(
-      localStorage.getItem(PlayerLocalStorage.currentGame) ?? "{}"
-    ) as IGameSessionStorage;
-
-    const currentPlayer = JSON.parse(
-      localStorage.getItem(PlayerLocalStorage.currentPlayer) ?? "{}"
-    );
-
-    const response = await fetch(`${constants.baseApiUrl}/instance-index`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        instance_id: currentInstance?.id,
-        player_id: currentPlayer?.id,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setGameInstances(data.game_instances);
-      setExistingGameCode(data.started_game_code);
-      return;
-    }
-    showToast(false, "Kļūda atlasot pieejamās spēles");
-  };
 
   const getVersion = async () => {
     const response = await fetch(`${constants.baseApiUrl}/version`);
@@ -147,12 +116,7 @@ export const LandingPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#31587A] to-[#3C3266]">
-      {version != "vLOCAL-DEV" && (
-        <div className="h-12 opacity-70 flex place-items-center justify-around w-full bg-yellow-400 font-semibold fixed animate-pulse">
-          🛠️ Pašlaik tiek veikti vietnes uzlabošanas darbi 🛠️
-        </div>
-      )}
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-[#31587A] to-[#3C3266] font-[Manrope] overflow-hidden">
       {!!existingGameCode && (
         <div className="bg-white slide-down flex flex-col gap-3 lg:w-1/6 w-[90%] place-items-center justify-center shadow-lg rounded-b-md fixed top-0 left-0 right-0 mx-auto pt-4 z-50">
           <div className="flex gap-2 mx-8">
@@ -167,79 +131,66 @@ export const LandingPage = () => {
           </button>
         </div>
       )}
-      <form onSubmit={handleJoin} className="flex flex-col w-screen h-screen">
-        <div className="flex flex-col w-full h-full place-items-center justify-center gap-8">
-          <p className="text-white lg:text-5xl text-3xl font-semibold font-[Manrope]">
-            Sistēma "Erudīts 2"
-          </p>
-          <div className="flex flex-col gap-4">
-            <div className="flex lg:flex-row flex-col lg:gap-0 gap-4 place-items-center">
-              <input
-                placeholder="Spēles kods"
-                type="text"
-                className="font-[Manrope] lg:h-14 h-12 lg:rounded-e-none rounded-md shadow-lg lg:text-4xl text-2xl font-semibold lg:px-6 text-center focus:outline-none"
-                value={code}
-                onChange={setCodeValue}
-              />
-              {!isLoading && (
-                <input
-                  className="font-[Manrope] w-32 lg:h-14 h-12 bg-[#E63946] lg:rounded-s-none rounded-md shadow-lg text-white text-lg lg:text-2xl font-bold hover:bg-opacity-80 transition-all hover:cursor-pointer"
-                  type="submit"
-                  value="Spēlēt"
-                />
-              )}
-              {isLoading && (
-                <button
-                  disabled
-                  className="w-32 lg:h-14 h-12 bg-slate-400 rounded-md shadow-lg"
-                >
-                  <div className="w-10 mx-auto">
-                    <SpinnerCircularFixed
-                      size={40}
-                      thickness={180}
-                      color="#fff"
-                    ></SpinnerCircularFixed>
-                  </div>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {gameInstances.length > 0 && (
-          <div className="text-center animate-bounce">
-            <p className="text-white font-semibold text-2xl">
-              Pieejamās spēles
-            </p>
-            <i className="fa-solid fa-chevron-down text-3xl text-white"></i>
-          </div>
-        )}
-      </form>
-      {!!gameInstances.length && (
-        <div className="bg-black bg-opacity-25 h-auto p-12">
-          <div className="grid lg:grid-cols-3 grid-cols-1 w-full gap-12">
-            {gameInstances?.map((instance, index) => (
-              <InstanceCard
-                key={index}
-                title={instance.title}
-                description={instance.description}
-                code={instance.code}
-                postJoin={postJoin}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="bg-black bg-opacity-30 flex h-24 p-12 place-items-center justify-center lg:justify-between">
-        <p className="text-white">{version}</p>
-        <button
-          onClick={() => navigate("/admin/games")}
-          className="px-4 py-2 bg-[#E63946] rounded-md text-center shadow-lg text-white font-semibold hover:bg-opacity-50 transition-all lg:block hidden hover:cursor-pointer"
-        >
-          <i className="fa-solid fa-right-to-bracket me-2"></i>
-          <span className="text-center h-8">Administratora panelis</span>
-        </button>
+      <div className="absolute right-20 top-10 text-white font-semibold flex gap-2 place-items-center">
+        Čau, (vārds)!
+        <img
+          className="rounded-full border-2 border-white w-10 h-10 shadow-md"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnPZUpjr7jMHQyQ0LYFDEVPGL8emUKRvUGAw&s"
+          width={40}
+          height={40}
+        />
       </div>
+      <div className="flex flex-col w-screen h-screen place-items-center justify-center gap-8">
+        <p className="text-white text-3xl font-[Manrope]">Sistēma "Erudīts"</p>
+        <div className="flex gap-6">
+          <button
+            onClick={() => setIsPlayModalOpen(true)}
+            className="w-48 h-48 shadow-md rounded-md bg-opacity-20 bg-black hover:bg-opacity-30 transition-all group"
+          >
+            <i className="fa-solid fa-play text-white border-4 border-white w-24 h-24 rounded-full text-6xl pt-3.5 pl-1 group-hover:text-[#E63946] group-hover:border-[#E63946] transition-all"></i>
+            <p className="text-2xl font-bold text-white mt-4 group-hover:text-[#E63946] transition-all">
+              Spēlēt
+            </p>
+          </button>
+          <button
+            onClick={() => setIsGamesModalOpen(true)}
+            className="w-48 h-48 shadow-md rounded-md bg-opacity-20 bg-black hover:bg-opacity-30 transition-all group"
+          >
+            <i className="fa-solid fa-list text-white border-4 border-white w-24 h-24 rounded-full text-5xl pt-5 group-hover:text-[#E63946] group-hover:border-[#E63946] transition-all"></i>
+            <p className="text-2xl font-bold text-white mt-4 group-hover:text-[#E63946] transition-all">
+              Meklēt
+            </p>
+          </button>
+          <button
+            onClick={() => navigate("/admin/games")}
+            className="w-48 h-48 shadow-md rounded-md bg-opacity-20 bg-black hover:bg-opacity-30 transition-all group"
+          >
+            <i className="fa-solid fa-pencil text-white border-4 border-white w-24 h-24 rounded-full text-5xl pt-5 group-hover:text-[#E63946] group-hover:border-[#E63946] transition-all"></i>
+            <p className="text-2xl font-bold text-white mt-4 group-hover:text-[#E63946] transition-all">
+              Veidot
+            </p>
+          </button>
+        </div>
+        <div className="flex gap-4 text-white text-xs place-items-center mx-auto">
+          <button
+            className="hover:underline hover:cursor-pointer"
+            onClick={() => navigate("/")}
+          >
+            INFO
+          </button>
+          <span className="bg-white w-1 h-1 rounded-full"></span>
+          <span>{version}</span>
+        </div>
+      </div>
+      {isPlayModalOpen && (
+        <PlayModal onCancel={() => setIsPlayModalOpen(false)} />
+      )}
+      {isGamesModalOpen && (
+        <GameBrowserModal
+          onCancel={() => setIsGamesModalOpen(false)}
+          instanceStore={instanceStore}
+        />
+      )}
     </div>
   );
 };

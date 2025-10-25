@@ -22,14 +22,14 @@ class RoundRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => 'required|string',
+            'id' => 'string',
             'title' => 'required|string',
-            'disqualify_amount' => 'required|integer',
-            'answer_time' => 'required|integer',
-            'points' => 'required|integer',
+            'disqualify_amount' => 'integer',
+            'answer_time' => 'integer',
+            'points' => 'integer',
             'is_additional' => 'boolean|nullable',
             'game_id' => 'required|string',
-            'is_test' => 'boolean|nullable',
+            'is_test' => 'nullable',
         ];
     }
 }

@@ -24,19 +24,23 @@ class AnswerController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(string $questionID)
+    public function createOrUpdate(AnswerRequest $request)
     {
-        if(!$questionID) {
-            return response()->json(['message' => 'Question ID is required.'], 400);
-        }
+        $this->authorize('manage', Game::findOrFail(Question::findOrFail($request->question_id)->round()->game_id));
+        $validated = $request->validated();        
 
-        $answer = [
-            'id' => Str::uuid()->toString(), 
-            'text' => 'Atbildes teksts', 
-            'is_correct' => false, 
-        ];
+        if($request->id) {
+            $round = Round::findOrFail($request->id);
 
-        return response()->json(['message' => 'Answer is ready for creation.', 'answer' => $answer], 201);
+            $round->update($validated);
+            return response()->json(['message' => 'Round successfully updated.', 'round' => $round], 200);
+        };
+
+        $roundCount = Round::where('game_id', $request->game_id)->count();
+        $validated['order'] = $roundCount + 1;
+        $round = Round::create($validated);
+
+        return response()->json(['message' => 'Round successfully created.', 'round' => $round], 200);
     }
 
     /**

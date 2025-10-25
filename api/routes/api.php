@@ -56,6 +56,9 @@ Route::get('/version', function () {
     ]);
 });
 
+//PLAYER INSTANCES
+Route::get('/player-instances', [GameInstanceController::class, 'indexGameInstances']);
+
 Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/user', [UserController::class, 'getCurrentUser']);
 
@@ -72,9 +75,10 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::get('/games', [GameController::class, 'get']);
 
     //rounds
-    Route::apiResource('/rounds', RoundController::class);
+    //Route::apiResource('/rounds', RoundController::class);
     Route::get('/create-round/{game_id}', [RoundController::class, 'create']);
     Route::get('/gamerounds/{game_id}', [RoundController::class, 'roundsByGame']);
+    Route::post('/rounds', [RoundController::class, 'createOrUpdate']);
 
     //questions
     Route::apiResource('/questions', QuestionController::class);
@@ -82,8 +86,7 @@ Route::group(['middleware' => 'auth:sanctum'], function() {
     Route::post('/question-image/{question_id}', [QuestionController::class, 'uploadImage']);
 
     //answers
-    Route::delete('/answers/{answer_id}', [AnswerController::class, 'destroy']);
-    Route::get('/create-answer/{question_id}', [AnswerController::class, 'create']);
+    Route::post('/answers', [AnswerController::class, 'createOrUpdate']);
 
     //game-instances
     Route::post('/activate', [GameInstanceController::class, 'activate']);

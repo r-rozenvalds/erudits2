@@ -1,4 +1,4 @@
-namespace erudits.api.Models;
+namespace erudits.api.Models.UsedAdditionalQuestion;
 
 public class UsedAdditionalQuestionEntity : BaseEntity
 {

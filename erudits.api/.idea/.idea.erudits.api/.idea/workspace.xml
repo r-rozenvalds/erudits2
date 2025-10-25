@@ -9,9 +9,55 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ab66cb98-4e56-46a8-beb0-5066bc41fd24" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/erudits.api/Db/DbConnection.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.erudits.api/.idea/indexLayout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.erudits.api/.idea/projectSettingsUpdater.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.erudits.api/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.erudits.api/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api.sln" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api.sln.DotSettings.user" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Controllers/User/UserController.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Db/EruditsDbContext.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Migrations/20250802140850_Initial.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Migrations/EruditsDbContextModelSnapshot.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/Answer/AnswerEntity.cs" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/erudits.api/Models/BaseEntity.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/erudits.api/Models/User/User.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/BaseResponse.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/Game/GameEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/GameInstance/GameInstanceEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/Player/PlayerEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/PlayerAnswer/PlayerAnswerEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/Question/QuestionEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/QuestionImage/QuestionImageEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/Round/RoundEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/UsedAdditionalQuestion/UsedAdditionalQuestionEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/User/CreateUserRequest.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Models/User/UserEntity.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Program.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Properties/launchSettings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Repositories/User/UserRepository.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Repositories/User/interfaces/IUserRepository.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Services/User/UserService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/Services/User/interfaces/IUserService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/appsettings.Development.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/appsettings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/erudits.api.csproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/erudits.api.http" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/.NETCoreApp,Version=v9.0.AssemblyAttributes.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/erudits.api.AssemblyInfo.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/erudits.api.AssemblyInfoInputs.cache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/erudits.api.GeneratedMSBuildEditorConfig.editorconfig" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/erudits.api.GlobalUsings.g.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/erudits.api.assets.cache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/Debug/net9.0/erudits.api.csproj.AssemblyReference.cache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/erudits.api.csproj.nuget.dgspec.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/erudits.api.csproj.nuget.g.props" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/erudits.api.csproj.nuget.g.targets" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/project.assets.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/project.nuget.cache" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/project.packagespec.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/rider.project.model.nuget.info" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/erudits.api/obj/rider.project.restore.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../api/app/Http/Controllers/Api/AnswerController.php" beforeDir="false" afterPath="$PROJECT_DIR$/../api/app/Http/Controllers/Api/AnswerController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../api/app/Http/Controllers/Api/RoundController.php" beforeDir="false" afterPath="$PROJECT_DIR$/../api/app/Http/Controllers/Api/RoundController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../api/app/Http/Requests/RoundRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/../api/app/Http/Requests/RoundRequest.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../api/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/../api/routes/api.php" afterDir="false" />
@@ -33,6 +79,7 @@
       <change beforePath="$PROJECT_DIR$/../web/src/components/admin/pages/editor/Game.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../web/src/components/admin/pages/editor/Question.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../web/src/components/admin/pages/editor/Round.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../web/src/components/admin/ui/Answer.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../web/src/main.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/main.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../web/src/stores/CreatorStore.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/stores/CreatorStore.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../web/src/stores/interfaces/creator/IQuestion.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/stores/interfaces/creator/IQuestion.ts" afterDir="false" />
@@ -43,17 +90,23 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="DpaMonitoringSettings">
+    <option name="firstShow" value="false" />
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/283f1ac699feafcc961c75e7f82d54f59737a0ae442079f46a3577167ba680/IdentityUserContext.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/6fa05d7dbf2e454ce78b261b422234da1f1ccedee678fd997e5ef4afe6df6e/ControllerBase.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/af7a1fd16db25e80d3e562916655e0aa58f0a179668fefe98c8148d7cb354d3a/DbConnection.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/f6f937e7fde51c3ca061c59112cdd35b76a72e9ef8821ac361c6ef71e90ea88/ControllerEndpointRouteBuilderExtensions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/f9342fb513b7b524925c79d9822cd3ecaf072c50231aa3b469875f4c2cdf/IdentityDbContext.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="30NSn6wDbNDuyXUPa9c5TCWMck2" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -64,6 +117,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    ".NET Launch Settings Profile.erudits.api: http.executor": "Debug",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -115,7 +169,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1753466702444</updated>
-      <workItem from="1753466704294" duration="2379000" />
+      <workItem from="1753466704294" duration="4197000" />
+      <workItem from="1754127542191" duration="15429000" />
     </task>
     <servers />
   </component>

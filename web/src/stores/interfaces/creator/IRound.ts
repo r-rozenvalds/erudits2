@@ -6,11 +6,11 @@ export interface IRound {
   disqualify_amount: number;
   answer_time: number;
   points: number;
-  is_additional: boolean;
   game_id: string;
+  is_additional: boolean;
   questions?: IQuestion[];
   order: number;
   is_test: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }

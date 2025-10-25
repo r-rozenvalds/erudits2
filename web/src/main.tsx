@@ -5,11 +5,7 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AdminLogin from "./components/admin/pages/Login.tsx";
 import AdminRegister from "./components/admin/pages/Register.tsx";
-import { AdminGames } from "./components/admin/pages/Games.tsx";
-import { GameCreatorQuestionRound } from "./components/admin/pages/creator/Round.tsx";
-import { GameCreatorQuestion } from "./components/admin/pages/creator/Question.tsx";
 import { ToastProvider } from "./components/universal/Toast.tsx";
-import { CreatorLayout } from "./components/admin/pages/layouts/CreatorLayout.tsx";
 import { BreadCrumbProvider } from "./components/universal/BreadCrumbContext.tsx";
 import { ConfirmationProvider } from "./components/universal/ConfirmationWindowContext.tsx";
 import { Lobby } from "./components/player/pages/Lobby.tsx";
@@ -25,11 +21,17 @@ import { UserProvider } from "./stores/UserStore.tsx";
 import { RequireAuth } from "./components/universal/RequireAuth.tsx";
 import { Creator } from "./components/admin/pages/creator/Creator.tsx";
 import { CreatorProvider } from "./stores/CreatorStore.tsx";
+import { Dashboard } from "./components/admin/pages/Dashboard.tsx";
+import { PlayerInstanceProvider } from "./components/player/stores/PlayerInstanceStore.tsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <LandingPage />,
+    element: (
+      <PlayerInstanceProvider>
+        <LandingPage />
+      </PlayerInstanceProvider>
+    ),
   },
   {
     path: "admin/login",
@@ -59,7 +61,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "games",
-        element: <AdminGames />,
+        element: <Dashboard />,
       },
       {
         path: "creator/:gameId",

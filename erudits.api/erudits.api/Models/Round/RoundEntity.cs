@@ -1,9 +1,9 @@
 namespace erudits.api.Models.Round;
 
-public class Round : BaseEntity
+public class RoundEntity : BaseEntity
 {
     public Guid GameId { get; set; }
-    public string Title { get; set; }
+    public required string Title { get; set; }
     public int DisqualifyAmount { get; set; }
     public float AnswerTime { get; set; }
     public float Points { get; set; }

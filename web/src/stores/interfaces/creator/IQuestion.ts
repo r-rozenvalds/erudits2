@@ -4,8 +4,8 @@ export interface IQuestion {
   id: string;
   title: string;
   is_text_answer: boolean;
-  guidelines: string;
-  image_url: string;
+  guidelines?: string;
+  image_url?: string;
   order: number;
   answers?: IAnswer[];
   round_id: string;
